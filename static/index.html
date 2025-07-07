@@ -5,122 +5,195 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Election: The Game</title>
     <link rel="stylesheet" href="/static/style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=SF+Pro+Display:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 </head>
 <body>
     <div id="app">
         <!-- Game Setup Screen -->
-        <div id="setup-screen" class="screen">
-            <h1>Election: The Game</h1>
-            <div class="setup-form">
-                <h2>Start New Game</h2>
-                <div class="player-inputs">
-                    <div class="player-input">
-                        <label for="player1">Player 1:</label>
-                        <input type="text" id="player1" placeholder="Enter name" required>
+        <div id="setup-screen" class="screen setup-screen">
+            <div class="setup-container">
+                <header class="setup-header">
+                    <div class="logo">
+                        <div class="logo-icon">🗳️</div>
+                        <h1>Election</h1>
+                        <p class="subtitle">The Political Strategy Game</p>
                     </div>
-                    <div class="player-input">
-                        <label for="player2">Player 2:</label>
-                        <input type="text" id="player2" placeholder="Enter name" required>
+                </header>
+
+                <main class="setup-content">
+                    <div class="setup-card">
+                        <h2>Start New Game</h2>
+                        <p class="setup-description">Enter player names to begin your political campaign</p>
+                        
+                        <form class="player-form" id="player-form">
+                            <div class="player-inputs">
+                                <div class="player-input">
+                                    <label for="player1">Player 1</label>
+                                    <input type="text" id="player1" placeholder="Enter name" required>
+                                </div>
+                                <div class="player-input">
+                                    <label for="player2">Player 2</label>
+                                    <input type="text" id="player2" placeholder="Enter name" required>
+                                </div>
+                                <div class="player-input optional">
+                                    <label for="player3">Player 3 <span class="optional-text">(optional)</span></label>
+                                    <input type="text" id="player3" placeholder="Enter name">
+                                </div>
+                                <div class="player-input optional">
+                                    <label for="player4">Player 4 <span class="optional-text">(optional)</span></label>
+                                    <input type="text" id="player4" placeholder="Enter name">
+                                </div>
+                            </div>
+                            <button type="submit" id="start-game-btn" class="btn-primary">
+                                <span class="btn-text">Start Game</span>
+                                <span class="btn-icon">→</span>
+                            </button>
+                        </form>
                     </div>
-                    <div class="player-input optional">
-                        <label for="player3">Player 3 (optional):</label>
-                        <input type="text" id="player3" placeholder="Enter name">
-                    </div>
-                    <div class="player-input optional">
-                        <label for="player4">Player 4 (optional):</label>
-                        <input type="text" id="player4" placeholder="Enter name">
-                    </div>
-                </div>
-                <button id="start-game-btn" class="btn-primary">Start Game</button>
+                </main>
             </div>
         </div>
 
         <!-- Game Screen -->
-        <div id="game-screen" class="screen hidden">
-            <div class="game-header">
-                <h1>Election: The Game</h1>
-                <div class="game-info">
-                    <span id="round-info">Round 1</span>
-                    <span id="phase-info">Event Phase</span>
-                    <span id="mood-info">Public Mood: Neutral</span>
+        <div id="game-screen" class="screen game-screen hidden">
+            <!-- Game Header -->
+            <header class="game-header">
+                <div class="header-content">
+                    <div class="header-left">
+                        <h1>Election</h1>
+                        <div class="game-meta">
+                            <span id="round-info" class="meta-item">Round 1</span>
+                            <span id="phase-info" class="meta-item">Event Phase</span>
+                            <span id="mood-info" class="meta-item">Public Mood: Neutral</span>
+                        </div>
+                    </div>
+                    <div class="header-right">
+                        <button id="new-game-btn" class="btn-secondary btn-small">
+                            <span class="btn-icon">↻</span>
+                            <span class="btn-text">New Game</span>
+                        </button>
+                    </div>
                 </div>
-            </div>
+            </header>
 
-            <div class="game-content">
+            <!-- Main Game Content -->
+            <main class="game-content">
                 <!-- Enhanced Turn Status -->
-                <div id="turn-status" class="enhanced-turn-status">
-                    <!-- Turn status will be populated by JavaScript -->
-                </div>
-
-                <!-- Turn Log -->
-                <div class="turn-log">
-                    <h3>Game Log</h3>
-                    <div id="log-content"></div>
-                </div>
-
-                <!-- Current Player Info -->
-                <div class="current-player">
-                    <h3 id="current-player-name">Current Player</h3>
-                    <div class="player-stats">
-                        <div class="stat">
-                            <span class="label">PC:</span>
-                            <span id="current-player-pc">0</span>
-                        </div>
-                        <div class="stat">
-                            <span class="label">Office:</span>
-                            <span id="current-player-office">None</span>
-                        </div>
+                <section class="turn-status-section">
+                    <div id="turn-status" class="enhanced-turn-status">
+                        <!-- Turn status will be populated by JavaScript -->
                     </div>
-                    
-                    <!-- Player Archetype and Mandate -->
-                    <div class="player-identity">
-                        <div class="identity-card">
-                            <h4>Political Archetype</h4>
-                            <div class="card-content">
-                                <div class="card-title" id="current-player-archetype-title">Loading...</div>
-                                <div class="card-description" id="current-player-archetype-desc">Loading...</div>
+                </section>
+
+                <!-- Game Layout -->
+                <div class="game-layout">
+                    <!-- Left Column: Game State -->
+                    <div class="game-state-column">
+                        <!-- Current Player Info -->
+                        <section class="player-section">
+                            <div class="section-header">
+                                <h3>Current Player</h3>
+                                <div class="player-avatar" id="current-player-avatar">👤</div>
                             </div>
-                        </div>
-                        <div class="identity-card">
-                            <h4>Hidden Mission</h4>
-                            <div class="card-content">
-                                <div class="card-title" id="current-player-mandate-title">Loading...</div>
-                                <div class="card-description" id="current-player-mandate-desc">Loading...</div>
+                            <div class="player-info">
+                                <h4 id="current-player-name">Player Name</h4>
+                                <div class="player-stats">
+                                    <div class="stat-item">
+                                        <span class="stat-label">Political Capital</span>
+                                        <span class="stat-value" id="current-player-pc">0</span>
+                                    </div>
+                                    <div class="stat-item">
+                                        <span class="stat-label">Office</span>
+                                        <span class="stat-value" id="current-player-office">None</span>
+                                    </div>
+                                </div>
                             </div>
-                        </div>
+                        </section>
+
+                        <!-- Player Identity Cards -->
+                        <section class="identity-section">
+                            <div class="identity-card">
+                                <div class="card-header">
+                                    <h4>Political Archetype</h4>
+                                    <div class="card-icon">🎭</div>
+                                </div>
+                                <div class="card-content">
+                                    <h5 id="current-player-archetype-title">Loading...</h5>
+                                    <p id="current-player-archetype-desc">Loading...</p>
+                                </div>
+                            </div>
+                            
+                            <div class="identity-card">
+                                <div class="card-header">
+                                    <h4>Hidden Mission</h4>
+                                    <div class="card-icon">🎯</div>
+                                </div>
+                                <div class="card-content">
+                                    <h5 id="current-player-mandate-title">Loading...</h5>
+                                    <p id="current-player-mandate-desc">Loading...</p>
+                                </div>
+                            </div>
+                        </section>
+
+                        <!-- Player Favors -->
+                        <section id="player-favors-section" class="favors-section hidden">
+                            <!-- Player favors will be displayed here -->
+                        </section>
+                    </div>
+
+                    <!-- Right Column: Actions & Game Log -->
+                    <div class="game-actions-column">
+                        <!-- Action Buttons -->
+                        <section class="actions-section">
+                            <div class="section-header">
+                                <h3>Available Actions</h3>
+                                <div class="action-points-display" id="action-points-display">
+                                    <span class="ap-icon">⚡</span>
+                                    <span class="ap-text">3 AP</span>
+                                </div>
+                            </div>
+                            <div class="action-grid" id="action-list">
+                                <!-- Actions will be populated here -->
+                            </div>
+                        </section>
+
+                        <!-- Pending Legislation -->
+                        <section id="pending-legislation-section" class="legislation-section hidden">
+                            <!-- Pending legislation will be displayed here -->
+                        </section>
+
+                        <!-- Game Log -->
+                        <section class="log-section">
+                            <div class="section-header">
+                                <h3>Game Log</h3>
+                                <button class="btn-clear-log" id="clear-log-btn">
+                                    <span class="btn-icon">🗑️</span>
+                                </button>
+                            </div>
+                            <div class="log-container">
+                                <div id="log-content" class="log-content">
+                                    <!-- Game log will be populated here -->
+                                </div>
+                            </div>
+                        </section>
                     </div>
                 </div>
+            </main>
 
-                <!-- Player Favors -->
-                <div id="player-favors-section" class="player-favors hidden">
-                    <!-- Player favors will be displayed here -->
+            <!-- Event Phase Button -->
+            <footer class="game-footer">
+                <div id="event-phase-section" class="event-phase hidden">
+                    <button id="run-event-btn" class="btn-primary btn-large">
+                        <span class="btn-icon">🎲</span>
+                        <span class="btn-text">Draw Event Card</span>
+                    </button>
                 </div>
-
-                <!-- Pending Legislation -->
-                <div id="pending-legislation-section" class="pending-legislation hidden">
-                    <!-- Pending legislation will be displayed here -->
-                </div>
-
-                <!-- Action Buttons -->
-                <div class="action-buttons">
-                    <h3>Available Actions</h3>
-                    <div id="action-list">
-                        <!-- Actions will be populated here -->
-                    </div>
-                </div>
-
-                <!-- Event Phase Button -->
-                <div id="event-phase-section" class="hidden">
-                    <button id="run-event-btn" class="btn-secondary">Draw Event Card</button>
-                </div>
-            </div>
-
-            <div class="game-footer">
-                <button id="new-game-btn" class="btn-secondary">New Game</button>
-            </div>
+            </footer>
         </div>
     </div>
 
-    <script src="/static/script.js?v=2"></script>
+    <script src="/static/script.js?v=3"></script>
 </body>
 </html> 
