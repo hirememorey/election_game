@@ -299,7 +299,7 @@ function updateCurrentPlayerInfo() {
     if (currentPlayerName) currentPlayerName.textContent = currentPlayer.name;
     if (currentPlayerPc) currentPlayerPc.textContent = currentPlayer.pc;
     if (currentPlayerOffice) {
-        const office = currentPlayer.held_office;
+        const office = currentPlayer.current_office;
         currentPlayerOffice.textContent = office ? office.title : 'None';
     }
     
@@ -308,9 +308,9 @@ function updateCurrentPlayerInfo() {
         currentPlayerAvatar.textContent = getPlayerAvatar(currentPlayer);
     }
     
-    // Update archetype and mandate
+    // Update archetype and mandate - now using embedded data from player object
     if (currentPlayerArchetypeTitle) {
-        const archetype = currentGameState.archetypes.find(a => a.id === currentPlayer.archetype_id);
+        const archetype = currentPlayer.archetype;
         currentPlayerArchetypeTitle.textContent = archetype ? archetype.title : 'Loading...';
         if (currentPlayerArchetypeDesc) {
             currentPlayerArchetypeDesc.textContent = archetype ? archetype.description : 'Loading...';
@@ -318,7 +318,7 @@ function updateCurrentPlayerInfo() {
     }
     
     if (currentPlayerMandateTitle) {
-        const mandate = currentGameState.mandates.find(m => m.id === currentPlayer.mandate_id);
+        const mandate = currentPlayer.mandate;
         currentPlayerMandateTitle.textContent = mandate ? mandate.title : 'Loading...';
         if (currentPlayerMandateDesc) {
             currentPlayerMandateDesc.textContent = mandate ? mandate.description : 'Loading...';
