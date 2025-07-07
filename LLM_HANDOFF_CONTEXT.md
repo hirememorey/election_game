@@ -4,11 +4,38 @@
 
 **What this is:** A Python-based political strategy board game with a Flask backend and mobile-friendly web frontend. Players compete in elections through strategic actions, resource management, and political maneuvering.
 
-**Current State:** Fully functional game with rich mechanics, web interface, and comprehensive improvements to core gameplay systems. **All major bugs have been fixed and new features are fully tested.** **Action Points system is complete with enhanced frontend UI.**
+**Current State:** Fully functional game with rich mechanics, web interface, and comprehensive improvements to core gameplay systems. **All major bugs have been fixed and new features are fully tested.** **Action Points system is complete with enhanced frontend UI.** **Apple-level design system implemented.**
 
 **Architecture:** Clean separation between game logic (Python) and presentation (HTML/CSS/JS), with REST API communication.
 
 ## 📝 Recent Gameplay/Codebase Changes (Latest Updates)
+
+### Apple-Level Design System Overhaul (LATEST - Just Completed)
+- **Complete UI Redesign**: Implemented Apple-inspired design system with SF Pro Display typography
+  - **Typography**: Apple's signature SF Pro Display font with proper font weights and sizes
+  - **Color System**: Semantic color palette with Apple-inspired colors (primary: #007AFF, etc.)
+  - **Spacing System**: Consistent spacing using CSS custom properties (--spacing-xs to --spacing-3xl)
+  - **Border Radius**: Apple-style rounded corners with consistent radius system
+  - **Shadows**: Subtle shadow system matching Apple's design language
+  - **Transitions**: Smooth animations (150ms, 250ms, 350ms) for all interactions
+  - **Files Modified**: `static/index.html`, `static/style.css` - Complete redesign
+  - **Impact**: Professional, modern interface that meets Apple's design standards
+  - **Status**: Fully implemented and deployed to GitHub
+
+- **Enhanced Visual Hierarchy**: Improved information organization and user experience
+  - **Card-Based Design**: Modern card layout with subtle shadows and hover effects
+  - **Better Typography**: Improved font hierarchy with proper weights and sizes
+  - **Improved Spacing**: Consistent spacing system throughout the interface
+  - **Enhanced Buttons**: Modern button design with proper states and interactions
+  - **Mobile Optimization**: Touch-friendly interactions with proper button sizes
+  - **Accessibility**: Better contrast ratios and focus states for accessibility
+
+- **Modern Layout System**: Clean, responsive grid-based layout
+  - **Two-Column Layout**: Clear separation between game state and actions
+  - **Responsive Design**: Adapts beautifully to mobile and desktop screens
+  - **Improved Modals**: Enhanced modal design with backdrop blur effects
+  - **Better Forms**: Improved form styling with proper focus states
+  - **Enhanced Game Log**: Better readability and visual organization
 
 ### Recent Critical Bug Fixes (LATEST)
 - **Trading Action Visibility Fix**: Fixed critical bug where trading actions weren't showing during legislation sessions
@@ -169,9 +196,9 @@
 - **`game_data.py`**: Game data loading and configuration (updated to match actual mechanics)
 
 ### Frontend (HTML/CSS/JS)
-- **`static/index.html`**: Main game interface (updated with enhanced turn status)
+- **`static/index.html`**: Main game interface (Apple-level design)
 - **`static/script.js`**: Game logic and API communication (updated with favor menu, PC commitment, and dynamic API URLs)
-- **`static/style.css`**: Mobile-responsive styling (updated with enhanced turn status, AP display, and action button styling)
+- **`static/style.css`**: Apple-inspired design system with SF Pro Display typography
 
 ### Deployment Configuration
 - **`render.yaml`**: Render deployment configuration for automatic deployment
@@ -257,18 +284,21 @@
 - **Deployment**: Successfully deployed to Render at https://election-game.onrender.com
 
 ### 📱 Frontend Features
-- Mobile-responsive design
-- Real-time game state updates
-- Context-aware action buttons
-- Player favor management UI with selection menu
-- Pending legislation display
-- Turn-based action system
-- Trading interface with propose/accept/decline functionality
-- Conditional action display (Use Favor only shows when available)
-- PC commitment prompts for strategic actions
-- Enhanced turn status display with phase-specific styling
-- Action Points visualization with prominent display
-- Dynamic API URL detection for development vs production
+- **Apple-Level Design System**: Professional, modern interface with SF Pro Display typography
+- **Mobile-responsive design** with touch-friendly interactions
+- **Real-time game state updates** with smooth animations
+- **Context-aware action buttons** with proper states and feedback
+- **Player favor management UI** with selection menu
+- **Pending legislation display** with enhanced visual hierarchy
+- **Turn-based action system** with Action Points visualization
+- **Trading interface** with propose/accept/decline functionality
+- **Conditional action display** (Use Favor only shows when available)
+- **PC commitment prompts** for strategic actions
+- **Enhanced turn status display** with phase-specific styling
+- **Action Points visualization** with prominent display and cost indicators
+- **Dynamic API URL detection** for development vs production
+- **Modern card-based layout** with subtle shadows and hover effects
+- **Enhanced accessibility** with proper contrast ratios and focus states
 
 ## 🧪 Testing Status
 
@@ -334,8 +364,8 @@
 
 ### For Frontend
 - `static/script.js`: All frontend game logic and API calls (updated with favor menu and PC commitment)
-- `static/index.html`: Game interface structure
-- `static/style.css`: Mobile-responsive styling (updated with favor menu styles)
+- `static/index.html`: Game interface structure (Apple-level design)
+- `static/style.css`: Apple-inspired design system with SF Pro Display typography
 
 ### For API
 - `server.py`: All API endpoints and request handling
