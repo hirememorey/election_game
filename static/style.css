@@ -1,0 +1,996 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    min-height: 100vh;
+    color: #333;
+}
+
+#app {
+    max-width: 100%;
+    min-height: 100vh;
+    padding: 20px;
+}
+
+.screen {
+    background: white;
+    border-radius: 20px;
+    padding: 30px 20px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+    margin: 0 auto;
+    max-width: 500px;
+}
+
+.hidden {
+    display: none !important;
+}
+
+/* Setup Screen */
+#setup-screen h1 {
+    text-align: center;
+    color: #4a5568;
+    margin-bottom: 30px;
+    font-size: 2rem;
+}
+
+.setup-form h2 {
+    text-align: center;
+    color: #2d3748;
+    margin-bottom: 25px;
+    font-size: 1.5rem;
+}
+
+.player-inputs {
+    margin-bottom: 30px;
+}
+
+.player-input {
+    margin-bottom: 20px;
+}
+
+.player-input label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 600;
+    color: #4a5568;
+}
+
+.player-input input {
+    width: 100%;
+    padding: 12px 16px;
+    border: 2px solid #e2e8f0;
+    border-radius: 10px;
+    font-size: 16px;
+    transition: border-color 0.3s ease;
+}
+
+.player-input input:focus {
+    outline: none;
+    border-color: #667eea;
+}
+
+.player-input.optional input {
+    border-color: #cbd5e0;
+}
+
+/* Game Screen */
+.game-header {
+    text-align: center;
+    margin-bottom: 25px;
+    padding-bottom: 20px;
+    border-bottom: 2px solid #e2e8f0;
+}
+
+.game-header h1 {
+    color: #2d3748;
+    margin-bottom: 15px;
+    font-size: 1.8rem;
+}
+
+.game-info {
+    display: flex;
+    justify-content: space-around;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.game-info span {
+    background: #f7fafc;
+    padding: 8px 12px;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: #4a5568;
+}
+
+.game-content {
+    margin-bottom: 25px;
+}
+
+.turn-log {
+    background: #f7fafc;
+    border-radius: 12px;
+    padding: 20px;
+    margin-bottom: 20px;
+    max-height: 200px;
+    overflow-y: auto;
+}
+
+.turn-log h3 {
+    color: #2d3748;
+    margin-bottom: 15px;
+    font-size: 1.2rem;
+}
+
+#log-content {
+    font-size: 0.9rem;
+    line-height: 1.5;
+    color: #4a5568;
+}
+
+#log-content p {
+    margin-bottom: 8px;
+    padding: 8px;
+    background: white;
+    border-radius: 6px;
+    border-left: 4px solid #667eea;
+}
+
+.current-player {
+    background: #edf2f7;
+    border-radius: 12px;
+    padding: 20px;
+    margin-bottom: 20px;
+    border: 2px solid #cbd5e0;
+}
+
+.current-player h3 {
+    color: #2d3748;
+    margin-bottom: 15px;
+    font-size: 1.2rem;
+}
+
+.player-stats {
+    display: flex;
+    gap: 20px;
+    flex-wrap: wrap;
+}
+
+.stat {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.stat .label {
+    font-weight: 600;
+    color: #4a5568;
+}
+
+.stat span:last-child {
+    background: white;
+    padding: 6px 12px;
+    border-radius: 6px;
+    font-weight: 600;
+    color: #2d3748;
+}
+
+.action-buttons {
+    margin-bottom: 20px;
+}
+
+.action-buttons h3 {
+    color: #2d3748;
+    margin-bottom: 15px;
+    font-size: 1.2rem;
+}
+
+#action-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.action-btn {
+    position: relative;
+    padding: 15px;
+    margin: 10px 5px;
+    border: 2px solid #ddd;
+    border-radius: 8px;
+    background: white;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    min-width: 120px;
+    text-align: center;
+}
+
+.action-btn:hover:not(:disabled) {
+    border-color: #667eea;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.action-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    background: #f5f5f5;
+}
+
+.action-label {
+    font-weight: bold;
+    margin-bottom: 5px;
+}
+
+.action-cost {
+    font-size: 0.8em;
+    color: #667eea;
+    font-weight: bold;
+    margin: 5px 0;
+}
+
+.action-description {
+    font-size: 0.7em;
+    color: #666;
+    margin-top: 3px;
+}
+
+/* Action Points Display */
+.action-points-display {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 15px;
+    margin: 15px 0;
+    border-radius: 10px;
+    text-align: center;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.turn-info {
+    font-size: 1.1em;
+}
+
+.ap-counter {
+    font-size: 1.2em;
+    font-weight: bold;
+    color: #ffd700;
+}
+
+#event-phase-section {
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+.game-footer {
+    text-align: center;
+    padding-top: 20px;
+    border-top: 2px solid #e2e8f0;
+}
+
+/* Buttons */
+.btn-primary {
+    background: #667eea;
+    color: white;
+    border: none;
+    padding: 15px 30px;
+    border-radius: 10px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    width: 100%;
+}
+
+.btn-primary:hover {
+    background: #5a67d8;
+    transform: translateY(-2px);
+}
+
+.btn-secondary {
+    background: #e2e8f0;
+    color: #4a5568;
+    border: none;
+    padding: 12px 24px;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.btn-secondary:hover {
+    background: #cbd5e0;
+}
+
+/* Responsive Design */
+@media (max-width: 480px) {
+    #app {
+        padding: 10px;
+    }
+    
+    .screen {
+        padding: 20px 15px;
+        border-radius: 15px;
+    }
+    
+    .game-header h1 {
+        font-size: 1.5rem;
+    }
+    
+    .game-info {
+        flex-direction: column;
+        align-items: center;
+    }
+    
+    .player-stats {
+        flex-direction: column;
+        gap: 10px;
+    }
+    
+    .player-identity {
+        grid-template-columns: 1fr;
+        gap: 10px;
+    }
+    
+    .identity-card {
+        padding: 12px;
+    }
+    
+    .identity-card h4 {
+        font-size: 0.9rem;
+    }
+    
+    .card-title {
+        font-size: 0.8rem;
+    }
+    
+    .card-description {
+        font-size: 0.75rem;
+    }
+    
+    .action-points-display {
+        padding: 12px;
+        margin: 10px 0;
+    }
+    
+    .turn-info {
+        font-size: 1em;
+    }
+    
+    .ap-counter {
+        font-size: 1.1em;
+    }
+    
+    .action-btn {
+        padding: 12px;
+        margin: 8px 3px;
+        min-width: 100px;
+    }
+    
+    .action-cost {
+        font-size: 0.7em;
+    }
+    
+    .action-description {
+        font-size: 0.6em;
+    }
+    
+    .campaign-modal {
+        padding: 20px;
+        margin: 15px auto;
+    }
+    
+    .campaign-modal h3 {
+        font-size: 1.2em;
+    }
+    
+    .modal-buttons {
+        flex-direction: column;
+        gap: 8px;
+    }
+    
+    .modal-buttons .btn-primary,
+    .modal-buttons .btn-secondary {
+        padding: 10px 20px;
+    }
+}
+
+/* Loading States */
+.loading {
+    opacity: 0.6;
+    pointer-events: none;
+}
+
+/* Success/Error Messages */
+.message {
+    padding: 12px 16px;
+    border-radius: 8px;
+    margin-bottom: 15px;
+    font-weight: 600;
+}
+
+.message.success {
+    background: #c6f6d5;
+    color: #22543d;
+    border: 1px solid #9ae6b4;
+}
+
+.message.error {
+    background: #fed7d7;
+    color: #742a2a;
+    border: 1px solid #feb2b2;
+}
+
+/* Player Favors Section */
+.player-favors {
+    background: #e8f5e8;
+    padding: 15px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+    border-left: 4px solid #28a745;
+}
+
+.player-favors h3 {
+    color: #2d3748;
+    margin-bottom: 15px;
+    font-size: 1.2rem;
+}
+
+.favors-list {
+    margin-top: 10px;
+}
+
+.favor-item {
+    background: #d4edda;
+    padding: 8px 12px;
+    margin: 5px 0;
+    border-radius: 4px;
+    font-size: 0.9rem;
+    color: #155724;
+}
+
+/* Pending Legislation Section */
+.pending-legislation {
+    background: #fff3cd;
+    padding: 15px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+    border-left: 4px solid #ffc107;
+}
+
+.pending-legislation h3 {
+    color: #2d3748;
+    margin-bottom: 15px;
+    font-size: 1.2rem;
+}
+
+.pending-bill {
+    margin-top: 10px;
+    padding: 10px;
+    background: #fff8e1;
+    border-radius: 4px;
+    font-size: 0.9rem;
+    color: #856404;
+}
+
+/* Legislation Menu */
+.legislation-menu {
+    background: #f7fafc;
+    border: 2px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 20px;
+    margin-top: 15px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.legislation-menu h3 {
+    color: #2d3748;
+    margin-bottom: 15px;
+    font-size: 1.2rem;
+    text-align: center;
+}
+
+.legislation-options {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-bottom: 15px;
+}
+
+.legislation-option {
+    background: #667eea;
+    color: white;
+    border: none;
+    padding: 12px 16px;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-align: left;
+}
+
+.legislation-option:hover {
+    background: #5a67d8;
+    transform: translateY(-1px);
+}
+
+.legislation-option:active {
+    transform: translateY(0);
+}
+
+.cancel-btn {
+    background: #e2e8f0;
+    color: #4a5568;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    width: 100%;
+}
+
+.cancel-btn:hover {
+    background: #cbd5e0;
+}
+
+/* Legislation Session */
+.legislation-session-item {
+    background: #f7fafc;
+    border: 2px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 20px;
+    margin-bottom: 15px;
+}
+
+.legislation-session-item h4 {
+    color: #2d3748;
+    margin-bottom: 10px;
+    font-size: 1.1rem;
+}
+
+.legislation-session-item p {
+    margin-bottom: 8px;
+    color: #4a5568;
+    font-size: 0.9rem;
+}
+
+.sponsor-label {
+    color: #667eea !important;
+    font-weight: 600;
+    font-style: italic;
+}
+
+.continue-btn {
+    background: #48bb78 !important;
+    margin-top: 20px;
+}
+
+.continue-btn:hover {
+    background: #38a169 !important;
+}
+
+/* Player Identity Section */
+.player-identity {
+    margin-top: 20px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 15px;
+}
+
+.identity-card {
+    background: white;
+    border-radius: 10px;
+    padding: 15px;
+    border: 2px solid #e2e8f0;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.identity-card h4 {
+    color: #2d3748;
+    margin-bottom: 10px;
+    font-size: 1rem;
+    text-align: center;
+    border-bottom: 1px solid #e2e8f0;
+    padding-bottom: 8px;
+}
+
+.card-content {
+    text-align: center;
+}
+
+.card-title {
+    font-weight: 600;
+    color: #4a5568;
+    margin-bottom: 8px;
+    font-size: 0.9rem;
+}
+
+.card-description {
+    font-size: 0.9rem;
+    color: #4a5568;
+    line-height: 1.4;
+}
+
+/* Trading UI Styles */
+.trade-offers-section {
+    background: #f0f9ff;
+    border: 2px solid #0ea5e9;
+    border-radius: 12px;
+    padding: 20px;
+    margin-bottom: 20px;
+}
+
+.trade-offers-section h4 {
+    color: #0c4a6e;
+    margin-bottom: 15px;
+    font-size: 1.1rem;
+}
+
+.trade-offer {
+    background: white;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    padding: 15px;
+    margin-bottom: 15px;
+}
+
+.trade-offer p {
+    margin-bottom: 8px;
+    color: #4a5568;
+}
+
+.trade-offer p:first-child {
+    font-weight: 600;
+    color: #2d3748;
+}
+
+.accept-btn {
+    background: #10b981 !important;
+    margin-right: 10px;
+}
+
+.accept-btn:hover {
+    background: #059669 !important;
+}
+
+.decline-btn {
+    background: #ef4444 !important;
+}
+
+.decline-btn:hover {
+    background: #dc2626 !important;
+}
+
+.legislation-trading-item {
+    background: #f8fafc;
+    border: 2px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 20px;
+    margin-bottom: 15px;
+}
+
+.legislation-trading-item h4 {
+    color: #2d3748;
+    margin-bottom: 10px;
+    font-size: 1.1rem;
+}
+
+.legislation-trading-item p {
+    margin-bottom: 8px;
+    color: #4a5568;
+    font-size: 0.9rem;
+}
+
+.trade-proposal-menu {
+    background: white;
+    border: 2px solid #667eea;
+    border-radius: 12px;
+    padding: 25px;
+    margin-top: 20px;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+}
+
+.trade-proposal-menu h3 {
+    color: #2d3748;
+    margin-bottom: 20px;
+    font-size: 1.3rem;
+    text-align: center;
+}
+
+.trade-form {
+    margin-bottom: 20px;
+}
+
+.form-group {
+    margin-bottom: 15px;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: 600;
+    color: #4a5568;
+}
+
+.form-group select,
+.form-group input[type="number"] {
+    width: 100%;
+    padding: 10px 12px;
+    border: 2px solid #e2e8f0;
+    border-radius: 8px;
+    font-size: 14px;
+    transition: border-color 0.3s ease;
+}
+
+.form-group select:focus,
+.form-group input[type="number"]:focus {
+    outline: none;
+    border-color: #667eea;
+}
+
+.favor-checkboxes {
+    max-height: 150px;
+    overflow-y: auto;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    padding: 10px;
+    background: #f7fafc;
+}
+
+.favor-checkboxes label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 8px;
+    font-weight: normal;
+    cursor: pointer;
+}
+
+.favor-checkboxes input[type="checkbox"] {
+    margin: 0;
+}
+
+.trade-actions {
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+}
+
+.propose-trade-btn {
+    background: #667eea;
+    color: white;
+    border: none;
+    padding: 12px 24px;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.propose-trade-btn:hover {
+    background: #5a67d8;
+}
+
+.cancel-trade-btn {
+    background: #e2e8f0;
+    color: #4a5568;
+    border: none;
+    padding: 12px 24px;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.cancel-trade-btn:hover {
+    background: #cbd5e0;
+}
+
+.legislation-menu .cancel-btn {
+    background: #6b7280;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 14px;
+    margin-top: 15px;
+}
+
+.legislation-menu .cancel-btn:hover {
+    background: #4b5563;
+}
+
+.favor-menu {
+    background: white;
+    border: 2px solid #10b981;
+    border-radius: 12px;
+    padding: 25px;
+    margin-top: 20px;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+}
+
+.favor-menu h3 {
+    color: #2d3748;
+    margin-bottom: 20px;
+    font-size: 1.3rem;
+    text-align: center;
+}
+
+.favor-options {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-bottom: 20px;
+}
+
+.favor-option {
+    background: #f0fdf4;
+    border: 2px solid #10b981;
+    border-radius: 8px;
+    padding: 15px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-align: left;
+    font-size: 14px;
+}
+
+.favor-option:hover {
+    background: #dcfce7;
+    border-color: #059669;
+    transform: translateY(-2px);
+}
+
+.favor-option strong {
+    color: #065f46;
+}
+
+.favor-menu .cancel-btn {
+    background: #6b7280;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 14px;
+    margin-top: 15px;
+}
+
+.favor-menu .cancel-btn:hover {
+    background: #4b5563;
+}
+
+
+
+/* Campaign Modal Styles */
+.campaign-modal {
+    background: white;
+    padding: 30px;
+    border-radius: 15px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+    max-width: 400px;
+    width: 90%;
+    margin: 20px auto;
+    border: 2px solid #667eea;
+}
+
+.campaign-modal h3 {
+    color: #2d3748;
+    margin-bottom: 15px;
+    text-align: center;
+    font-size: 1.3em;
+}
+
+.campaign-modal p {
+    color: #4a5568;
+    margin-bottom: 20px;
+    text-align: center;
+    font-size: 0.9em;
+}
+
+.campaign-modal .form-group {
+    margin: 20px 0;
+}
+
+.campaign-modal .form-group label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: bold;
+    color: #333;
+    font-size: 0.9em;
+}
+
+.campaign-modal .form-group select,
+.campaign-modal .form-group input {
+    width: 100%;
+    padding: 12px;
+    border: 2px solid #ddd;
+    border-radius: 8px;
+    font-size: 16px;
+    transition: border-color 0.3s ease;
+}
+
+.campaign-modal .form-group select:focus,
+.campaign-modal .form-group input:focus {
+    border-color: #667eea;
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+.modal-buttons {
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+    margin-top: 25px;
+}
+
+.modal-buttons .btn-primary {
+    background: #667eea;
+    color: white;
+    border: none;
+    padding: 12px 24px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: bold;
+    transition: background-color 0.3s ease;
+}
+
+.modal-buttons .btn-primary:hover {
+    background: #5a67d8;
+}
+
+.modal-buttons .btn-secondary {
+    background: #6c757d;
+    color: white;
+    border: none;
+    padding: 12px 24px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: bold;
+    transition: background-color 0.3s ease;
+}
+
+.modal-buttons .btn-secondary:hover {
+    background: #5a6268;
+}
+
+/* Enhanced Turn Status */
+.enhanced-turn-status {
+    background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+    color: white;
+    padding: 20px;
+    border-radius: 12px;
+    text-align: center;
+    margin: 15px 0;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+}
+
+.player-turn {
+    font-size: 1.3em;
+    font-weight: bold;
+    margin-bottom: 10px;
+}
+
+.ap-status {
+    font-size: 1.1em;
+    margin-bottom: 8px;
+}
+
+.ap-icon {
+    margin-right: 8px;
+    font-size: 1.2em;
+}
+
+.phase-info {
+    font-size: 0.9em;
+    opacity: 0.9;
+} 

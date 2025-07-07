@@ -164,4 +164,4 @@ Temporary Items
 
 # Game-specific
 *.save
-*.log 
+*.log test_api.py

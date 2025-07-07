@@ -2,8 +2,31 @@ from dataclasses import dataclass, field
 from typing import List, Dict, Optional, Set
 import copy
 
-from models.components import Player, Office, Legislation, PoliticalFavor, Candidacy, Pledge
+from models.components import Player, Office, Legislation, PoliticalFavor, Candidacy, Pledge, CampaignInfluence
 from models.cards import Deck
+
+@dataclass
+class TradeOffer:
+    """Represents a trade offer made during legislation voting."""
+    offerer_id: int  # Player making the offer
+    target_id: int   # Player being offered to
+    legislation_id: str  # Legislation the trade is about
+    offered_pc: int = 0  # PC being offered
+    offered_favors: List[str] = field(default_factory=list)  # Favor IDs being offered
+    requested_vote: str = "support"  # "support", "oppose", or "abstain"
+    accepted: bool = False
+    declined: bool = False
+
+@dataclass
+class PendingLegislation:
+    """Tracks legislation that has been sponsored and is waiting for support/opposition."""
+    legislation_id: str
+    sponsor_id: int
+    support_players: Dict[int, int] = field(default_factory=dict)  # player_id -> pc_amount
+    oppose_players: Dict[int, int] = field(default_factory=dict)   # player_id -> pc_amount
+    resolved: bool = False
+    # New: Track trade offers for this legislation
+    trade_offers: List[TradeOffer] = field(default_factory=list)
 
 @dataclass
 class GameState:
@@ -26,9 +49,26 @@ class GameState:
     current_player_index: int = 0
     current_phase: str = "EVENT_PHASE"  # EVENT_PHASE, ACTION_PHASE, UPKEEP_PHASE, ELECTION_PHASE
     
+    # Action Points System
+    action_points: Dict[int, int] = field(default_factory=dict)  # player_id -> remaining AP
+    action_point_costs: Dict[str, int] = field(default_factory=dict)  # action_type -> AP cost
+    
     # State trackers for a single term/round
     turn_log: List[str] = field(default_factory=list)
     secret_candidacies: List[Candidacy] = field(default_factory=list)
+    campaign_influences: List[CampaignInfluence] = field(default_factory=list)  # Campaign influence for future elections
+    
+    # New: Track pending legislation and candidacy timing
+    pending_legislation: Optional[PendingLegislation] = None
+    candidacy_declared_this_round: bool = False
+    
+    # End-of-term legislation session
+    term_legislation: List[PendingLegislation] = field(default_factory=list)  # All legislation sponsored this term
+    legislation_session_active: bool = False  # Whether we're in the legislation session phase
+    
+    # New: Trading system state
+    current_trade_phase: bool = False  # Whether we're in the trading phase of legislation session
+    active_trade_offers: List[TradeOffer] = field(default_factory=list)  # All current trade offers
     
     # Lingering effects from events, identified by event ID
     active_effects: Set[str] = field(default_factory=set)

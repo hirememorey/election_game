@@ -18,9 +18,9 @@ class Legislation:
     id: str
     title: str
     cost: int
-    # Target for d6 roll + modifiers
-    success_target: int
-    crit_target: int
+    # Target for net influence (support - opposition)
+    success_target: int  # Minimum net influence needed for success
+    crit_target: int     # Minimum net influence needed for critical success
     # Rewards are PC gain for the sponsor
     success_reward: int
     crit_reward: int
@@ -51,6 +51,13 @@ class Candidacy:
     player_id: int
     office_id: str
     committed_pc: int
+
+@dataclass
+class CampaignInfluence:
+    """Stores a player's campaign influence for a future office election."""
+    player_id: int
+    office_id: str
+    influence_amount: int  # PC committed to future election
 
 @dataclass
 class Player:

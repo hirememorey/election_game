@@ -5,12 +5,14 @@ and game phases.
 """
 import random
 from copy import deepcopy
-from models.game_state import GameState
+from models.game_state import GameState, PendingLegislation, TradeOffer
 from models.cards import AllianceCard, EventCard, ScrutinyCard
-from models.components import Player, Office
+from models.components import Player, Office, Legislation, PoliticalFavor, Candidacy, Pledge, CampaignInfluence
 from engine.actions import (
-    Action, ActionFundraise, ActionNetwork, ActionFormAlliance,
-    ActionSponsorLegislation, ActionDeclareCandidacy
+    Action, ActionFundraise, ActionNetwork,
+    ActionSponsorLegislation, ActionDeclareCandidacy, ActionUseFavor,
+    ActionSupportLegislation, ActionOpposeLegislation,
+    ActionProposeTrade, ActionAcceptTrade, ActionDeclineTrade, ActionCompleteTrading, ActionCampaign, ActionPassTurn
 )
 
 #--- Action Resolvers ---
@@ -48,88 +50,242 @@ def resolve_network(state: GameState, action: ActionNetwork) -> GameState:
         state.add_log(f"{player.name} Networks, gaining 2 PC, but the favor supply is empty.")
     return state
 
-def resolve_form_alliance(state: GameState, action: ActionFormAlliance) -> GameState:
+def resolve_use_favor(state: GameState, action: ActionUseFavor) -> GameState:
     player = state.get_player_by_id(action.player_id)
     if not player: return state
-    cost = 10
-    if player.pc < cost:
-        state.add_log(f"{player.name} does not have enough PC to form an alliance.")
+    
+    # Find the favor in player's hand
+    favor = None
+    favor_index = -1
+    for i, f in enumerate(player.favors):
+        if f.id == action.favor_id:
+            favor = f
+            favor_index = i
+            break
+    
+    if not favor:
+        state.add_log(f"{player.name} doesn't have that favor.")
         return state
-    player.pc -= cost
-    if state.alliance_deck.is_empty():
-        state.add_log("The Alliance Deck is empty!")
-        return state
-    if player.allies:
-        old_ally = player.allies.pop()
-        state.add_log(f"{player.name} discards their former ally, {old_ally.title}.")
-    new_ally_card = state.alliance_deck.draw()
-    if new_ally_card and isinstance(new_ally_card, AllianceCard):
-        player.allies.append(new_ally_card)
-        state.add_log(f"{player.name} pays {cost} PC to form an alliance with {new_ally_card.title}.")
-        state.add_log(f"  Effect: {new_ally_card.description}")
-        if new_ally_card.weakness_description:
-            state.add_log(f"  Weakness: {new_ally_card.weakness_description}")
+    
+    # Remove the favor from player's hand
+    player.favors.pop(favor_index)
+    
+    # Apply favor effect based on favor type
+    if favor.id == "EXTRA_FUNDRAISING":
+        pc_gain = 8
+        player.pc += pc_gain
+        state.add_log(f"{player.name} uses '{favor.description}' and gains {pc_gain} PC.")
+    
+    elif favor.id == "LEGISLATIVE_INFLUENCE":
+        if state.pending_legislation:
+            # Add support to pending legislation
+            current_support = state.pending_legislation.support_players.get(player.id, 0)
+            state.pending_legislation.support_players[player.id] = current_support + 5
+            state.add_log(f"{player.name} uses '{favor.description}' to add 5 PC support to pending legislation.")
+        else:
+            state.add_log(f"{player.name} uses '{favor.description}' but there's no pending legislation.")
+    
+    elif favor.id == "MEDIA_SPIN":
+        # Improve public mood
+        state.public_mood = min(3, state.public_mood + 1)
+        state.add_log(f"{player.name} uses '{favor.description}' to improve public mood.")
+    
+    elif favor.id == "POLITICAL_PRESSURE":
+        if action.target_player_id >= 0:
+            target = state.get_player_by_id(action.target_player_id)
+            if target and target != player:
+                target.pc -= 3
+                state.add_log(f"{player.name} uses '{favor.description}' to pressure {target.name}, who loses 3 PC.")
+            else:
+                state.add_log(f"{player.name} uses '{favor.description}' but the target is invalid.")
+        else:
+            state.add_log(f"{player.name} uses '{favor.description}' but no target was specified.")
+    
+    elif favor.id == "PEEK_EVENT":
+        # Peek at the top card of the Event Deck
+        if state.event_deck.cards:
+            top_card = state.event_deck.cards[-1]
+            state.add_log(f"Peeked at the top Event Card: '{top_card.title}' - {top_card.description}")
+        else:
+            state.add_log(f"{player.name} uses '{favor.description}' but the Event Deck is empty.")
+        player.pc += 5  # Optionally, still give 5 PC as a bonus
+        state.add_log(f"{player.name} gains 5 PC.")
+    
     else:
-        state.add_log("Failed to draw a valid ally card.")
+        # Generic favor effect
+        player.pc += 5
+        state.add_log(f"{player.name} uses '{favor.description}' and gains 5 PC.")
+    
     return state
 
 def resolve_sponsor_legislation(state: GameState, action: ActionSponsorLegislation) -> GameState:
     player = state.get_player_by_id(action.player_id)
     if not player: return state
+    
+    # Check if there's already pending legislation
+    if state.pending_legislation and not state.pending_legislation.resolved:
+        state.add_log(f"There's already pending legislation. {player.name} must wait for it to be resolved.")
+        return state
+    
     bill = state.legislation_options[action.legislation_id]
     if player.pc < bill.cost:
         state.add_log(f"Not enough PC to sponsor {bill.title}.")
         return state
+    
     player.pc -= bill.cost
     state.add_log(f"{player.name} pays {bill.cost} PC to sponsor the {bill.title}.")
-    support_bonus = 0
-    roll = random.randint(1, 6)
+    state.add_log(f"This legislation will be voted on during the end-of-term legislation session.")
     
-    # Apply war penalty if active
-    war_penalty = -2 if "WAR_BREAKS_OUT" in state.active_effects else 0
-    modified_roll = roll + support_bonus + war_penalty
-    if war_penalty < 0:
-        state.add_log(f"{player.name} rolls a {roll} (Modified: {modified_roll} due to war penalty).")
-    else:
-        state.add_log(f"{player.name} rolls a {roll} (Modified: {modified_roll}).")
+    # Create pending legislation for other players to respond to during the term
+    state.pending_legislation = PendingLegislation(
+        legislation_id=action.legislation_id,
+        sponsor_id=player.id
+    )
     
-    outcome = "Failure"
-    if modified_roll >= bill.crit_target:
-        outcome = "Critical Success"
-        player.pc += bill.crit_reward
-        state.public_mood = min(3, state.public_mood + bill.mood_change)
-        state.add_log(f"Critical Success! {player.name} gains {bill.crit_reward} PC.")
-    elif modified_roll >= bill.success_target:
-        outcome = "Success"
-        player.pc += bill.success_reward
-        state.public_mood = min(3, state.public_mood + bill.mood_change)
-        state.add_log(f"Success! {player.name} gains {bill.success_reward} PC.")
-    else:
-        player.pc -= bill.failure_penalty
-        state.add_log(f"Failure! The bill fails. {player.name} loses an additional {bill.failure_penalty} PC.")
-    passed = outcome in ["Success", "Critical Success"]
-    state.last_sponsor_result = {'player_id': player.id, 'passed': passed}
-    state.legislation_history.append({'sponsor_id': player.id, 'leg_id': bill.id, 'outcome': outcome})
+    return state
+
+def resolve_support_legislation(state: GameState, action: ActionSupportLegislation) -> GameState:
+    player = state.get_player_by_id(action.player_id)
+    if not player: return state
+    
+    # Only allow support during legislation session
+    if not state.legislation_session_active:
+        state.add_log(f"Legislation voting is only allowed during the legislation session at the end of the term.")
+        return state
+    
+    # Find the legislation to support in term_legislation
+    target_legislation = None
+    for legislation in state.term_legislation:
+        if legislation.legislation_id == action.legislation_id and not legislation.resolved:
+            target_legislation = legislation
+            break
+    
+    if not target_legislation:
+        state.add_log(f"There's no pending legislation to support.")
+        return state
+    
+    if player.id == target_legislation.sponsor_id:
+        state.add_log(f"{player.name} cannot support their own legislation.")
+        return state
+    
+    if player.pc < action.support_amount:
+        state.add_log(f"{player.name} doesn't have enough PC to provide that much support.")
+        return state
+    
+    player.pc -= action.support_amount
+    current_support = target_legislation.support_players.get(player.id, 0)
+    target_legislation.support_players[player.id] = current_support + action.support_amount
+    
+    state.add_log(f"{player.name} commits {action.support_amount} PC to support the legislation.")
+    
+    return state
+
+def resolve_oppose_legislation(state: GameState, action: ActionOpposeLegislation) -> GameState:
+    player = state.get_player_by_id(action.player_id)
+    if not player: return state
+    
+    # Only allow opposition during legislation session
+    if not state.legislation_session_active:
+        state.add_log(f"Legislation voting is only allowed during the legislation session at the end of the term.")
+        return state
+    
+    # Find the legislation to oppose in term_legislation
+    target_legislation = None
+    for legislation in state.term_legislation:
+        if legislation.legislation_id == action.legislation_id and not legislation.resolved:
+            target_legislation = legislation
+            break
+    
+    if not target_legislation:
+        state.add_log(f"There's no pending legislation to oppose.")
+        return state
+    
+    if player.id == target_legislation.sponsor_id:
+        state.add_log(f"{player.name} cannot oppose their own legislation.")
+        return state
+    
+    if player.pc < action.oppose_amount:
+        state.add_log(f"{player.name} doesn't have enough PC to provide that much opposition.")
+        return state
+    
+    player.pc -= action.oppose_amount
+    current_oppose = target_legislation.oppose_players.get(player.id, 0)
+    target_legislation.oppose_players[player.id] = current_oppose + action.oppose_amount
+    
+    state.add_log(f"{player.name} commits {action.oppose_amount} PC to oppose the legislation.")
+    
     return state
 
 def resolve_declare_candidacy(state: GameState, action: ActionDeclareCandidacy) -> GameState:
     from models.components import Candidacy
     player = state.get_player_by_id(action.player_id)
     if not player: return state
+    
+    # Check if candidacy has already been declared this round
+    if state.candidacy_declared_this_round:
+        state.add_log(f"A candidacy has already been declared this round. {player.name} must wait until next round.")
+        return state
+    
     office = state.offices[action.office_id]
     cost = office.candidacy_cost
     if player.pc < cost + action.committed_pc:
         state.add_log("Not enough PC to pay candidacy and commitment.")
         return state
+    
     player.pc -= (cost + action.committed_pc)
     candidacy = Candidacy(player_id=player.id, office_id=action.office_id, committed_pc=action.committed_pc)
     state.secret_candidacies.append(candidacy)
+    state.candidacy_declared_this_round = True
+    
     state.add_log(f"{player.name} pays {cost} PC to run for {office.title} and secretly commits additional funds.")
+    return state
+
+def resolve_campaign(state: GameState, action: ActionCampaign) -> GameState:
+    """Resolve campaign action - place influence on future election."""
+    from models.components import CampaignInfluence
+    player = state.get_player_by_id(action.player_id)
+    if not player: return state
+    
+    if player.pc < action.influence_amount:
+        state.add_log(f"{player.name} doesn't have enough PC to place that much influence.")
+        return state
+    
+    office = state.offices.get(action.office_id)
+    if not office:
+        state.add_log("Invalid office for campaigning.")
+        return state
+    
+    player.pc -= action.influence_amount
+    
+    # Create or update campaign influence
+    campaign_influence = CampaignInfluence(
+        player_id=player.id,
+        office_id=action.office_id,
+        influence_amount=action.influence_amount
+    )
+    
+    # Add to state
+    state.campaign_influences.append(campaign_influence)
+    
+    state.add_log(f"{player.name} campaigns for {office.title} with {action.influence_amount} PC influence.")
+    
     return state
 
 #--- Phase Resolvers ---
 
 def resolve_upkeep(state: GameState) -> GameState:
+    # Move any pending legislation to term legislation (will be resolved at end of term)
+    if state.pending_legislation and not state.pending_legislation.resolved:
+        state.term_legislation.append(state.pending_legislation)
+        state.pending_legislation = None
+    
+    # Reset candidacy flag for new round
+    state.candidacy_declared_this_round = False
+    
+    # Reset action points for all players for the new round
+    for p in state.players:
+        state.action_points[p.id] = 3
+    
     mood = state.public_mood
     income_multiplier = 2 if "UNEXPECTED_SURPLUS" in state.active_effects else 1
     if income_multiplier > 1:
@@ -161,6 +317,96 @@ def resolve_upkeep(state: GameState) -> GameState:
     if "STOCK_CRASH" in state.active_effects:
         state.active_effects.remove("STOCK_CRASH")
 
+    return state
+
+def resolve_pending_legislation(state: GameState) -> GameState:
+    """Resolves pending legislation using influence system instead of dice."""
+    if not state.pending_legislation or state.pending_legislation.resolved:
+        return state
+    
+    pending = state.pending_legislation
+    bill = state.legislation_options[pending.legislation_id]
+    sponsor = state.get_player_by_id(pending.sponsor_id)
+    
+    if not sponsor:
+        state.add_log("Error: Sponsor not found for pending legislation.")
+        return state
+    
+    state.add_log(f"\n--- Resolving {bill.title} (Influence System) ---")
+    
+    # Calculate total influence committed
+    total_support = sum(pending.support_players.values())
+    total_opposition = sum(pending.oppose_players.values())
+    net_influence = total_support - total_opposition
+    
+    # Show committed amounts
+    if pending.support_players:
+        support_details = []
+        for player_id, amount in pending.support_players.items():
+            player = state.get_player_by_id(player_id)
+            if player:
+                support_details.append(f"{player.name} ({amount} PC)")
+        state.add_log(f"Support: {', '.join(support_details)}")
+    
+    if pending.oppose_players:
+        oppose_details = []
+        for player_id, amount in pending.oppose_players.items():
+            player = state.get_player_by_id(player_id)
+            if player:
+                oppose_details.append(f"{player.name} ({amount} PC)")
+        state.add_log(f"Opposition: {', '.join(oppose_details)}")
+    
+    state.add_log(f"Net influence: {net_influence} PC")
+    
+    # Apply war penalty if active (reduces net influence)
+    war_penalty = 0
+    if "WAR_BREAKS_OUT" in state.active_effects:
+        war_penalty = -2
+        net_influence += war_penalty
+        state.add_log(f"War penalty: -2 PC (net influence reduced to {net_influence} PC)")
+    
+    # Determine outcome based on influence vs targets
+    outcome = "Failure"
+    if net_influence >= bill.crit_target:
+        outcome = "Critical Success"
+        sponsor.pc += bill.crit_reward
+        state.public_mood = min(3, state.public_mood + bill.mood_change)
+        state.add_log(f"Critical Success! {sponsor.name} gains {bill.crit_reward} PC.")
+    elif net_influence >= bill.success_target:
+        outcome = "Success"
+        sponsor.pc += bill.success_reward
+        state.public_mood = min(3, state.public_mood + bill.mood_change)
+        state.add_log(f"Success! {sponsor.name} gains {bill.success_reward} PC.")
+    else:
+        sponsor.pc -= bill.failure_penalty
+        state.add_log(f"Failure! The bill fails. {sponsor.name} loses {bill.failure_penalty} PC.")
+    
+    # Reward supporters if legislation passed
+    passed = outcome in ["Success", "Critical Success"]
+    if passed and pending.support_players:
+        reward_per_pc = 1  # Supporters get 1 PC back for each PC they spent
+        for player_id, amount in pending.support_players.items():
+            player = state.get_player_by_id(player_id)
+            if player:
+                reward = min(amount, reward_per_pc * amount)
+                player.pc += reward
+                state.add_log(f"{player.name} receives {reward} PC for supporting successful legislation.")
+    
+    # Record result
+    state.last_sponsor_result = {'player_id': sponsor.id, 'passed': passed}
+    state.legislation_history.append({
+        'sponsor_id': sponsor.id, 
+        'leg_id': bill.id, 
+        'outcome': outcome,
+        'support_players': dict(pending.support_players),
+        'oppose_players': dict(pending.oppose_players),
+        'net_influence': net_influence
+    })
+    
+    # Mark as resolved
+    pending.resolved = True
+    state.pending_legislation = None
+    
     return state
 
 def resolve_elections(state: GameState) -> GameState:
@@ -518,4 +764,208 @@ def _event_celeb_politician(state: GameState) -> GameState:
     poorest_player.pc += 15
     state.add_log(f"{poorest_player.name}, with the lowest PC, gains 15 PC from becoming a celebrity politician.")
     
+    return state
+
+def resolve_propose_trade(state: GameState, action: ActionProposeTrade) -> GameState:
+    """Handle proposing a trade to another player during legislation voting."""
+    player = state.get_player_by_id(action.player_id)
+    target = state.get_player_by_id(action.target_player_id)
+    
+    if not player or not target:
+        state.add_log("Invalid player or target for trade.")
+        return state
+    
+    if not state.current_trade_phase:
+        state.add_log("Trading is only allowed during the trading phase of legislation session.")
+        return state
+    
+    if player.id == target.id:
+        state.add_log("You cannot trade with yourself.")
+        return state
+    
+    # Validate the legislation exists and is not resolved
+    target_legislation = None
+    for legislation in state.term_legislation:
+        if legislation.legislation_id == action.legislation_id and not legislation.resolved:
+            target_legislation = legislation
+            break
+    
+    if not target_legislation:
+        state.add_log("Invalid legislation for trade.")
+        return state
+    
+    # Validate the offer
+    if action.offered_pc < 0:
+        state.add_log("Cannot offer negative PC.")
+        return state
+    
+    if player.pc < action.offered_pc:
+        state.add_log("You don't have enough PC to make this offer.")
+        return state
+    
+    # Validate favors
+    for favor_id in action.offered_favor_ids:
+        if not any(f.id == favor_id for f in player.favors):
+            state.add_log(f"You don't own the favor: {favor_id}")
+            return state
+    
+    # Validate requested vote
+    if action.requested_vote not in ["support", "oppose", "abstain"]:
+        state.add_log("Invalid vote type requested.")
+        return state
+    
+    # Create the trade offer
+    trade_offer = TradeOffer(
+        offerer_id=player.id,
+        target_id=target.id,
+        legislation_id=action.legislation_id,
+        offered_pc=action.offered_pc,
+        offered_favors=action.offered_favor_ids.copy(),
+        requested_vote=action.requested_vote
+    )
+    
+    # Add to active offers and legislation-specific offers
+    state.active_trade_offers.append(trade_offer)
+    target_legislation.trade_offers.append(trade_offer)
+    
+    # Log the offer
+    favor_text = f" and {len(action.offered_favor_ids)} favor(s)" if action.offered_favor_ids else ""
+    pc_text = f"{action.offered_pc} PC" if action.offered_pc > 0 else ""
+    offer_text = f"{pc_text}{favor_text}".strip()
+    
+    state.add_log(f"{player.name} offers {target.name} {offer_text} to {action.requested_vote} {state.legislation_options[action.legislation_id].title}.")
+    
+    return state
+
+def resolve_accept_trade(state: GameState, action: ActionAcceptTrade) -> GameState:
+    """Handle accepting a trade offer."""
+    player = state.get_player_by_id(action.player_id)
+    
+    if not player:
+        state.add_log("Invalid player.")
+        return state
+    
+    if action.trade_offer_id >= len(state.active_trade_offers):
+        state.add_log("Invalid trade offer.")
+        return state
+    
+    trade_offer = state.active_trade_offers[action.trade_offer_id]
+    
+    if trade_offer.target_id != player.id:
+        state.add_log("This trade offer is not for you.")
+        return state
+    
+    if trade_offer.accepted or trade_offer.declined:
+        state.add_log("This trade offer has already been responded to.")
+        return state
+    
+    # Execute the trade
+    offerer = state.get_player_by_id(trade_offer.offerer_id)
+    if not offerer:
+        state.add_log("Trade offerer not found.")
+        return state
+    
+    # Transfer PC
+    if trade_offer.offered_pc > 0:
+        if offerer.pc < trade_offer.offered_pc:
+            state.add_log("Offerer doesn't have enough PC to complete the trade.")
+            return state
+        offerer.pc -= trade_offer.offered_pc
+        player.pc += trade_offer.offered_pc
+    
+    # Transfer favors
+    for favor_id in trade_offer.offered_favors:
+        favor = next((f for f in offerer.favors if f.id == favor_id), None)
+        if favor:
+            offerer.favors.remove(favor)
+            player.favors.append(favor)
+    
+    # Apply the vote
+    target_legislation = None
+    for legislation in state.term_legislation:
+        if legislation.legislation_id == trade_offer.legislation_id:
+            target_legislation = legislation
+            break
+    
+    if target_legislation:
+        if trade_offer.requested_vote == "support":
+            current_support = target_legislation.support_players.get(player.id, 0)
+            target_legislation.support_players[player.id] = current_support + 1
+        elif trade_offer.requested_vote == "oppose":
+            current_oppose = target_legislation.oppose_players.get(player.id, 0)
+            target_legislation.oppose_players[player.id] = current_oppose + 1
+        # "abstain" means no vote is recorded
+    
+    # Mark trade as accepted
+    trade_offer.accepted = True
+    
+    # Log the trade
+    favor_text = f" and {len(trade_offer.offered_favors)} favor(s)" if trade_offer.offered_favors else ""
+    pc_text = f"{trade_offer.offered_pc} PC" if trade_offer.offered_pc > 0 else ""
+    offer_text = f"{pc_text}{favor_text}".strip()
+    
+    state.add_log(f"{player.name} accepts {offerer.name}'s offer of {offer_text} and votes to {trade_offer.requested_vote} the legislation.")
+    
+    return state
+
+def resolve_decline_trade(state: GameState, action: ActionDeclineTrade) -> GameState:
+    """Handle declining a trade offer."""
+    player = state.get_player_by_id(action.player_id)
+    
+    if not player:
+        state.add_log("Invalid player.")
+        return state
+    
+    if action.trade_offer_id >= len(state.active_trade_offers):
+        state.add_log("Invalid trade offer.")
+        return state
+    
+    trade_offer = state.active_trade_offers[action.trade_offer_id]
+    
+    if trade_offer.target_id != player.id:
+        state.add_log("This trade offer is not for you.")
+        return state
+    
+    if trade_offer.accepted or trade_offer.declined:
+        state.add_log("This trade offer has already been responded to.")
+        return state
+    
+    # Mark trade as declined
+    trade_offer.declined = True
+    
+    # Log the decline
+    offerer = state.get_player_by_id(trade_offer.offerer_id)
+    if offerer:
+        state.add_log(f"{player.name} declines {offerer.name}'s trade offer.")
+    
+    return state
+
+def resolve_complete_trading(state: GameState, action: ActionCompleteTrading) -> GameState:
+    """Handle completing the trading phase and moving to voting."""
+    player = state.get_player_by_id(action.player_id)
+    
+    if not player:
+        state.add_log("Invalid player.")
+        return state
+    
+    if not state.current_trade_phase:
+        state.add_log("Not currently in trading phase.")
+        return state
+    
+    if state.get_current_player().id != player.id:
+        state.add_log("It's not your turn to complete trading.")
+        return state
+    
+    # This will be handled by the turn advancement logic
+    state.add_log(f"{player.name} completes their trading turn.")
+    
+    return state
+
+def resolve_pass_turn(state: GameState, action: ActionPassTurn) -> GameState:
+    """Simply advance to the next player's turn without any other effects."""
+    player = state.get_player_by_id(action.player_id)
+    if not player:
+        return state
+    
+    state.add_log(f"{player.name} passes their turn.")
     return state

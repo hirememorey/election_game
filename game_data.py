@@ -126,9 +126,9 @@ def load_political_favors():
 # Appendix F: Legislation Reference
 def load_legislation():
     return {
-        "INFRASTRUCTURE": Legislation(id="INFRASTRUCTURE", title="Infrastructure Bill", cost=5, success_target=3, crit_target=5, success_reward=10, crit_reward=12, failure_penalty=0, mood_change=1),
-        "CHILDREN": Legislation(id="CHILDREN", title="Protect The Children!", cost=5, success_target=2, crit_target=5, success_reward=8, crit_reward=10, failure_penalty=0, mood_change=1),
-        "TAX_CODE": Legislation(id="TAX_CODE", title="Change the Tax Code", cost=10, success_target=4, crit_target=6, success_reward=20, crit_reward=25, failure_penalty=5),
-        "MILITARY": Legislation(id="MILITARY", title="Military Funding", cost=8, success_target=4, crit_target=6, success_reward=12, crit_reward=15, failure_penalty=0),
-        "HEALTHCARE": Legislation(id="HEALTHCARE", title="Healthcare Overhaul", cost=15, success_target=5, crit_target=6, success_reward=40, crit_reward=45, failure_penalty=10, mood_change=1),
+        "INFRASTRUCTURE": Legislation(id="INFRASTRUCTURE", title="Infrastructure Bill", cost=5, success_target=8, crit_target=15, success_reward=10, crit_reward=12, failure_penalty=0, mood_change=1),
+        "CHILDREN": Legislation(id="CHILDREN", title="Protect The Children!", cost=5, success_target=6, crit_target=12, success_reward=8, crit_reward=10, failure_penalty=0, mood_change=1),
+        "TAX_CODE": Legislation(id="TAX_CODE", title="Change the Tax Code", cost=10, success_target=12, crit_target=20, success_reward=20, crit_reward=25, failure_penalty=5),
+        "MILITARY": Legislation(id="MILITARY", title="Military Funding", cost=8, success_target=10, crit_target=18, success_reward=12, crit_reward=15, failure_penalty=0),
+        "HEALTHCARE": Legislation(id="HEALTHCARE", title="Healthcare Overhaul", cost=15, success_target=18, crit_target=30, success_reward=40, crit_reward=45, failure_penalty=10, mood_change=1),
     }

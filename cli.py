@@ -2,7 +2,7 @@ from typing import Optional
 from models.game_state import GameState
 from models.components import Player
 from engine.actions import (
-    Action, ActionFundraise, ActionNetwork, ActionFormAlliance,
+    Action, ActionFundraise, ActionNetwork,
     ActionSponsorLegislation, ActionDeclareCandidacy
 )
 
@@ -38,9 +38,8 @@ def get_player_action(state: GameState) -> Optional[Action]:
         print("  [1] Fundraise")
         print("  [2] Network")
         print("  [3] Sponsor Legislation")
-        print("  [4] Form an Alliance (Cost: 10 PC)")
         if state.round_marker == 4:
-            print("  [5] Declare Candidacy for an Office")
+            print("  [4] Declare Candidacy for an Office")
         print("---")
         print("  [info] View Game Info (Offices, Mandate, etc.)")
         print("  [rules] See action descriptions")
@@ -54,9 +53,7 @@ def get_player_action(state: GameState) -> Optional[Action]:
             return ActionNetwork(player_id=player.id)
         elif choice == '3':
             return _prompt_for_legislation(state, player)
-        elif choice == '4':
-            return ActionFormAlliance(player_id=player.id)
-        elif choice == '5' and state.round_marker == 4:
+        elif choice == '4' and state.round_marker == 4:
             return _prompt_for_candidacy(state, player)
         elif choice == 'info':
             _display_info_menu(state, player)
@@ -156,7 +153,6 @@ def _display_rules():
     print("Fundraise: Gain 5 PC (plus any bonuses).")
     print("Network: Gain 2 PC and one random Political Favor token.")
     print("Sponsor Legislation: Pay PC cost to propose a bill. Roll a d6 to determine outcome. Other players may co-sponsor.")
-    print("Form an Alliance: Pay 10 PC to draw a powerful Ally card. You may only have one Ally at a time.")
     print("Declare Candidacy: In Round 4 only, pay a fee to run for an office and secretly commit funds to the race.")
 
 def display_game_over(state: GameState):
