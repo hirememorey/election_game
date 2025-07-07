@@ -619,14 +619,17 @@ function showLegislationMenu() {
         existingMenu.remove();
     }
     
-    // Create legislation menu
-    const menuDiv = document.createElement('div');
-    menuDiv.id = 'legislation-menu';
-    menuDiv.className = 'legislation-menu';
-    
     const currentPlayer = currentGameState.players[currentGameState.current_player_index];
     
-    menuDiv.innerHTML = `
+    // Create modal overlay
+    const overlay = document.createElement('div');
+    overlay.className = 'modal-overlay';
+    
+    const modal = document.createElement('div');
+    modal.id = 'legislation-menu';
+    modal.className = 'legislation-menu';
+    
+    modal.innerHTML = `
         <h3>Choose Legislation to Sponsor</h3>
         <div class="legislation-options">
             ${Object.values(currentGameState.legislation_options).map(leg => `
@@ -637,25 +640,26 @@ function showLegislationMenu() {
                 </button>
             `).join('')}
         </div>
-        <button class="cancel-btn">Cancel</button>
+        <div class="modal-buttons">
+            <button class="btn-secondary cancel-btn">Cancel</button>
+        </div>
     `;
     
     // Add event listeners
-    menuDiv.querySelectorAll('.legislation-option').forEach(button => {
+    modal.querySelectorAll('.legislation-option').forEach(button => {
         button.addEventListener('click', () => {
             const legislationId = button.dataset.legislationId;
             performAction('sponsor_legislation', { legislation_id: legislationId });
-            menuDiv.remove();
+            overlay.remove();
         });
     });
     
-    menuDiv.querySelector('.cancel-btn').addEventListener('click', () => {
-        menuDiv.remove();
+    modal.querySelector('.cancel-btn').addEventListener('click', () => {
+        overlay.remove();
     });
     
-    // Insert after action buttons
-    const actionButtons = document.querySelector('.action-buttons');
-    actionButtons.appendChild(menuDiv);
+    overlay.appendChild(modal);
+    document.body.appendChild(overlay);
 }
 
 function showFavorMenu() {
@@ -667,12 +671,15 @@ function showFavorMenu() {
     
     const currentPlayer = currentGameState.players[currentGameState.current_player_index];
     
-    // Create favor menu
-    const menuDiv = document.createElement('div');
-    menuDiv.id = 'favor-menu';
-    menuDiv.className = 'favor-menu';
+    // Create modal overlay
+    const overlay = document.createElement('div');
+    overlay.className = 'modal-overlay';
     
-    menuDiv.innerHTML = `
+    const modal = document.createElement('div');
+    modal.id = 'favor-menu';
+    modal.className = 'favor-menu';
+    
+    modal.innerHTML = `
         <h3>Choose a Favor to Use</h3>
         <div class="favor-options">
             ${currentPlayer.favors.map(favor => `
@@ -681,25 +688,26 @@ function showFavorMenu() {
                 </button>
             `).join('')}
         </div>
-        <button class="cancel-btn">Cancel</button>
+        <div class="modal-buttons">
+            <button class="btn-secondary cancel-btn">Cancel</button>
+        </div>
     `;
     
     // Add event listeners
-    menuDiv.querySelectorAll('.favor-option').forEach(button => {
+    modal.querySelectorAll('.favor-option').forEach(button => {
         button.addEventListener('click', () => {
             const favorId = button.dataset.favorId;
             performAction('use_favor', { favor_id: favorId });
-            menuDiv.remove();
+            overlay.remove();
         });
     });
     
-    menuDiv.querySelector('.cancel-btn').addEventListener('click', () => {
-        menuDiv.remove();
+    modal.querySelector('.cancel-btn').addEventListener('click', () => {
+        overlay.remove();
     });
     
-    // Insert after action buttons
-    const actionButtons = document.querySelector('.action-buttons');
-    actionButtons.appendChild(menuDiv);
+    overlay.appendChild(modal);
+    document.body.appendChild(overlay);
 }
 
 function showLegislationSupportMenu() {
