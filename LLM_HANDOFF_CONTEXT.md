@@ -10,7 +10,52 @@
 
 ## 📝 Recent Gameplay/Codebase Changes (Latest Updates)
 
-### Major Bug Fixes and Improvements (NEW - Latest)
+### Major Gameplay Mechanics Overhaul (NEW - Latest)
+- **Incumbent/Outsider Public Mood Logic**: Completely redesigned public mood effects to create strategic tension
+  - **Incumbents** (office-holders) **benefit** from **positive** public mood changes
+  - **Outsiders** (non-office-holders) **benefit** from **negative** public mood changes
+  - **Incumbents** **suffer** from **negative** public mood changes
+  - **Outsiders** **suffer** from **positive** public mood changes
+  - **Strategic Impact**: Creates natural tension between office-holders and challengers
+  - **Motivation**: Incumbents want stability, outsiders want disruption
+  - **Files Modified**: `engine/resolvers.py` - Added `apply_public_mood_effect()` function
+  - **Updated Events**: Economic Boom, Recession Hits, Unexpected Surplus, Last Bill Hit/Dud, Tech Leap, Natural Disaster, Midterm Fury, Stock Crash, MEDIA_SPIN favor, successful legislation
+  - **Testing**: All events now use the new logic with proper incumbent/outsider differentiation
+
+- **Enhanced Turn Status Display**: Improved visual feedback for game state
+  - **Phase-Specific Styling**: Different colors for each game phase (Event, Action, Legislation, Election)
+  - **Player Information**: Clear display of current player with player number
+  - **Action Points Counter**: Prominent display of remaining AP with visual indicators
+  - **Turn Status Element**: New HTML element with enhanced styling and animations
+  - **Files Modified**: `static/index.html`, `static/script.js`, `static/style.css`
+  - **Impact**: Much clearer game state communication and better user experience
+
+- **Action Points System Frontend**: Enhanced UI for the Action Points system
+  - **AP Display**: More prominent visual display with gradient background
+  - **Action Button Styling**: Better visual hierarchy with prominent AP costs
+  - **Disabled State Handling**: Clear visual feedback when actions can't be performed
+  - **AP Cost Indicators**: Each action shows its AP cost with enhanced styling
+  - **Files Modified**: `static/style.css` - Enhanced AP display and action button styling
+  - **Impact**: Better user experience for the Action Points system
+
+- **Production Deployment**: Successfully deployed to Render with proper configuration
+  - **Render Configuration**: Added `render.yaml` for automatic deployment
+  - **Dynamic API URLs**: Updated frontend to work in both development and production
+  - **Cache Busting**: Added version parameters to force browser cache updates
+  - **Test Endpoint**: Added `/api/test` endpoint for deployment verification
+  - **Files Modified**: `render.yaml`, `static/script.js`, `static/index.html`, `server.py`
+  - **Deployment URL**: https://election-game.onrender.com
+  - **Status**: Successfully deployed and accessible
+
+- **Game Data Alignment**: Updated `game_data.py` to match actual game mechanics
+  - **Political Favors**: Updated descriptions to match actual implementation
+  - **Event Cards**: Fixed problematic cards that referenced non-existent mechanics
+  - **Scrutiny Cards**: Updated to be less restrictive and more balanced
+  - **Alliance Cards**: Updated to be less restrictive and more balanced
+  - **Files Modified**: `game_data.py` - Comprehensive updates to all card types
+  - **Impact**: Game data now accurately reflects actual game mechanics
+
+### Major Bug Fixes and Improvements (Previous)
 - **Action Points System (Phase 2)**: Players now get 3 Action Points per turn instead of 1 action
   - **Multiple Actions Per Turn**: Players can take multiple actions until AP are exhausted
   - **Variable AP Costs**: Different actions cost different amounts of AP (1-2 AP)
@@ -108,17 +153,23 @@
 - **`engine/`**: Core game logic
   - `engine.py`: Main game engine orchestrating turns and phases (updated with automatic event phases)
   - `actions.py`: Action definitions (fundraise, network, legislation, etc.)
-  - `resolvers.py`: Action resolution logic (comprehensive game mechanics with favor fixes)
+  - `resolvers.py`: Action resolution logic (comprehensive game mechanics with favor fixes and incumbent/outsider logic)
 - **`models/`**: Data structures
   - `game_state.py`: Game state management (with trading and term transition fixes)
   - `components.py`: Game components (players, offices, etc.)
   - `cards.py`: Card definitions and effects
-- **`game_data.py`**: Game data loading and configuration
+- **`game_data.py`**: Game data loading and configuration (updated to match actual mechanics)
 
 ### Frontend (HTML/CSS/JS)
-- **`static/index.html`**: Main game interface
-- **`static/script.js`**: Game logic and API communication (updated with favor menu and PC commitment)
-- **`static/style.css`**: Mobile-responsive styling (updated with favor menu styles)
+- **`static/index.html`**: Main game interface (updated with enhanced turn status)
+- **`static/script.js`**: Game logic and API communication (updated with favor menu, PC commitment, and dynamic API URLs)
+- **`static/style.css`**: Mobile-responsive styling (updated with enhanced turn status, AP display, and action button styling)
+
+### Deployment Configuration
+- **`render.yaml`**: Render deployment configuration for automatic deployment
+- **`Procfile`**: Heroku compatibility as backup deployment option
+- **Dynamic API URLs**: Frontend automatically detects development vs production environment
+- **Cache Busting**: Version parameters force browser cache updates
 
 ### API Endpoints
 - `POST /api/game`: Create new game
@@ -126,6 +177,7 @@
 - `POST /api/game/<id>/action`: Process player action
 - `POST /api/game/<id>/event`: Run event phase (now automatic)
 - `DELETE /api/game/<id>`: Delete game
+- `GET /api/test`: Test endpoint for deployment verification
 
 ## 🎮 Core Game Mechanics
 
@@ -146,6 +198,13 @@
 - **Campaign** (2 AP): Place influence for future office elections (NEW)
 - **Trading** (0 AP): Propose trades of PC/favors for votes during legislation sessions
 
+### Incumbent/Outsider Public Mood System (NEW)
+- **Incumbents** (office-holders) benefit from positive mood changes, suffer from negative
+- **Outsiders** (non-office-holders) benefit from negative mood changes, suffer from positive
+- **Strategic Tension**: Creates natural opposition between office-holders and challengers
+- **Motivation**: Incumbents want stability, outsiders want disruption
+- **Events Affected**: Economic Boom, Recession Hits, Unexpected Surplus, Last Bill Hit/Dud, Tech Leap, Natural Disaster, Midterm Fury, Stock Crash, MEDIA_SPIN favor, successful legislation
+
 ### Recent Major Improvements
 1. **Action Points System**: Players get 3 AP per turn with variable costs for different actions
 2. **Political Favors System**: Players can now use favors gained from networking with proper UI
@@ -154,6 +213,9 @@
 5. **Legislation Support/Opposition**: Players can support/oppose others' legislation with custom PC amounts
 6. **Automatic Event Phases**: Smooth game flow with automatic event card drawing
 7. **PC Commitment System**: Strategic depth through custom PC investment in actions
+8. **Incumbent/Outsider Logic**: Strategic tension through public mood effects
+9. **Enhanced UI**: Better turn status display and action points visualization
+10. **Production Deployment**: Successfully deployed to Render with proper configuration
 
 ## 🚀 Current Status
 
@@ -173,6 +235,10 @@
 - **NEW: Term transitions properly clean up game state**
 - **NEW: All major bugs fixed and comprehensively tested**
 - **NEW: Action Points system backend fully implemented and tested**
+- **NEW: Incumbent/outsider public mood logic creates strategic tension**
+- **NEW: Enhanced turn status display with phase-specific styling**
+- **NEW: Production deployment on Render with proper configuration**
+- **NEW: Game data aligned with actual game mechanics**
 
 ### 🔧 Technical Details
 - **Port**: 5001 (configurable)
@@ -180,6 +246,7 @@
 - **Storage**: In-memory game storage (production would need database)
 - **CORS**: Enabled for development
 - **Static Files**: Served from `/static/` directory
+- **Deployment**: Successfully deployed to Render at https://election-game.onrender.com
 
 ### 📱 Frontend Features
 - Mobile-responsive design
@@ -191,6 +258,9 @@
 - Trading interface with propose/accept/decline functionality
 - Conditional action display (Use Favor only shows when available)
 - PC commitment prompts for strategic actions
+- Enhanced turn status display with phase-specific styling
+- Action Points visualization with prominent display
+- Dynamic API URL detection for development vs production
 
 ## 🧪 Testing Status
 

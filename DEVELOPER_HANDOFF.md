@@ -14,39 +14,56 @@
 - **API Communication**: REST API with JSON payloads, ~5-10ms response times
 - **Static File Serving**: Fixed from 404 issues, properly configured
 - **Comprehensive Testing**: 10+ test files covering all major functionality
+- **Production Deployment**: Successfully deployed to Render at https://election-game.onrender.com
 
 ### Major Features Implemented
-1. **Action Points System** (Backend Complete, Frontend Needed)
+1. **Action Points System** (Backend Complete, Frontend Enhanced)
    - Players get 3 AP per turn with variable costs (1-2 AP)
    - Multiple actions per turn until AP exhausted
    - Campaign action for future election influence
    - Automatic turn advancement
-   - **Status**: Backend fully tested, frontend needs implementation
+   - **Status**: Backend fully tested, frontend enhanced with better UI
+   - **NEW**: Enhanced AP display with gradient styling and prominent cost indicators
 
-2. **Trading Mechanic** (Complete)
+2. **Incumbent/Outsider Public Mood System** (NEW - Latest)
+   - **Incumbents** (office-holders) benefit from positive mood changes, suffer from negative
+   - **Outsiders** (non-office-holders) benefit from negative mood changes, suffer from positive
+   - **Strategic Tension**: Creates natural opposition between office-holders and challengers
+   - **Motivation**: Incumbents want stability, outsiders want disruption
+   - **Events Affected**: Economic Boom, Recession Hits, Unexpected Surplus, Last Bill Hit/Dud, Tech Leap, Natural Disaster, Midterm Fury, Stock Crash, MEDIA_SPIN favor, successful legislation
+   - **Status**: Fully implemented and tested
+
+3. **Enhanced Turn Status Display** (NEW)
+   - Phase-specific styling with different colors for each game phase
+   - Clear player information with player number
+   - Prominent Action Points counter with visual indicators
+   - Enhanced animations and visual feedback
+   - **Status**: Fully implemented and tested
+
+4. **Trading Mechanic** (Complete)
    - Players trade PC/favors for votes during legislation sessions
    - Propose, accept, decline trade offers
    - Strategic negotiation system
    - **Status**: Fully implemented and tested
 
-3. **Political Favors System** (Complete)
+5. **Political Favors System** (Complete)
    - Use favors gained from networking
    - Selection menu for different favor types
    - PEEK_EVENT favor reveals top event card
    - **Status**: Fully implemented and tested
 
-4. **PC Commitment System** (Complete)
+6. **PC Commitment System** (Complete)
    - Custom PC amounts for legislation support/opposition
    - Additional PC commitment for candidacy declarations
    - Strategic resource investment
    - **Status**: Fully implemented and tested
 
-5. **Automatic Event Phases** (Complete)
+7. **Automatic Event Phases** (Complete)
    - Events draw automatically at start of each round/term
    - No manual intervention required
    - **Status**: Fully implemented and tested
 
-6. **Term Transition Fixes** (Complete)
+8. **Term Transition Fixes** (Complete)
    - Proper state cleanup between terms
    - Legislation cleanup and player index reset
    - **Status**: Fully implemented and tested
@@ -94,6 +111,7 @@
 - Action Points balance (are costs appropriate?)
 - Trading mechanic balance (is negotiation engaging?)
 - PC commitment amounts (are they strategic?)
+- Incumbent/outsider public mood effects (is the tension engaging?)
 - Overall game flow and pacing
 
 ### 3. **Balance Adjustments** (MEDIUM PRIORITY)
@@ -105,6 +123,7 @@
 - PC commitment amounts for legislation
 - Trading negotiation dynamics
 - Campaign influence effectiveness
+- Public mood effect magnitudes
 
 ### 4. **Database Integration** (MEDIUM PRIORITY)
 **What**: Replace in-memory storage with persistent database
@@ -128,20 +147,22 @@ election/
 ├── engine/
 │   ├── engine.py          # Main game engine
 │   ├── actions.py         # Action definitions
-│   └── resolvers.py       # Action resolution logic
+│   └── resolvers.py       # Action resolution logic (with incumbent/outsider logic)
 ├── models/
 │   ├── game_state.py      # Game state management
 │   ├── components.py      # Game components
 │   └── cards.py          # Card definitions
-└── game_data.py          # Game data loading
+├── game_data.py          # Game data loading (updated to match mechanics)
+├── render.yaml           # Render deployment configuration
+└── Procfile              # Heroku compatibility
 ```
 
 ### Frontend Structure
 ```
 static/
-├── index.html            # Main game interface
-├── script.js             # Game logic and API communication
-└── style.css             # Mobile-responsive styling
+├── index.html            # Main game interface (with enhanced turn status)
+├── script.js             # Game logic and API communication (with dynamic URLs)
+└── style.css             # Mobile-responsive styling (with enhanced UI)
 ```
 
 ### Key API Endpoints
@@ -149,6 +170,7 @@ static/
 - `GET /api/game/<id>`: Get game state
 - `POST /api/game/<id>/action`: Process player action
 - `DELETE /api/game/<id>`: Delete game
+- `GET /api/test`: Test endpoint for deployment verification
 
 ## 🧪 Testing Strategy
 
@@ -181,6 +203,7 @@ python3 test_action_points_system.py
 - No leftover legislation between terms
 - Player index properly reset between terms
 - Action Points system backend works correctly
+- Incumbent/outsider public mood logic works correctly
 
 ## 🚀 Development Setup
 
@@ -198,6 +221,12 @@ PORT=5001 python3 server.py
 
 # Access at http://localhost:5001
 ```
+
+### Production Deployment
+- **URL**: https://election-game.onrender.com
+- **Configuration**: `render.yaml` for automatic deployment
+- **Dynamic URLs**: Frontend automatically detects development vs production
+- **Cache Busting**: Version parameters force browser cache updates
 
 ### Development Environment Notes
 - **Port Conflicts**: macOS AirPlay uses port 5000, so we use 5001
@@ -230,6 +259,7 @@ PORT=5001 python3 server.py
 - PC commitment system adds strategic depth
 - Trading mechanic adds negotiation
 - Action Points system adds player autonomy
+- **NEW**: Incumbent/outsider public mood logic creates strategic tension
 
 ### Potential Balance Issues to Watch
 - PC commitment amounts may need tuning based on playtesting
@@ -237,6 +267,7 @@ PORT=5001 python3 server.py
 - Random events could be too swingy
 - Player interaction could be enhanced
 - Missing Form Alliance reduces strategic options
+- **NEW**: Public mood effect magnitudes may need adjustment based on playtesting
 
 ## 🔧 Technical Patterns to Follow
 
@@ -257,6 +288,7 @@ PORT=5001 python3 server.py
 - Frontend polls for state updates
 - Error handling with user-friendly messages
 - PC commitment uses prompt dialogs for user input
+- Dynamic API URL detection for development vs production
 
 ### Mobile Responsiveness
 - CSS Grid and Flexbox for layouts
@@ -282,6 +314,7 @@ PORT=5001 python3 server.py
 - Strategic PC commitment decisions
 - Smooth automatic event phases
 - Multiple actions per turn with Action Points
+- **NEW**: Engaging incumbent/outsider tension through public mood effects
 
 ## 🚨 Known Issues & Limitations
 
@@ -294,6 +327,7 @@ PORT=5001 python3 server.py
 - **Trading Balance**: Trading mechanic may need balance adjustments based on playtesting
 - **PC Commitment Balance**: PC commitment amounts may need tuning
 - **Frontend Implementation**: Action Points UI needs completion
+- **Public Mood Balance**: Incumbent/outsider effect magnitudes may need adjustment
 
 ### Recent Bug Fixes
 - **Action Points System**: Backend fully implemented and tested
@@ -308,6 +342,10 @@ PORT=5001 python3 server.py
 - **Player Archetype Display**: Fixed missing archetype information in UI
 - **Form Alliance Removal**: Successfully removed for simplified testing
 - **Trading Implementation**: Successfully added trading mechanic with comprehensive testing
+- **NEW**: Incumbent/outsider public mood logic implemented and tested
+- **NEW**: Enhanced turn status display with phase-specific styling
+- **NEW**: Production deployment on Render with proper configuration
+- **NEW**: Game data aligned with actual game mechanics
 
 ## 🎯 Recommended Development Approach
 
@@ -321,13 +359,15 @@ PORT=5001 python3 server.py
 1. Play multiple games with different strategies
 2. Test Action Points balance and trading mechanics
 3. Gather feedback on PC commitment amounts
-4. Identify any balance issues
+4. Test incumbent/outsider public mood effects
+5. Identify any balance issues
 
 ### Phase 3: Balance Adjustments (1 day)
 1. Adjust AP costs based on playtesting
 2. Fine-tune PC commitment amounts
 3. Optimize trading mechanics
-4. Update documentation
+4. Adjust public mood effect magnitudes
+5. Update documentation
 
 ### Phase 4: Production Readiness (2-3 days)
 1. Add database integration
@@ -361,6 +401,8 @@ If you want to re-enable the Form Alliance action:
 **The most immediate opportunity is completing the Action Points system frontend implementation, which will unlock the full potential of the multiple-actions-per-turn system and provide a much more engaging gameplay experience.**
 
 **The codebase is well-documented, thoroughly tested, and follows clear patterns that make it easy to extend and maintain. The next developer has a strong foundation to build upon with clear technical direction and strategic priorities established.**
+
+**The new incumbent/outsider public mood logic adds significant strategic depth and creates natural tension between office-holders and challengers, making the game more politically realistic and engaging.**
 
 ---
 
