@@ -17,6 +17,42 @@ from engine.actions import (
 
 #--- Action Resolvers ---
 
+def apply_public_mood_effect(state: GameState, mood_change: int, pc_bonus: int = 5):
+    """
+    Apply public mood change with incumbent/outsider logic.
+    
+    Args:
+        state: Current game state
+        mood_change: How much to change public mood (+ or -)
+        pc_bonus: Base PC amount for the effect (default 5)
+    """
+    # Apply mood change
+    if mood_change > 0:
+        state.public_mood = min(3, state.public_mood + mood_change)
+    else:
+        state.public_mood = max(-3, state.public_mood + mood_change)
+    
+    # Apply PC effects based on incumbent status
+    for player in state.players:
+        if player.is_incumbent:
+            # Incumbents benefit from positive mood, suffer from negative
+            if mood_change > 0:
+                player.pc += pc_bonus
+                state.add_log(f"{player.name} (incumbent) gains {pc_bonus} PC from improved public mood.")
+            else:
+                player.pc -= pc_bonus
+                state.add_log(f"{player.name} (incumbent) loses {pc_bonus} PC from worsened public mood.")
+        else:
+            # Outsiders suffer from positive mood, benefit from negative
+            if mood_change > 0:
+                player.pc -= pc_bonus
+                state.add_log(f"{player.name} (outsider) loses {pc_bonus} PC from improved public mood.")
+            else:
+                player.pc += pc_bonus
+                state.add_log(f"{player.name} (outsider) gains {pc_bonus} PC from worsened public mood.")
+    
+    return state
+
 def resolve_fundraise(state: GameState, action: ActionFundraise) -> GameState:
     player = state.get_player_by_id(action.player_id)
     if not player: return state
@@ -86,8 +122,8 @@ def resolve_use_favor(state: GameState, action: ActionUseFavor) -> GameState:
             state.add_log(f"{player.name} uses '{favor.description}' but there's no pending legislation.")
     
     elif favor.id == "MEDIA_SPIN":
-        # Improve public mood
-        state.public_mood = min(3, state.public_mood + 1)
+        # Improve public mood with incumbent/outsider logic
+        apply_public_mood_effect(state, mood_change=1, pc_bonus=3)
         state.add_log(f"{player.name} uses '{favor.description}' to improve public mood.")
     
     elif favor.id == "POLITICAL_PRESSURE":
@@ -370,12 +406,14 @@ def resolve_pending_legislation(state: GameState) -> GameState:
     if net_influence >= bill.crit_target:
         outcome = "Critical Success"
         sponsor.pc += bill.crit_reward
-        state.public_mood = min(3, state.public_mood + bill.mood_change)
+        if bill.mood_change > 0:
+            apply_public_mood_effect(state, mood_change=bill.mood_change, pc_bonus=2)
         state.add_log(f"Critical Success! {sponsor.name} gains {bill.crit_reward} PC.")
     elif net_influence >= bill.success_target:
         outcome = "Success"
         sponsor.pc += bill.success_reward
-        state.public_mood = min(3, state.public_mood + bill.mood_change)
+        if bill.mood_change > 0:
+            apply_public_mood_effect(state, mood_change=bill.mood_change, pc_bonus=2)
         state.add_log(f"Success! {sponsor.name} gains {bill.success_reward} PC.")
     else:
         sponsor.pc -= bill.failure_penalty
@@ -518,18 +556,10 @@ def resolve_event_card(state: GameState) -> GameState:
     return state
 
 def _event_economic_boom(state: GameState) -> GameState:
-    state.public_mood = min(3, state.public_mood + 2)
-    for p in state.players:
-        p.pc += 5
-    state.add_log("Public Mood improves. All players gain 5 PC.")
-    return state
+    return apply_public_mood_effect(state, mood_change=2, pc_bonus=5)
 
 def _event_recession_hits(state: GameState) -> GameState:
-    state.public_mood = max(-3, state.public_mood - 2)
-    for p in state.players:
-        p.pc -= 5
-    state.add_log("Public Mood worsens. All players lose 5 PC.")
-    return state
+    return apply_public_mood_effect(state, mood_change=-2, pc_bonus=5)
 
 def _event_scandal(state: GameState) -> GameState:
     if not state.players: return state
@@ -553,14 +583,13 @@ def _event_scandal(state: GameState) -> GameState:
     return state
 
 def _event_unexpected_surplus(state: GameState) -> GameState:
-    state.public_mood = min(3, state.public_mood + 1)
+    apply_public_mood_effect(state, mood_change=1, pc_bonus=3)
     state.active_effects.add("UNEXPECTED_SURPLUS")
-    state.add_log("Public Mood improves. Incumbents will receive double income this round.")
+    state.add_log("Incumbents will receive double income this round.")
     return state
 
 def _event_last_bill_dud(state: GameState) -> GameState:
-    state.public_mood = max(-3, state.public_mood - 1)
-    state.add_log("Public Mood worsens.")
+    apply_public_mood_effect(state, mood_change=-1, pc_bonus=3)
     
     last_sponsor_info = state.last_sponsor_result
     if last_sponsor_info and last_sponsor_info.get('passed'):
@@ -606,8 +635,7 @@ def _event_supreme_court_vacancy(state: GameState) -> GameState:
     return state
 
 def _event_last_bill_hit(state: GameState) -> GameState:
-    state.public_mood = min(3, state.public_mood + 1)
-    state.add_log("Public Mood improves.")
+    apply_public_mood_effect(state, mood_change=1, pc_bonus=3)
     
     last_sponsor_info = state.last_sponsor_result
     if last_sponsor_info and last_sponsor_info.get('passed'):
@@ -652,8 +680,7 @@ def _event_war_breaks_out(state: GameState) -> GameState:
     return state
 
 def _event_tech_leap(state: GameState) -> GameState:
-    state.public_mood = min(3, state.public_mood + 1)
-    state.add_log("Public Mood improves due to technological advancement.")
+    apply_public_mood_effect(state, mood_change=1, pc_bonus=3)
     
     if not state.players: return state
     
@@ -665,8 +692,7 @@ def _event_tech_leap(state: GameState) -> GameState:
     return state
 
 def _event_natural_disaster(state: GameState) -> GameState:
-    state.public_mood = max(-3, state.public_mood - 1)
-    state.add_log("Public Mood worsens due to the natural disaster.")
+    apply_public_mood_effect(state, mood_change=-1, pc_bonus=3)
     
     if not state.players: return state
     
@@ -744,14 +770,14 @@ def _event_midterm_fury(state: GameState) -> GameState:
         state.add_log("Midterm Fury can only occur in Round 2 or 3 of a Term. This event has no effect.")
         return state
     
-    # Move Public Mood 2 spaces towards "Very Angry" (-2)
-    state.public_mood = max(-3, state.public_mood - 2)
+    # Move Public Mood 2 spaces towards "Very Angry" (-2) with incumbent/outsider logic
+    apply_public_mood_effect(state, mood_change=-2, pc_bonus=3)
     state.add_log("Midterm Fury! Public Mood moves 2 spaces towards 'Very Angry'.")
     
     return state
 
 def _event_stock_crash(state: GameState) -> GameState:
-    state.public_mood = max(-3, state.public_mood - 3)
+    apply_public_mood_effect(state, mood_change=-3, pc_bonus=3)
     state.active_effects.add("STOCK_CRASH")
     state.add_log("Stock Market Crash! Public Mood worsens by 3 spaces. Fundraising this round will cost 5 PC instead of gaining it.")
     return state
