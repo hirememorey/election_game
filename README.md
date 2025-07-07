@@ -41,63 +41,198 @@ See `DEPLOYMENT.md` for step-by-step instructions for Render, Netlify, etc.
 
 # Election: The Game
 
-A text-based political strategy game where players compete to win an election through various actions and events.
+A Python-based political strategy board game with a Flask backend and mobile-friendly web frontend. Players compete in elections through strategic actions, resource management, and political maneuvering.
 
-## Description
+## 🎯 Current State
 
-Election: The Game is a turn-based strategy game where 2-4 players compete in a political election. Players take turns performing actions to gain votes, manage resources, and respond to random events that can affect the campaign.
+**Status**: Fully functional game with rich mechanics, web interface, and comprehensive improvements to core gameplay systems. **All major bugs have been fixed and new features are fully tested.**
 
-## Features
+### ✅ What's Working
+- Complete game engine with all core mechanics
+- Web interface with mobile responsiveness
+- API communication between frontend/backend
+- Static file serving (fixed from 404 issues)
+- Performance tested (~5-10ms response times)
+- **Action Points System**: Players get 3 AP per turn with variable costs
+- **Trading Mechanic**: Players can trade PC/favors for votes during legislation sessions
+- **Political Favors System**: Players can use favors with selection menu
+- **PC Commitment System**: Custom PC amounts for legislation and candidacy
+- **Automatic Event Phases**: Events draw automatically for smooth gameplay
+- **Term Transition Fixes**: Proper state cleanup between terms
 
-- **Multi-player support**: 2-4 players can compete
-- **Turn-based gameplay**: Strategic decision making with action points
-- **Event system**: Random events that can help or hinder campaigns
-- **Resource management**: Balance money, influence, and votes
-- **Card-based actions**: Various action cards with different effects
-- **CLI interface**: Clean command-line interface for gameplay
+### 🎮 Core Game Mechanics
 
-## Installation
+**Available Actions:**
+- **Fundraise** (1 AP): Gain Political Capital (PC)
+- **Network** (1 AP): Gain PC and political favors
+- **Sponsor Legislation** (2 AP): Create legislation for votes/mood
+- **Declare Candidacy** (2 AP): Run for office (Round 4 only)
+- **Use Favor** (0 AP): Strategic advantage actions with selection menu
+- **Support/Oppose Legislation** (1 AP): Interactive legislation system with custom PC commitment
+- **Campaign** (2 AP): Place influence for future elections
+- **Trading** (0 AP): Propose trades of PC/favors for votes during legislation sessions
 
-1. Clone the repository:
+## 🚀 Quick Start
+
+### Local Development
 ```bash
-git clone <your-repo-url>
+# Clone and setup
+git clone <repository>
 cd election
+pip install -r requirements.txt
+
+# Start server (port 5001 to avoid macOS AirPlay conflicts)
+./start_server.sh
+# or manually
+PORT=5001 python3 server.py
+
+# Access at http://localhost:5001
 ```
 
-2. Make sure you have Python 3.7+ installed:
+### Deployment
+See `DEPLOYMENT.md` for step-by-step instructions for Render, Netlify, Heroku, Railway.
+
+## 🏗️ Architecture
+
+### Backend (Python/Flask)
+- **`server.py`**: Flask app serving API endpoints and static files
+- **`engine/`**: Core game logic
+  - `engine.py`: Main game engine orchestrating turns and phases
+  - `actions.py`: Action definitions
+  - `resolvers.py`: Action resolution logic
+- **`models/`**: Data structures
+  - `game_state.py`: Game state management
+  - `components.py`: Game components
+  - `cards.py`: Card definitions
+- **`game_data.py`**: Game data loading and configuration
+
+### Frontend (HTML/CSS/JS)
+- **`static/index.html`**: Main game interface
+- **`static/script.js`**: Game logic and API communication
+- **`static/style.css`**: Mobile-responsive styling
+
+### API Endpoints
+- `POST /api/game`: Create new game
+- `GET /api/game/<id>`: Get game state
+- `POST /api/game/<id>/action`: Process player action
+- `POST /api/game/<id>/event`: Run event phase (automatic)
+- `DELETE /api/game/<id>`: Delete game
+
+## 🧪 Testing
+
+### Comprehensive Test Coverage
+- **`test_action_points_system.py`**: Action Points system functionality
+- **`test_trading_mechanic.py`**: Trading system functionality
+- **`test_pc_commitment_and_term_transition.py`**: PC commitment and term transitions
+- **`test_automatic_event_phase.py`**: Automatic event phase functionality
+- **`test_api.py`**: API endpoints and favor system
+- **`test_legislation_timing.py`**: Legislation session timing
+- **`test_mood_system.py`**: Mood system functionality
+- **`performance_test.py`**: Performance benchmarking
+
+### Run Tests
 ```bash
-python3 --version
+# Run all tests
+python3 test_*.py
+
+# Run specific test
+python3 test_action_points_system.py
 ```
 
-3. Run the game:
-```bash
-python3 main.py
-```
+## 📚 Documentation
 
-## How to Play
+- **`LLM_HANDOFF_CONTEXT.md`**: Comprehensive project context and recent changes
+- **`FRONTEND_IMPLEMENTATION_GUIDE.md`**: Action Points system frontend implementation
+- **`GAME_IMPROVEMENTS.md`**: Recent feature additions and improvements
+- **`NETWORK_ACTION_DESIGN.md`**: Design for merging Network and Form Alliance actions
+- **`DEPLOYMENT.md`**: Deployment instructions for various platforms
 
-1. **Setup**: Enter the number of players (2-4) and their names
-2. **Game Phases**: 
-   - **Event Phase**: Random events occur that affect all players
-   - **Action Phase**: Players take turns performing actions using action points
-3. **Actions**: Players can perform various actions like:
-   - Campaigning to gain votes
-   - Fundraising to get money
-   - Using special action cards
-4. **Winning**: The player with the most votes at the end wins!
+## 🎯 Recent Major Improvements
 
-## Game Structure
+### Action Points System (Phase 2)
+- Players get 3 Action Points per turn instead of 1 action
+- Multiple actions per turn until AP are exhausted
+- Variable AP costs for different actions (1-2 AP)
+- Campaign action for placing influence
+- Automatic turn advancement when AP exhausted
+- **Status**: Backend fully implemented, frontend needs implementation
 
-- `main.py` - Main game entry point
-- `cli.py` - Command-line interface and user interaction
-- `game_data.py` - Game data loading and configuration
-- `engine/` - Core game engine and logic
-- `models/` - Data models for game state and components
+### Trading Mechanic
+- Players can trade PC and favors during legislation sessions
+- Trading phase before voting in legislation sessions
+- Propose, accept, decline trade offers
+- Strategic negotiation for votes
 
-## Contributing
+### Political Favors System
+- Players can use favors gained from networking
+- Selection menu for different favor types
+- PEEK_EVENT favor reveals top event card
+- Favors are consumed when used
 
-Feel free to submit issues and enhancement requests!
+### PC Commitment System
+- Custom PC amounts for legislation support/opposition
+- Additional PC commitment for candidacy declarations
+- Strategic depth through resource investment
 
-## License
+### Automatic Event Phases
+- Events draw automatically at start of each round/term
+- No manual intervention required
+- Smooth game flow
+
+## 🔧 Technical Details
+
+- **Port**: 5001 (configurable, avoids macOS AirPlay conflicts)
+- **Dependencies**: Flask, flask-cors (see requirements.txt)
+- **Storage**: In-memory game storage (production would need database)
+- **CORS**: Enabled for development
+- **Static Files**: Served from `/static/` directory
+
+## 🎮 Game Flow
+
+1. **Setup**: 2-4 players, each with archetype and mandate
+2. **Event Phase**: Random events affect all players (automatic)
+3. **Action Phase**: Players take turns performing actions using Action Points
+4. **Resolution**: Actions resolve, game state updates
+5. **Repeat**: Until election victory conditions met
+
+## 🚨 Known Issues & Limitations
+
+### Current Limitations
+- **In-memory Storage**: Game state lost on server restart (production needs database)
+- **Single Session**: No persistent user accounts or game history
+- **No AI Opponents**: All players must be human
+- **Frontend Implementation**: Action Points UI needs completion (see FRONTEND_IMPLEMENTATION_GUIDE.md)
+
+### Recent Bug Fixes
+- **Use Favor Action**: Fixed to work with selection menu
+- **PC Commitment**: Added custom PC amounts for legislation and candidacy
+- **Automatic Event Phases**: Events now draw automatically
+- **Term Transitions**: Fixed state cleanup between terms
+- **Legislation Timing**: Fixed premature legislation resolution
+- **Static File Serving**: Fixed 404 errors for CSS/JS files
+
+## 🎯 Next Steps
+
+### High Priority
+1. **Frontend Implementation**: Complete Action Points system UI (see FRONTEND_IMPLEMENTATION_GUIDE.md)
+2. **Extensive Playtesting**: Test Action Points and trading systems thoroughly
+3. **Balance Adjustments**: Fine-tune AP costs and PC commitment amounts
+
+### Medium Priority
+1. **Database Integration**: Replace in-memory storage with persistent database
+2. **Multiplayer Real-time**: Add WebSocket support for live multiplayer
+3. **Advanced AI**: Add AI opponents with strategic decision-making
+4. **Network Action Design**: Implement merged Network/Alliance system
+
+### Low Priority
+1. **Game Variants**: Different election scenarios, rule sets
+2. **Analytics**: Track game statistics and player behavior
+3. **Mobile App**: Native iOS/Android apps
+
+## 🤝 Contributing
+
+Feel free to submit issues and enhancement requests! See `LLM_HANDOFF_CONTEXT.md` for detailed development context.
+
+## 📄 License
 
 This project is open source and available under the [MIT License](LICENSE). 

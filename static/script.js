@@ -1,7 +1,16 @@
 // Game state management
 let currentGameId = null;
 let currentGameState = null;
-const API_BASE_URL = 'http://localhost:5001/api'; // Change this for production
+
+// Simplified API URL logic - always use the current domain
+const API_BASE_URL = `${window.location.protocol}//${window.location.host}/api`;
+
+// Debug logging
+console.log('API_BASE_URL:', API_BASE_URL);
+console.log('Current hostname:', window.location.hostname);
+console.log('Current protocol:', window.location.protocol);
+console.log('Current host:', window.location.host);
+console.log('Full URL:', window.location.href);
 
 // DOM elements
 const setupScreen = document.getElementById('setup-screen');
@@ -35,6 +44,11 @@ runEventBtn.addEventListener('click', runEventPhase);
 // API functions
 async function apiCall(endpoint, method = 'GET', data = null) {
     try {
+        console.log(`API Call: ${method} ${API_BASE_URL}${endpoint}`);
+        if (data) {
+            console.log('Request data:', data);
+        }
+        
         const options = {
             method,
             headers: {
@@ -47,7 +61,11 @@ async function apiCall(endpoint, method = 'GET', data = null) {
         }
         
         const response = await fetch(`${API_BASE_URL}${endpoint}`, options);
+        console.log('Response status:', response.status);
+        console.log('Response headers:', response.headers);
+        
         const result = await response.json();
+        console.log('Response data:', result);
         
         if (!response.ok) {
             throw new Error(result.error || 'API call failed');
@@ -63,6 +81,8 @@ async function apiCall(endpoint, method = 'GET', data = null) {
 
 // Game functions
 async function startNewGame() {
+    console.log('startNewGame called');
+    
     const playerNames = [];
     for (let i = 1; i <= 4; i++) {
         const input = document.getElementById(`player${i}`);
@@ -70,6 +90,8 @@ async function startNewGame() {
             playerNames.push(input.value.trim());
         }
     }
+    
+    console.log('Player names:', playerNames);
     
     if (playerNames.length < 2) {
         showMessage('Please enter at least 2 player names', 'error');
@@ -80,7 +102,10 @@ async function startNewGame() {
         startGameBtn.disabled = true;
         startGameBtn.textContent = 'Creating Game...';
         
+        console.log('Making API call to create game...');
         const result = await apiCall('/game', 'POST', { player_names: playerNames });
+        console.log('API call successful:', result);
+        
         currentGameId = result.game_id;
         currentGameState = result.state;
         
@@ -88,6 +113,7 @@ async function startNewGame() {
         updateGameDisplay();
     } catch (error) {
         console.error('Failed to start game:', error);
+        showMessage(`Failed to start game: ${error.message}`, 'error');
     } finally {
         startGameBtn.disabled = false;
         startGameBtn.textContent = 'Start Game';

@@ -4,13 +4,30 @@
 
 **What this is:** A Python-based political strategy board game with a Flask backend and mobile-friendly web frontend. Players compete in elections through strategic actions, resource management, and political maneuvering.
 
-**Current State:** Fully functional game with rich mechanics, web interface, and comprehensive improvements to core gameplay systems. **All major bugs have been fixed and new features are fully tested.** **Form Alliance action has been temporarily removed for simplified testing.**
+**Current State:** Fully functional game with rich mechanics, web interface, and comprehensive improvements to core gameplay systems. **All major bugs have been fixed and new features are fully tested.** **Action Points system backend is complete, frontend needs implementation.**
 
 **Architecture:** Clean separation between game logic (Python) and presentation (HTML/CSS/JS), with REST API communication.
 
 ## 📝 Recent Gameplay/Codebase Changes (Latest Updates)
 
 ### Major Bug Fixes and Improvements (NEW - Latest)
+- **Action Points System (Phase 2)**: Players now get 3 Action Points per turn instead of 1 action
+  - **Multiple Actions Per Turn**: Players can take multiple actions until AP are exhausted
+  - **Variable AP Costs**: Different actions cost different amounts of AP (1-2 AP)
+  - **Campaign Action**: New 2 AP action to place influence for future elections
+  - **Turn Advancement**: Turn only advances when AP are exhausted
+  - **AP Validation**: Prevents actions when insufficient AP
+  - **Files Modified**:
+    - `models/game_state.py`: Added `action_points` and `campaign_influences` fields
+    - `models/components.py`: Added `CampaignInfluence` dataclass
+    - `engine/actions.py`: Added `ActionCampaign` class
+    - `engine/resolvers.py`: Added `resolve_campaign()` function
+    - `engine/engine.py`: Added AP costs, validation, and turn advancement logic
+    - `server.py`: Added campaign action handling and state serialization
+  - **Testing**: `test_action_points_system.py` provides comprehensive testing
+  - **Impact**: Dramatically increases player autonomy and speeds up gameplay
+  - **Frontend Status**: **NEEDS IMPLEMENTATION** - Action points display and campaign UI not yet added
+
 - **Use Favor Action Fixed**: Players can now properly use political favors with a selection menu
   - **Frontend**: Added favor selection UI with `showFavorMenu()` function
   - **Backend**: Fixed favor resolution to properly consume favors and apply effects
@@ -33,23 +50,6 @@
   - **Player Index Reset**: `current_player_index` is properly reset for new terms
   - **State Cleanup**: All term-specific state is properly cleared between terms
   - **Files Modified**: `engine/engine.py` - Updated `run_election_phase()`
-
-- **Action Points System (Phase 2)**: Players now get 3 Action Points per turn instead of 1 action
-  - **Multiple Actions Per Turn**: Players can take multiple actions until AP are exhausted
-  - **Variable AP Costs**: Different actions cost different amounts of AP (1-2 AP)
-  - **Campaign Action**: New 2 AP action to place influence for future elections
-  - **Turn Advancement**: Turn only advances when AP are exhausted
-  - **AP Validation**: Prevents actions when insufficient AP
-  - **Files Modified**:
-    - `models/game_state.py`: Added `action_points` and `campaign_influences` fields
-    - `models/components.py`: Added `CampaignInfluence` dataclass
-    - `engine/actions.py`: Added `ActionCampaign` class
-    - `engine/resolvers.py`: Added `resolve_campaign()` function
-    - `engine/engine.py`: Added AP costs, validation, and turn advancement logic
-    - `server.py`: Added campaign action handling and state serialization
-  - **Testing**: `test_action_points_system.py` provides comprehensive testing
-  - **Impact**: Dramatically increases player autonomy and speeds up gameplay
-  - **Frontend Status**: **NEEDS IMPLEMENTATION** - Action points display and campaign UI not yet added
 
 ### Trading Mechanic Implementation (Previous)
 - **Feature Added**: Players can now trade PC and favors during legislation sessions in exchange for votes
@@ -87,7 +87,7 @@
   - `static/script.js`: Removed from frontend action buttons
   - `cli.py`: Removed from CLI menu and help text
 - **Testing**: `test_form_alliance_removal.py` verifies the action is gone and other actions still work
-- **Impact**: Players now have a simpler action set: Fundraise, Network, Sponsor Legislation, Declare Candidacy, Use Favor, Support/Oppose Legislation, Trading
+- **Impact**: Players now have a simpler action set: Fundraise, Network, Sponsor Legislation, Declare Candidacy, Use Favor, Support/Oppose Legislation, Trading, Campaign
 
 ### Previous Major Fixes
 - **Legislation Session Timing:**  
@@ -132,7 +132,7 @@
 ### Game Flow
 1. **Setup**: 2-4 players, each with archetype and mandate
 2. **Event Phase**: Random events affect all players (now automatic)
-3. **Action Phase**: Players take turns performing actions
+3. **Action Phase**: Players take turns performing actions using Action Points
 4. **Resolution**: Actions resolve, game state updates
 5. **Repeat**: Until election victory conditions met
 
@@ -147,12 +147,13 @@
 - **Trading** (0 AP): Propose trades of PC/favors for votes during legislation sessions
 
 ### Recent Major Improvements
-1. **Political Favors System**: Players can now use favors gained from networking with proper UI
-2. **Candidacy Timing**: Only one candidacy per round, prevents clutter
-3. **Legislation Support/Opposition**: Players can support/oppose others' legislation with custom PC amounts
-4. **Trading Mechanic**: Players can negotiate deals during legislation sessions for votes
-5. **Automatic Event Phases**: Smooth game flow with automatic event card drawing
-6. **PC Commitment System**: Strategic depth through custom PC investment in actions
+1. **Action Points System**: Players get 3 AP per turn with variable costs for different actions
+2. **Political Favors System**: Players can now use favors gained from networking with proper UI
+3. **Trading Mechanic**: Players can negotiate deals during legislation sessions for votes
+4. **Candidacy Timing**: Only one candidacy per round, prevents clutter
+5. **Legislation Support/Opposition**: Players can support/oppose others' legislation with custom PC amounts
+6. **Automatic Event Phases**: Smooth game flow with automatic event card drawing
+7. **PC Commitment System**: Strategic depth through custom PC investment in actions
 
 ## 🚀 Current Status
 
@@ -171,6 +172,7 @@
 - **NEW: PEEK_EVENT favor properly reveals top event card**
 - **NEW: Term transitions properly clean up game state**
 - **NEW: All major bugs fixed and comprehensively tested**
+- **NEW: Action Points system backend fully implemented and tested**
 
 ### 🔧 Technical Details
 - **Port**: 5001 (configurable)
@@ -193,6 +195,7 @@
 ## 🧪 Testing Status
 
 ### Comprehensive Test Coverage
+- **`test_action_points_system.py`**: Action Points system functionality
 - **`test_trading_mechanic.py`**: Trading system functionality
 - **`test_pc_commitment_and_term_transition.py`**: PC commitment and term transitions
 - **`test_legislation_session_fix.py`**: Legislation session PC commitment
@@ -212,18 +215,20 @@
 - ✅ PEEK_EVENT favor reveals top event card
 - ✅ No leftover legislation between terms
 - ✅ Player index properly reset between terms
+- ✅ Action Points system backend works correctly
 
 ## 🎯 Strategic Context for Next LLM
 
 ### Immediate Opportunities
-1. **Game Balance Testing**: The PC commitment system and trading mechanic are ready for extensive playtesting to evaluate balance
-2. **Network Action Design Implementation**: See `NETWORK_ACTION_DESIGN.md` for detailed specifications on merging Network and Form Alliance actions into a single, more engaging action system
-3. **Re-enable Form Alliance**: If testing shows the simplified action set works well, consider re-implementing Form Alliance or the merged Network design
-4. **Database Integration**: Replace in-memory storage with persistent database
-5. **Multiplayer Real-time**: Add WebSocket support for live multiplayer
-6. **Advanced AI**: Add AI opponents with strategic decision-making
-7. **Game Variants**: Different election scenarios, rule sets
-8. **Analytics**: Track game statistics and player behavior
+1. **Frontend Implementation**: Complete the Action Points system UI (see `FRONTEND_IMPLEMENTATION_GUIDE.md`)
+2. **Game Balance Testing**: The PC commitment system and trading mechanic are ready for extensive playtesting to evaluate balance
+3. **Network Action Design Implementation**: See `NETWORK_ACTION_DESIGN.md` for detailed specifications on merging Network and Form Alliance actions into a single, more engaging action system
+4. **Re-enable Form Alliance**: If testing shows the simplified action set works well, consider re-implementing Form Alliance or the merged Network design
+5. **Database Integration**: Replace in-memory storage with persistent database
+6. **Multiplayer Real-time**: Add WebSocket support for live multiplayer
+7. **Advanced AI**: Add AI opponents with strategic decision-making
+8. **Game Variants**: Different election scenarios, rule sets
+9. **Analytics**: Track game statistics and player behavior
 
 ### Technical Debt to Address
 1. **Error Handling**: More robust error handling in API
@@ -240,6 +245,7 @@
 5. **State Management**: Centralized game state with clear serialization
 6. **Automatic Phases**: Event phases are automatic for smooth gameplay
 7. **PC Commitment**: Strategic depth through custom PC investment
+8. **Action Points**: Multiple actions per turn with variable costs
 
 ## 🔍 Key Files to Understand
 
@@ -342,11 +348,12 @@ PORT=5001 python3 server.py
 ## 🎯 Recommended Next Steps
 
 ### High Impact, Low Effort
-1. **Game Balance Testing**: Extensive playtesting of PC commitment and trading systems
-2. **Improve UI/UX**: Better visual feedback and animations
-3. **Add Sound Effects**: Audio feedback for actions
-4. **Game Settings**: Configurable game parameters
-5. **Re-enable Form Alliance**: If testing shows simplified actions work well
+1. **Frontend Implementation**: Complete Action Points system UI (see `FRONTEND_IMPLEMENTATION_GUIDE.md`)
+2. **Game Balance Testing**: Extensive playtesting of PC commitment and trading systems
+3. **Improve UI/UX**: Better visual feedback and animations
+4. **Add Sound Effects**: Audio feedback for actions
+5. **Game Settings**: Configurable game parameters
+6. **Re-enable Form Alliance**: If testing shows simplified actions work well
 
 ### Medium Impact, Medium Effort
 1. **Database Integration**: PostgreSQL/MongoDB for persistence
@@ -396,6 +403,7 @@ PORT=5001 python3 server.py
 - Favor system adds strategic depth
 - **PC commitment system adds strategic depth**
 - **Trading mechanic adds negotiation**
+- **Action Points system adds player autonomy**
 - **Simplified action set** (no Form Alliance) may need balance adjustments
 
 ### Potential Balance Issues
@@ -409,6 +417,7 @@ PORT=5001 python3 server.py
 
 - `GAME_IMPROVEMENTS.md`: Recent feature additions and improvements
 - `NETWORK_ACTION_DESIGN.md`: Detailed design for merging Network and Form Alliance actions
+- `FRONTEND_IMPLEMENTATION_GUIDE.md`: Action Points system frontend implementation
 
 ## 🎯 Success Metrics
 
@@ -427,6 +436,7 @@ PORT=5001 python3 server.py
 - **Successful negotiation and deal-making during legislation sessions**
 - **Strategic PC commitment decisions**
 - **Smooth automatic event phases**
+- **Multiple actions per turn with Action Points**
 
 ## 🚨 Known Issues & Limitations
 
@@ -438,6 +448,7 @@ PORT=5001 python3 server.py
 - **Missing Form Alliance**: Strategic depth reduced - consider Network Action Design
 - **Trading Balance**: Trading mechanic may need balance adjustments based on playtesting
 - **PC Commitment Balance**: PC commitment amounts may need tuning
+- **Frontend Implementation**: Action Points UI needs completion (see `FRONTEND_IMPLEMENTATION_GUIDE.md`)
 
 ### Potential Issues to Watch
 - **Port Conflicts**: macOS AirPlay can block port 5000
@@ -448,6 +459,7 @@ PORT=5001 python3 server.py
 - **PC Commitment UX**: Prompt dialogs may need refinement
 
 ### Recent Bug Fixes
+- **Action Points System**: Backend fully implemented and tested
 - **Use Favor Action**: Fixed to properly work with selection menu
 - **PC Commitment**: Added custom PC amounts for legislation and candidacy
 - **Automatic Event Phases**: Events now draw automatically
@@ -687,4 +699,4 @@ The backend already provides all necessary data:
 
 ---
 
-**The project is in excellent shape with a solid foundation, clear architecture, and comprehensive improvements. All major bugs have been fixed, new features are fully functional and tested, and the game is ready for extensive playtesting. The next LLM has a strong base to build upon with clear technical patterns and strategic direction established. The most immediate opportunity is extensive playtesting of the new PC commitment and trading systems to ensure they enhance rather than detract from the game experience.**
+**The project is in excellent shape with a solid foundation, clear architecture, and comprehensive improvements. All major bugs have been fixed, new features are fully functional and tested, and the game is ready for extensive playtesting. The next LLM has a strong base to build upon with clear technical patterns and strategic direction established. The most immediate opportunity is completing the Action Points system frontend implementation and extensive playtesting of the new PC commitment and trading systems to ensure they enhance rather than detract from the game experience.**

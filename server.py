@@ -299,6 +299,11 @@ def delete_game(game_id):
         del active_games[game_id]
     return jsonify({'message': 'Game deleted'})
 
+@app.route('/api/test', methods=['GET'])
+def test_api():
+    """Test endpoint to verify API is working."""
+    return jsonify({'message': 'API is working!', 'timestamp': '2025-07-07'})
+
 @app.route('/')
 def index():
     """Serve the main game page."""
