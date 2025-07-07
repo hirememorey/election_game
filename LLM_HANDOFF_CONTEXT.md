@@ -4,13 +4,20 @@
 
 **What this is:** A Python-based political strategy board game with a Flask backend and mobile-friendly web frontend. Players compete in elections through strategic actions, resource management, and political maneuvering.
 
-**Current State:** Fully functional game with rich mechanics, web interface, and comprehensive improvements to core gameplay systems. **All major bugs have been fixed and new features are fully tested.** **Action Points system backend is complete, frontend needs implementation.**
+**Current State:** Fully functional game with rich mechanics, web interface, and comprehensive improvements to core gameplay systems. **All major bugs have been fixed and new features are fully tested.** **Action Points system is complete with enhanced frontend UI.**
 
 **Architecture:** Clean separation between game logic (Python) and presentation (HTML/CSS/JS), with REST API communication.
 
 ## 📝 Recent Gameplay/Codebase Changes (Latest Updates)
 
-### Major Gameplay Mechanics Overhaul (NEW - Latest)
+### Recent Critical Bug Fixes (LATEST)
+- **Trading Action Visibility Fix**: Fixed critical bug where trading actions weren't showing during legislation sessions
+  - **Issue**: Frontend was checking for `'legislation_session'` but backend uses `'LEGISLATION_PHASE'`
+  - **Files Modified**: `static/script.js` - Updated phase name checks in action buttons, phase icons, and pending legislation display
+  - **Impact**: Trading actions now properly appear during legislation sessions
+  - **Status**: Fixed and deployed
+
+### Major Gameplay Mechanics Overhaul (Previous)
 - **Incumbent/Outsider Public Mood Logic**: Completely redesigned public mood effects to create strategic tension
   - **Incumbents** (office-holders) **benefit** from **positive** public mood changes
   - **Outsiders** (non-office-holders) **benefit** from **negative** public mood changes
@@ -37,6 +44,7 @@
   - **AP Cost Indicators**: Each action shows its AP cost with enhanced styling
   - **Files Modified**: `static/style.css` - Enhanced AP display and action button styling
   - **Impact**: Better user experience for the Action Points system
+  - **Status**: Fully implemented and working
 
 - **Production Deployment**: Successfully deployed to Render with proper configuration
   - **Render Configuration**: Added `render.yaml` for automatic deployment
@@ -71,7 +79,7 @@
     - `server.py`: Added campaign action handling and state serialization
   - **Testing**: `test_action_points_system.py` provides comprehensive testing
   - **Impact**: Dramatically increases player autonomy and speeds up gameplay
-  - **Frontend Status**: **NEEDS IMPLEMENTATION** - Action points display and campaign UI not yet added
+  - **Frontend Status**: **COMPLETE** - Action points display and campaign UI fully implemented
 
 - **Use Favor Action Fixed**: Players can now properly use political favors with a selection menu
   - **Frontend**: Added favor selection UI with `showFavorMenu()` function
