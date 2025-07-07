@@ -683,7 +683,7 @@ function showFavorMenu() {
         <h3>Choose a Favor to Use</h3>
         <div class="favor-options">
             ${currentPlayer.favors.map(favor => `
-                <button class="favor-option" data-favor-id="${favor.id}">
+                <button class="favor-option" data-favor-id="${favor.id}" data-favor-description="${favor.description}">
                     <div><strong>${favor.description}</strong></div>
                 </button>
             `).join('')}
@@ -697,9 +697,76 @@ function showFavorMenu() {
     modal.querySelectorAll('.favor-option').forEach(button => {
         button.addEventListener('click', () => {
             const favorId = button.dataset.favorId;
-            performAction('use_favor', { favor_id: favorId });
-            overlay.remove();
+            const favorDescription = button.dataset.favorDescription;
+            
+            // Check if this favor requires a target
+            if (favorDescription.includes('Target player') || favorDescription.includes('Choose one player')) {
+                showTargetPlayerSelection(favorId, favorDescription, overlay);
+            } else {
+                // No target needed, use favor directly
+                performAction('use_favor', { favor_id: favorId });
+                overlay.remove();
+            }
         });
+    });
+    
+    modal.querySelector('.cancel-btn').addEventListener('click', () => {
+        overlay.remove();
+    });
+    
+    overlay.appendChild(modal);
+    document.body.appendChild(overlay);
+}
+
+function showTargetPlayerSelection(favorId, favorDescription, parentOverlay) {
+    // Remove the parent modal
+    parentOverlay.remove();
+    
+    // Create new modal for player selection
+    const overlay = document.createElement('div');
+    overlay.className = 'modal-overlay';
+    
+    const modal = document.createElement('div');
+    modal.className = 'campaign-modal';
+    
+    const currentPlayer = currentGameState.players[currentGameState.current_player_index];
+    const otherPlayers = currentGameState.players.filter(p => p.id !== currentPlayer.id);
+    
+    modal.innerHTML = `
+        <h3>Select Target Player</h3>
+        <p>${favorDescription}</p>
+        
+        <div class="form-group">
+            <label for="target-player">Choose a player to target:</label>
+            <select id="target-player" required>
+                <option value="">Select a player...</option>
+                ${otherPlayers.map(player => `
+                    <option value="${player.id}">${player.name}</option>
+                `).join('')}
+            </select>
+        </div>
+        
+        <div class="modal-buttons">
+            <button class="btn-primary use-favor-btn">Use Favor</button>
+            <button class="btn-secondary cancel-btn">Cancel</button>
+        </div>
+    `;
+    
+    // Add event listeners
+    modal.querySelector('.use-favor-btn').addEventListener('click', () => {
+        const targetPlayerId = parseInt(modal.querySelector('#target-player').value);
+        
+        if (!targetPlayerId) {
+            showMessage('Please select a target player', 'error');
+            return;
+        }
+        
+        performAction('use_favor', { 
+            favor_id: favorId,
+            target_player_id: targetPlayerId
+        });
+        
+        overlay.remove();
     });
     
     modal.querySelector('.cancel-btn').addEventListener('click', () => {
