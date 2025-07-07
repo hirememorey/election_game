@@ -55,7 +55,6 @@ def load_personal_mandates():
         PersonalMandate(id="SHADOW_DONOR", title="The Shadow Donor", description="Ensure a player you supported (via Co-Sponsorship) wins the Presidency."),
         PersonalMandate(id="UNPOPULAR_HERO", title="The Unpopular Hero", description="Pass the Healthcare Overhaul legislation."),
         PersonalMandate(id="MINIMALIST", title="The Minimalist", description="Win the Presidency having committed 20 PC or less to the final election."),
-        PersonalMandate(id="DIPLOMAT", title="The Diplomat", description="Successfully use a Pledge token in a deal with every other player."),
         PersonalMandate(id="PEOPLES_CHAMPION", title="The People's Champion", description="Ensure the Public Mood is +2 or +3 when the final Presidential election occurs."),
         PersonalMandate(id="OPPORTUNIST", title="The Opportunist", description="Win the Presidency without ever having been an Incumbent before the final Election Phase."),
     ]
