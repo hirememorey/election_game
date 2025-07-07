@@ -189,6 +189,9 @@ function showGameScreen() {
 function updateGameDisplay() {
     if (!currentGameState) return;
     
+    // Update enhanced turn status
+    updateTurnStatus();
+    
     // Update game info
     roundInfo.textContent = `Round ${currentGameState.round_marker}`;
     phaseInfo.textContent = formatPhase(currentGameState.current_phase);
@@ -235,6 +238,73 @@ function updateGameDisplay() {
     } else {
         eventPhaseSection.classList.add('hidden');
     }
+}
+
+function updateTurnStatus() {
+    const turnStatus = document.getElementById('turn-status');
+    if (!turnStatus || !currentGameState) return;
+    
+    const currentPlayer = currentGameState.players[currentGameState.current_player_index];
+    const remainingAP = currentGameState.action_points[currentPlayer.id] || 0;
+    const totalPlayers = currentGameState.players.length;
+    const currentPlayerNumber = currentGameState.current_player_index + 1;
+    
+    // Create phase-specific content
+    let phaseContent = '';
+    let statusClass = '';
+    
+    if (currentGameState.current_phase === 'EVENT_PHASE') {
+        phaseContent = `
+            <div class="phase-indicator event-phase">
+                <span class="phase-icon">🎲</span>
+                <span class="phase-text">Event Phase</span>
+            </div>
+        `;
+        statusClass = 'event-phase-status';
+    } else if (currentGameState.current_phase === 'ACTION_PHASE') {
+        phaseContent = `
+            <div class="phase-indicator action-phase">
+                <span class="phase-icon">⚡</span>
+                <span class="phase-text">Action Phase</span>
+            </div>
+            <div class="ap-display">
+                <span class="ap-icon">⚡</span>
+                <span class="ap-text">${remainingAP}/3 Action Points</span>
+            </div>
+        `;
+        statusClass = 'action-phase-status';
+    } else if (currentGameState.current_phase === 'LEGISLATION_PHASE') {
+        phaseContent = `
+            <div class="phase-indicator legislation-phase">
+                <span class="phase-icon">📜</span>
+                <span class="phase-text">Legislation Session</span>
+            </div>
+        `;
+        statusClass = 'legislation-phase-status';
+    } else if (currentGameState.current_phase === 'ELECTION_PHASE') {
+        phaseContent = `
+            <div class="phase-indicator election-phase">
+                <span class="phase-icon">🗳️</span>
+                <span class="phase-text">Election Phase</span>
+            </div>
+        `;
+        statusClass = 'election-phase-status';
+    }
+    
+    turnStatus.innerHTML = `
+        <div class="turn-status-content ${statusClass}">
+            <div class="player-turn">
+                <span class="player-icon">👤</span>
+                <span class="player-name">${currentPlayer.name}</span>
+                <span class="player-number">(${currentPlayerNumber}/${totalPlayers})</span>
+            </div>
+            ${phaseContent}
+            <div class="round-info">
+                <span class="round-icon">📅</span>
+                <span class="round-text">Round ${currentGameState.round_marker}</span>
+            </div>
+        </div>
+    `;
 }
 
 function updatePendingLegislationDisplay() {
