@@ -71,14 +71,13 @@ def load_event_deck():
         EventCard(id="LAST_BILL_HIT", title="Last Bill Was a Hit!", description="The last player to successfully sponsor legislation gains 10 PC. Move Public Mood +1.", effect_id="LAST_BILL_HIT"),
         EventCard(id="LAST_BILL_DUD", title="Last Bill Was a Dud!", description="The last player to successfully sponsor legislation loses 10 PC. Move Public Mood -1.", effect_id="LAST_BILL_DUD"),
         EventCard(id="BIPARTISAN_BREAKTHROUGH", title="Bipartisan Breakthrough", description="All players in Congress or Senate may immediately pay 5 PC to gain 10 PC.", effect_id="BIPARTISAN_BREAKTHROUGH"),
-        EventCard(id="WAR_BREAKS_OUT", title="War Breaks Out", description="Public Mood is locked at its current position for the rest of the Term. Sponsoring any legislation is at -2 to the roll until the Term ends.", effect_id="WAR_BREAKS_OUT"),
+        EventCard(id="WAR_BREAKS_OUT", title="War Breaks Out", description="Public Mood is locked at its current position for the rest of the Term. All legislation requires 2 additional PC to pass until the Term ends.", effect_id="WAR_BREAKS_OUT"),
         EventCard(id="TECH_LEAP", title="Technological Leap", description="Move Public Mood +1. The player with the least PC gains 10 PC.", effect_id="TECH_LEAP"),
         EventCard(id="NATURAL_DISASTER", title="Natural Disaster", description="Move Public Mood -1. A random Governor (or a random player if no Governors) must respond, losing 10 PC.", effect_id="NATURAL_DISASTER"),
         EventCard(id="MEDIA_DARLING", title="Media Darling", description="Choose one player. They gain 5 PC and are immune to the next 'Scandal!' event.", effect_id="MEDIA_DARLING"),
         EventCard(id="GAFFE", title="Gaffe on the Trail", description="Choose an opponent. They lose 8 PC.", effect_id="GAFFE"),
         EventCard(id="ENDORSEMENT", title="Surprise Endorsement", description="You (the player who drew this card) gain 10 PC.", effect_id="ENDORSEMENT"),
         EventCard(id="GRASSROOTS", title="Grassroots Movement", description="The player with the fewest held offices (0 is fewest) gains 10 PC.", effect_id="GRASSROOTS"),
-        EventCard(id="VOTER_APATHY", title="Voter Apathy", description="Lingering Effect. For the next Election Phase, the PC committed by all players is only half as effective.", effect_id="VOTER_APATHY"),
         EventCard(id="MIDTERM_FURY", title="Midterm Fury", description="Timing. Draw only in Round 2 or 3 of a Term. Public Mood moves 2 spaces towards 'Very Angry'.", effect_id="MIDTERM_FURY"),
         EventCard(id="UNEXPECTED_SURPLUS", title="Unexpected Surplus", description="Move Public Mood +1. All office-holders collect double their income this Upkeep phase.", effect_id="UNEXPECTED_SURPLUS"),
         EventCard(id="STOCK_CRASH", title="Stock Market Crash", description="Move Public Mood -3 spaces. Any player who chose to 'Fundraise' this round loses 5 PC instead of gaining it.", effect_id="STOCK_CRASH"),
@@ -89,10 +88,10 @@ def load_event_deck():
 def load_scrutiny_deck():
     return [
         ScrutinyCard(id="GAFFE_INVESTIGATION", title="Gaffe Investigation", description="A past mistake surfaces. Pay 10 PC.", effect_id="PAY_PC_10"),
-        ScrutinyCard(id="FINANCE_AUDIT", title="Campaign Finance Audit", description="Your Fundraise action grants 0 PC next round.", effect_id="FINANCE_AUDIT"),
+        ScrutinyCard(id="FINANCE_AUDIT", title="Campaign Finance Audit", description="Your Fundraise action grants 2 PC less next round.", effect_id="FINANCE_AUDIT"),
         ScrutinyCard(id="OLD_VOTE", title="Old Vote Haunts You", description="Your past policies are unpopular. Public Mood drops by 1.", effect_id="MOOD_MINUS_1"),
         ScrutinyCard(id="DONOR_SCANDAL", title="Minor Donor Scandal", description="You must return a questionable donation. Lose 8 PC.", effect_id="PAY_PC_8"),
-        ScrutinyCard(id="NEGATIVE_PRESS", title="Negative Press Cycle", description="You are bombarded by bad press. Lose 5 PC and you cannot Network next round.", effect_id="NEGATIVE_PRESS"),
+        ScrutinyCard(id="NEGATIVE_PRESS", title="Negative Press Cycle", description="You are bombarded by bad press. Lose 5 PC.", effect_id="NEGATIVE_PRESS"),
         ScrutinyCard(id="UNPOPULAR_STANCE", title="Unpopular Stance", description="Your position on a key issue backfires. Lose 7 PC.", effect_id="PAY_PC_7"),
         ScrutinyCard(id="GAFFE_INVESTIGATION_2", title="Gaffe Investigation", description="A past mistake surfaces. Pay 10 PC.", effect_id="PAY_PC_10"),
         ScrutinyCard(id="DONOR_SCANDAL_2", title="Minor Donor Scandal", description="You must return a questionable donation. Lose 8 PC.", effect_id="PAY_PC_8"),
@@ -108,19 +107,19 @@ def load_alliance_deck():
         AllianceCard(id="SPIN_DOCTOR", title="Marcus Thorne, The Savvy Spin Doctor", description="The first time you would lose PC from the Public Mood track each round, ignore the loss.", weakness_description="You have a -1 penalty to your dice roll when sponsoring 'Protect The Children!'."),
         AllianceCard(id="GENERAL_JACKSON", title="General Hank 'Bulldog' Jackson", description="When you sponsor the Military Funding legislation, you automatically succeed (no roll needed).", weakness_description="Any time the Public Mood would improve due to an Event Card, it improves by 1 less space."),
         AllianceCard(id="UNION_BOSS", title="'Big' Sal Marconi, The Union Boss", description="Gain a +5 PC bonus when committing PC to an election for Governor or Congress.", weakness_description="Before the Election Phase begins, you must pay 10% of your current PC (rounded up) or discard this Ally."),
-        AllianceCard(id="MASTER_POLLSTER", title="Katja Petrova, The Master Pollster", description="Once per Term (during Round 4), you may secretly look at the NPC Challenger's dice bonus for one office before anyone declares their candidacy.", weakness_description="Opponents only need to tie, not beat, your roll to win a contested election against you."),
-        AllianceCard(id="GRASSROOTS_ACTIVIST", title="Celeste Imani, The Grassroots Activist", description="If your PC total is the lowest at the start of your turn, gain 5 PC.", weakness_description="You cannot use the Fundraise action."),
+        AllianceCard(id="MASTER_POLLSTER", title="Katja Petrova, The Master Pollster", description="Once per Term (during Round 4), you may secretly look at one office's candidacy cost before anyone declares their candidacy.", weakness_description="Opponents only need to tie, not beat, your roll to win a contested election against you."),
+        AllianceCard(id="GRASSROOTS_ACTIVIST", title="Celeste Imani, The Grassroots Activist", description="If your PC total is the lowest at the start of your turn, gain 5 PC.", weakness_description="You gain 2 PC less from Fundraise actions."),
         AllianceCard(id="JUDGE_REED", title="Judge Evelyn Reed (Retired)", description="You are immune to the 'Gaffe on the Trail' and 'Scandal!' Event Cards.", weakness_description="You cannot sponsor 'Change the Tax Code' legislation."),
     ]
 
 # Appendix E: Political Favor Tokens
 def load_political_favors():
     return [
-        PoliticalFavor(id="ELECTION_ROLL_BONUS", description="+1 to a single election roll (use before rolling)."),
-        PoliticalFavor(id="FUNDRAISE_BONUS", description="+3 PC on your next Fundraise action."),
-        PoliticalFavor(id="ALLY_UPKEEP_IGNORE", description="Ignore 2 PC of Ally Upkeep cost for one round."),
-        PoliticalFavor(id="FORCE_REROLL", description="Force an opponent to re-roll one legislation die."),
-        PoliticalFavor(id="PEEK_EVENT", description="Look at the top card of the Event Deck."),
+        PoliticalFavor(id="EXTRA_FUNDRAISING", description="Gain 8 PC immediately."),
+        PoliticalFavor(id="LEGISLATIVE_INFLUENCE", description="Add 5 PC support to pending legislation."),
+        PoliticalFavor(id="MEDIA_SPIN", description="Improve public mood by 1."),
+        PoliticalFavor(id="POLITICAL_PRESSURE", description="Target player loses 3 PC."),
+        PoliticalFavor(id="PEEK_EVENT", description="Look at the top card of the Event Deck and gain 5 PC."),
     ]
 
 # Appendix F: Legislation Reference
