@@ -285,7 +285,7 @@ function getPhaseIcon(phase) {
     const icons = {
         'event_phase': '🎲',
         'action_phase': '⚡',
-        'legislation_session': '📋',
+        'LEGISLATION_PHASE': '📋',
         'election_phase': '🗳️'
     };
     return icons[phase] || '⚡';
@@ -337,7 +337,7 @@ function updatePendingLegislationDisplay() {
     const pendingSection = document.getElementById('pending-legislation-section');
     if (!pendingSection || !currentGameState) return;
     
-    if (currentGameState.current_phase === 'legislation_session' && currentGameState.term_legislation && currentGameState.term_legislation.length > 0) {
+    if (currentGameState.current_phase === 'LEGISLATION_PHASE' && currentGameState.term_legislation && currentGameState.term_legislation.length > 0) {
         pendingSection.classList.remove('hidden');
         pendingSection.innerHTML = `
             <div class="section-header">
@@ -499,7 +499,7 @@ function updateActionButtons() {
     }
     
     // Legislation session actions
-    if (currentGameState.current_phase === 'legislation_session' && currentGameState.term_legislation && currentGameState.term_legislation.length > 0) {
+    if (currentGameState.current_phase === 'LEGISLATION_PHASE' && currentGameState.term_legislation && currentGameState.term_legislation.length > 0) {
         actions.push({
             type: 'support_legislation',
             label: 'Support Legislation',
@@ -593,7 +593,7 @@ function formatPhase(phase) {
     const phaseMap = {
         'event_phase': 'Event Phase',
         'action_phase': 'Action Phase',
-        'legislation_session': 'Legislation Session',
+        'LEGISLATION_PHASE': 'Legislation Session',
         'election_phase': 'Election Phase'
     };
     return phaseMap[phase] || phase;
