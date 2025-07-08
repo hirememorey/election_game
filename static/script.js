@@ -1,6 +1,7 @@
 // Game state management
 let currentGameId = null;
 let currentGameState = null;
+let isAnimating = false;
 
 // Simplified API URL logic - always use the current domain
 const API_BASE_URL = `${window.location.protocol}//${window.location.host}/api`;
@@ -11,6 +12,18 @@ console.log('Current hostname:', window.location.hostname);
 console.log('Current protocol:', window.location.protocol);
 console.log('Current host:', window.location.host);
 console.log('Full URL:', window.location.href);
+
+// Accessibility helper
+function announceToScreenReader(message) {
+    const srAnnouncements = document.getElementById('sr-announcements');
+    if (srAnnouncements) {
+        srAnnouncements.textContent = message;
+        // Clear after a short delay
+        setTimeout(() => {
+            srAnnouncements.textContent = '';
+        }, 1000);
+    }
+}
 
 // DOM elements
 const setupScreen = document.getElementById('setup-screen');
@@ -254,31 +267,68 @@ function updateTurnStatus() {
     
     const currentPlayer = currentGameState.players[currentGameState.current_player_index];
     const remainingAP = currentGameState.action_points?.[currentPlayer.id] || 3;
+    const phase = currentGameState.current_phase;
+    const round = currentGameState.round_marker;
+    
+    // Get phase-specific styling and description
+    let phaseClass = '';
+    let phaseDescription = '';
+    switch (phase) {
+        case 'event_phase':
+            phaseClass = 'event-phase-status';
+            phaseDescription = 'Event Phase - Drawing event cards';
+            break;
+        case 'action_phase':
+            phaseClass = 'action-phase-status';
+            phaseDescription = 'Action Phase - Taking strategic actions';
+            break;
+        case 'LEGISLATION_PHASE':
+            phaseClass = 'legislation-session-status';
+            phaseDescription = 'Legislation Session - Voting on bills';
+            break;
+        case 'election_phase':
+            phaseClass = 'election-phase-status';
+            phaseDescription = 'Election Phase - Determining winners';
+            break;
+    }
+    
+    // Announce turn change to screen readers
+    announceToScreenReader(`${currentPlayer.name}'s turn. ${phaseDescription}. ${remainingAP} action points remaining.`);
     
     turnStatus.innerHTML = `
         <div class="turn-status-content">
             <div class="player-turn">
-                <span class="player-icon">👤</span>
+                <span class="player-icon" aria-hidden="true">👤</span>
                 <span class="player-name">${currentPlayer.name}</span>
                 <span class="player-number">Player ${currentGameState.current_player_index + 1}</span>
             </div>
             
-            <div class="phase-indicator ${currentGameState.current_phase.replace('_', '-')}-status">
-                <span class="phase-icon">${getPhaseIcon(currentGameState.current_phase)}</span>
-                <span class="phase-text">${formatPhase(currentGameState.current_phase)}</span>
+            <div class="phase-indicator ${phaseClass}">
+                <span class="phase-icon" aria-hidden="true">${getPhaseIcon(phase)}</span>
+                <span class="phase-text">${formatPhase(phase)}</span>
             </div>
             
             <div class="ap-display">
-                <span class="ap-icon">⚡</span>
+                <span class="ap-icon" aria-hidden="true">⚡</span>
                 <span class="ap-text">${remainingAP}/3 Action Points</span>
             </div>
             
             <div class="round-info">
-                <span class="round-icon">🔄</span>
-                <span>Round ${currentGameState.round_marker}</span>
+                <span class="round-icon" aria-hidden="true">📊</span>
+                <span class="round-text">Round ${round}</span>
             </div>
         </div>
     `;
+    
+    // Add subtle animation for turn changes
+    if (!isAnimating) {
+        isAnimating = true;
+        turnStatus.style.transform = 'scale(1.02)';
+        setTimeout(() => {
+            turnStatus.style.transform = 'scale(1)';
+            isAnimating = false;
+        }, 200);
+    }
 }
 
 function getPhaseIcon(phase) {
@@ -529,6 +579,7 @@ function updateActionButtons() {
         const button = document.createElement('button');
         button.className = 'action-btn';
         button.disabled = !canAfford;
+        button.setAttribute('aria-label', `${action.label}: ${action.description}. Cost: ${action.ap_cost} Action Points.`);
         
         button.innerHTML = `
             <div class="action-label">${action.label}</div>
@@ -538,11 +589,30 @@ function updateActionButtons() {
         
         if (!canAfford) {
             button.title = `Not enough Action Points. Need ${action.ap_cost}, have ${remainingAP}`;
+            button.setAttribute('aria-describedby', 'insufficient-ap');
         }
         
-        button.onclick = () => handleActionClick(action.type);
+        button.onclick = () => {
+            // Add click feedback
+            button.style.transform = 'scale(0.98)';
+            setTimeout(() => {
+                button.style.transform = '';
+            }, 150);
+            
+            handleActionClick(action.type);
+        };
+        
         actionList.appendChild(button);
     });
+    
+    // Add insufficient AP message for screen readers
+    if (actions.some(action => remainingAP < action.ap_cost)) {
+        const insufficientMsg = document.createElement('div');
+        insufficientMsg.id = 'insufficient-ap';
+        insufficientMsg.className = 'sr-only';
+        insufficientMsg.textContent = 'Some actions are disabled due to insufficient Action Points.';
+        actionList.appendChild(insufficientMsg);
+    }
 }
 
 function handleActionClick(actionType) {
@@ -1169,7 +1239,15 @@ function showMessage(message, type = 'success') {
     // Create new message
     const messageDiv = document.createElement('div');
     messageDiv.className = `message ${type}`;
-    messageDiv.textContent = message;
+    messageDiv.setAttribute('role', 'alert');
+    messageDiv.setAttribute('aria-live', 'polite');
+    
+    // Add icon based on type
+    const icon = type === 'success' ? '✅' : type === 'error' ? '❌' : 'ℹ️';
+    messageDiv.innerHTML = `
+        <span class="message-icon" aria-hidden="true">${icon}</span>
+        <span class="message-text">${message}</span>
+    `;
     
     // Insert at top of game content
     const gameContent = document.querySelector('.game-content');
@@ -1177,9 +1255,29 @@ function showMessage(message, type = 'success') {
         gameContent.insertBefore(messageDiv, gameContent.firstChild);
     }
     
+    // Announce to screen readers
+    announceToScreenReader(`${type}: ${message}`);
+    
+    // Add entrance animation
+    messageDiv.style.transform = 'translateY(-20px)';
+    messageDiv.style.opacity = '0';
+    
+    setTimeout(() => {
+        messageDiv.style.transform = 'translateY(0)';
+        messageDiv.style.opacity = '1';
+    }, 10);
+    
     // Auto-remove after 5 seconds
     setTimeout(() => {
-        messageDiv.remove();
+        if (messageDiv.parentNode) {
+            messageDiv.style.transform = 'translateY(-20px)';
+            messageDiv.style.opacity = '0';
+            setTimeout(() => {
+                if (messageDiv.parentNode) {
+                    messageDiv.remove();
+                }
+            }, 300);
+        }
     }, 5000);
 }
 

@@ -3,11 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Election: The Political Strategy Game - A sophisticated political board game with Apple-level design">
+    <meta name="theme-color" content="#007AFF">
     <title>Election: The Game</title>
     <link rel="stylesheet" href="/static/style.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=SF+Pro+Display:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🗳️</text></svg>">
 </head>
 <body>
     <div id="app">
@@ -16,7 +19,7 @@
             <div class="setup-container">
                 <div class="setup-header">
                     <div class="logo">
-                        <div class="logo-icon">🗳️</div>
+                        <div class="logo-icon" aria-hidden="true">🗳️</div>
                         <h1>Election</h1>
                         <p class="subtitle">The Political Strategy Game</p>
                     </div>
@@ -25,30 +28,30 @@
                 <div class="setup-content">
                     <div class="setup-card">
                         <h2>Start New Game</h2>
-                        <p class="setup-description">Enter player names to begin your political campaign</p>
+                        <p class="setup-description">Enter player names to begin your political campaign. Experience the thrill of strategic decision-making in this sophisticated political simulation.</p>
                         
-                        <form class="player-form" id="player-form">
+                        <form class="player-form" id="player-form" novalidate>
                             <div class="player-inputs">
                                 <div class="player-input">
                                     <label for="player1">Player 1</label>
-                                    <input type="text" id="player1" placeholder="Enter name" required>
+                                    <input type="text" id="player1" name="player1" placeholder="Enter name" required autocomplete="off">
                                 </div>
                                 <div class="player-input">
                                     <label for="player2">Player 2</label>
-                                    <input type="text" id="player2" placeholder="Enter name" required>
+                                    <input type="text" id="player2" name="player2" placeholder="Enter name" required autocomplete="off">
                                 </div>
                                 <div class="player-input optional">
                                     <label for="player3">Player 3 <span class="optional-text">(optional)</span></label>
-                                    <input type="text" id="player3" placeholder="Enter name">
+                                    <input type="text" id="player3" name="player3" placeholder="Enter name" autocomplete="off">
                                 </div>
                                 <div class="player-input optional">
                                     <label for="player4">Player 4 <span class="optional-text">(optional)</span></label>
-                                    <input type="text" id="player4" placeholder="Enter name">
+                                    <input type="text" id="player4" name="player4" placeholder="Enter name" autocomplete="off">
                                 </div>
                             </div>
-                            <button type="submit" id="start-game-btn" class="btn-primary">
+                            <button type="submit" id="start-game-btn" class="btn-primary btn-large">
                                 <span class="btn-text">Start Game</span>
-                                <span class="btn-icon">→</span>
+                                <span class="btn-icon" aria-hidden="true">→</span>
                             </button>
                         </form>
                     </div>
@@ -59,19 +62,19 @@
         <!-- Game Screen -->
         <div id="game-screen" class="screen game-screen hidden">
             <!-- Game Header -->
-            <header class="game-header">
+            <header class="game-header" role="banner">
                 <div class="header-content">
                     <div class="header-left">
                         <h1>Election</h1>
-                        <div class="game-meta">
+                        <div class="game-meta" role="status" aria-live="polite">
                             <span id="round-info" class="meta-item">Round 1</span>
                             <span id="phase-info" class="meta-item">Event Phase</span>
                             <span id="mood-info" class="meta-item">Public Mood: Neutral</span>
                         </div>
                     </div>
                     <div class="header-right">
-                        <button id="new-game-btn" class="btn-secondary btn-small">
-                            <span class="btn-icon">↻</span>
+                        <button id="new-game-btn" class="btn-secondary btn-small" aria-label="Start new game">
+                            <span class="btn-icon" aria-hidden="true">↻</span>
                             <span class="btn-text">New Game</span>
                         </button>
                     </div>
@@ -79,9 +82,9 @@
             </header>
 
             <!-- Main Game Content -->
-            <main class="game-content">
+            <main class="game-content" role="main">
                 <!-- Enhanced Turn Status -->
-                <section class="turn-status-section">
+                <section class="turn-status-section" aria-live="polite">
                     <div id="turn-status" class="enhanced-turn-status">
                         <!-- Turn status will be populated by JavaScript -->
                     </div>
@@ -92,32 +95,33 @@
                     <!-- Left Column: Game State -->
                     <div class="game-state-column">
                         <!-- Current Player Info -->
-                        <section class="player-section">
+                        <section class="player-section" aria-labelledby="current-player-heading">
                             <div class="section-header">
-                                <h3>Current Player</h3>
-                                <div class="player-avatar" id="current-player-avatar">👤</div>
+                                <h3 id="current-player-heading">Current Player</h3>
+                                <div class="player-avatar" id="current-player-avatar" aria-hidden="true">👤</div>
                             </div>
                             <div class="player-info">
                                 <h4 id="current-player-name">Player Name</h4>
-                                <div class="player-stats">
-                                    <div class="stat-item">
+                                <div class="player-stats" role="list">
+                                    <div class="stat-item" role="listitem">
                                         <span class="stat-label">Political Capital</span>
-                                        <span class="stat-value" id="current-player-pc">0</span>
+                                        <span class="stat-value" id="current-player-pc" aria-live="polite">0</span>
                                     </div>
-                                    <div class="stat-item">
+                                    <div class="stat-item" role="listitem">
                                         <span class="stat-label">Office</span>
-                                        <span class="stat-value" id="current-player-office">None</span>
+                                        <span class="stat-value" id="current-player-office" aria-live="polite">None</span>
                                     </div>
                                 </div>
                             </div>
                         </section>
 
                         <!-- Player Identity Cards -->
-                        <section class="identity-section">
+                        <section class="identity-section" aria-labelledby="identity-heading">
+                            <h3 id="identity-heading" class="sr-only">Player Identity</h3>
                             <div class="identity-card">
                                 <div class="card-header">
                                     <h4>Political Archetype</h4>
-                                    <div class="card-icon">🎭</div>
+                                    <div class="card-icon" aria-hidden="true">🎭</div>
                                 </div>
                                 <div class="card-content">
                                     <h5 id="current-player-archetype-title">Loading...</h5>
@@ -128,7 +132,7 @@
                             <div class="identity-card">
                                 <div class="card-header">
                                     <h4>Hidden Mission</h4>
-                                    <div class="card-icon">🎯</div>
+                                    <div class="card-icon" aria-hidden="true">🎯</div>
                                 </div>
                                 <div class="card-content">
                                     <h5 id="current-player-mandate-title">Loading...</h5>
@@ -138,7 +142,8 @@
                         </section>
 
                         <!-- Player Favors -->
-                        <section id="player-favors-section" class="favors-section hidden">
+                        <section id="player-favors-section" class="favors-section hidden" aria-labelledby="favors-heading">
+                            <h3 id="favors-heading" class="sr-only">Player Favors</h3>
                             <!-- Player favors will be displayed here -->
                         </section>
                     </div>
@@ -146,34 +151,35 @@
                     <!-- Right Column: Actions & Game Log -->
                     <div class="game-actions-column">
                         <!-- Action Buttons -->
-                        <section class="actions-section">
+                        <section class="actions-section" aria-labelledby="actions-heading">
                             <div class="section-header">
-                                <h3>Available Actions</h3>
-                                <div class="action-points-display" id="action-points-display">
-                                    <span class="ap-icon">⚡</span>
+                                <h3 id="actions-heading">Available Actions</h3>
+                                <div class="action-points-display" id="action-points-display" aria-live="polite">
+                                    <span class="ap-icon" aria-hidden="true">⚡</span>
                                     <span class="ap-text">3 AP</span>
                                 </div>
                             </div>
-                            <div class="action-grid" id="action-list">
+                            <div class="action-grid" id="action-list" role="group" aria-label="Game actions">
                                 <!-- Actions will be populated here -->
                             </div>
                         </section>
 
                         <!-- Pending Legislation -->
-                        <section id="pending-legislation-section" class="legislation-section hidden">
+                        <section id="pending-legislation-section" class="legislation-section hidden" aria-labelledby="legislation-heading">
+                            <h3 id="legislation-heading" class="sr-only">Pending Legislation</h3>
                             <!-- Pending legislation will be displayed here -->
                         </section>
 
                         <!-- Game Log -->
-                        <section class="log-section">
+                        <section class="log-section" aria-labelledby="log-heading">
                             <div class="section-header">
-                                <h3>Game Log</h3>
-                                <button class="btn-clear-log" id="clear-log-btn">
-                                    <span class="btn-icon">🗑️</span>
+                                <h3 id="log-heading">Game Log</h3>
+                                <button class="btn-clear-log" id="clear-log-btn" aria-label="Clear game log">
+                                    <span class="btn-icon" aria-hidden="true">🗑️</span>
                                 </button>
                             </div>
                             <div class="log-container">
-                                <div id="log-content" class="log-content">
+                                <div id="log-content" class="log-content" role="log" aria-live="polite">
                                     <!-- Game log will be populated here -->
                                 </div>
                             </div>
@@ -183,10 +189,10 @@
             </main>
 
             <!-- Event Phase Button -->
-            <footer class="game-footer">
+            <footer class="game-footer" role="contentinfo">
                 <div id="event-phase-section" class="event-phase hidden">
-                    <button id="run-event-btn" class="btn-primary btn-large">
-                        <span class="btn-icon">🎲</span>
+                    <button id="run-event-btn" class="btn-primary btn-large" aria-label="Draw event card">
+                        <span class="btn-icon" aria-hidden="true">🎲</span>
                         <span class="btn-text">Draw Event Card</span>
                     </button>
                 </div>
@@ -194,6 +200,9 @@
         </div>
     </div>
 
-    <script src="/static/script.js?v=7"></script>
+    <!-- Screen Reader Only Content -->
+    <div class="sr-only" aria-live="polite" id="sr-announcements"></div>
+
+    <script src="/static/script.js?v=8"></script>
 </body>
 </html> 
