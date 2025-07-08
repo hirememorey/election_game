@@ -1,7 +1,6 @@
 // Game state management
-let currentGameId = null;
-let currentGameState = null;
-let isAnimating = false;
+let gameId = null;
+let gameState = null;
 
 // Simplified API URL logic - always use the current domain
 const API_BASE_URL = `${window.location.protocol}//${window.location.host}/api`;
@@ -141,11 +140,11 @@ async function startNewGame() {
         const result = await apiCall('/game', 'POST', { player_names: playerNames });
         console.log('API call successful:', result);
         
-        currentGameId = result.game_id;
-        currentGameState = result.state;
+        gameId = result.game_id;
+        gameState = result.state;
         
         showGameScreen();
-        updateGameDisplay();
+        updateUi();
     } catch (error) {
         console.error('Failed to start game:', error);
         showMessage(`Failed to start game: ${error.message}`, 'error');
@@ -159,37 +158,37 @@ async function startNewGame() {
 }
 
 async function getGameState() {
-    if (!currentGameId) return;
+    if (!gameId) return;
     
     try {
-        const result = await apiCall(`/game/${currentGameId}`);
-        currentGameState = result.state;
-        updateGameDisplay();
+        const result = await apiCall(`/game/${gameId}`);
+        gameState = result.state;
+        updateUi();
     } catch (error) {
         console.error('Failed to get game state:', error);
     }
 }
 
 async function performAction(actionType, additionalData = {}) {
-    if (!currentGameId) return;
+    if (!gameId) return;
     
     try {
         const data = {
             action_type: actionType,
-            player_id: currentGameState.current_player_index,
+            player_id: gameState.players[gameState.current_player_index].id,
             ...additionalData
         };
         
-        const result = await apiCall(`/game/${currentGameId}/action`, 'POST', data);
-        currentGameState = result.state;
-        updateGameDisplay();
+        const result = await apiCall(`/game/${gameId}/action`, 'POST', data);
+        gameState = result.state;
+        updateUi();
     } catch (error) {
         console.error('Failed to perform action:', error);
     }
 }
 
 async function runEventPhase() {
-    if (!currentGameId) return;
+    if (!gameId) return;
     
     try {
         if (runEventBtn) {
@@ -198,9 +197,9 @@ async function runEventPhase() {
             if (btnText) btnText.textContent = 'Drawing Event...';
         }
         
-        const result = await apiCall(`/game/${currentGameId}/event`, 'POST');
-        currentGameState = result.state;
-        updateGameDisplay();
+        const result = await apiCall(`/game/${gameId}/event`, 'POST');
+        gameState = result.state;
+        updateUi();
     } catch (error) {
         console.error('Failed to run event phase:', error);
     } finally {
@@ -216,8 +215,8 @@ async function runEventPhase() {
 function showSetupScreen() {
     if (setupScreen) setupScreen.classList.remove('hidden');
     if (gameScreen) gameScreen.classList.add('hidden');
-    currentGameId = null;
-    currentGameState = null;
+    gameId = null;
+    gameState = null;
     
     // Clear form
     for (let i = 1; i <= 4; i++) {
@@ -231,44 +230,148 @@ function showGameScreen() {
     if (gameScreen) gameScreen.classList.remove('hidden');
 }
 
-function updateGameDisplay() {
-    if (!currentGameState) return;
+function updateUi() {
+    if (!gameState) return;
+
+    renderIntelligenceBriefing();
+    renderMainStage();
+    renderPlayerDashboard();
+}
+
+function renderIntelligenceBriefing() {
+    const briefingDiv = document.getElementById('intelligence-briefing');
+    briefingDiv.innerHTML = ''; // Clear previous state
+
+    gameState.players.forEach(player => {
+        if (player.id !== gameState.players[gameState.current_player_index].id) {
+            const opponentSummary = document.createElement('div');
+            opponentSummary.className = 'opponent-summary';
+            opponentSummary.innerHTML = `
+                <h4>${player.name}</h4>
+                <p>PC: ${player.pc}</p>
+                <p>Favors: ${player.favors.length}</p>
+                <p>Office: ${player.office || 'None'}</p>
+            `;
+            briefingDiv.appendChild(opponentSummary);
+        }
+    });
+
+    const gameStatusTicker = document.getElementById('game-status-ticker');
+    gameStatusTicker.innerHTML = `Round: ${gameState.round_marker} | Phase: ${gameState.current_phase} | Public Mood: ${gameState.public_mood}`;
+}
+
+function renderMainStage() {
+    const actionList = document.getElementById('action-list');
+    actionList.innerHTML = '';
+
+    const availableActions = getAvailableActions(gameState.current_phase);
+    availableActions.forEach(actionInfo => {
+        const button = document.createElement('button');
+        button.innerText = actionInfo.label;
+        button.className = 'action-button';
+        button.onclick = () => performAction(actionInfo.type, actionInfo.params);
+        
+        // Simple disabling logic for now
+        const currentPlayer = gameState.players[gameState.current_player_index];
+        const apLeft = gameState.action_points[currentPlayer.id];
+        if (apLeft < (actionInfo.ap_cost || 1)) {
+            button.disabled = true;
+        }
+
+        actionList.appendChild(button);
+    });
     
-    // Update enhanced turn status
-    updateTurnStatus();
+    // Render game log
+    const logDiv = document.getElementById('game-log');
+    logDiv.innerHTML = gameState.log.map(entry => `<p>${entry}</p>`).join('');
+    logDiv.scrollTop = logDiv.scrollHeight;
+}
+
+function renderPlayerDashboard() {
+    const dashboardDiv = document.getElementById('player-dashboard');
+    const currentPlayer = gameState.players[gameState.current_player_index];
     
-    // Update game info
-    if (roundInfo) roundInfo.textContent = `Round ${currentGameState.round_marker}`;
-    if (phaseInfo) phaseInfo.textContent = formatPhase(currentGameState.current_phase);
-    if (moodInfo) moodInfo.textContent = `Public Mood: ${formatMood(currentGameState.public_mood)}`;
-    
-    // Update turn log
-    updateTurnLog();
-    
-    // Update current player info
-    updateCurrentPlayerInfo();
-    
-    // Update action buttons
-    updateActionButtons();
-    
-    // Update pending legislation
-    updatePendingLegislationDisplay();
-    
-    // Update player favors
-    updatePlayerFavorsDisplay();
-    
-    // Update event phase button
-    updateEventPhaseButton();
+    dashboardDiv.innerHTML = `
+        <div class="dashboard-section">
+            <h3>${currentPlayer.name} (${currentPlayer.archetype.name})</h3>
+            <p>${currentPlayer.mandate.name}: ${currentPlayer.mandate.description}</p>
+        </div>
+        <div class="dashboard-section">
+            <h3>PC: ${currentPlayer.pc}</h3>
+        </div>
+        <div class="dashboard-section">
+            <h3>Action Points</h3>
+            <div id="ap-meter"></div>
+        </div>
+        <div class="dashboard-section">
+            <h3>Favors</h3>
+            <p>${currentPlayer.favors.map(f => f.name).join(', ') || 'None'}</p>
+        </div>
+    `;
+
+    const apMeter = document.getElementById('ap-meter');
+    const totalAp = 3;
+    const spentAp = totalAp - gameState.action_points[currentPlayer.id];
+
+    for (let i = 0; i < totalAp; i++) {
+        const pip = document.createElement('div');
+        pip.className = 'ap-pip';
+        if (i < spentAp) {
+            pip.classList.add('spent');
+        }
+        apMeter.appendChild(pip);
+    }
+}
+
+async function performAction(actionType, params = {}) {
+    try {
+        const response = await fetch(`/api/game/${gameId}/action`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                action_type: actionType,
+                player_id: gameState.players[gameState.current_player_index].id,
+                ...params,
+            }),
+        });
+        const data = await response.json();
+        if (data.error) {
+            alert(data.error);
+            return;
+        }
+        gameState = data.state;
+        updateUi();
+    } catch (error) {
+        console.error('Error performing action:', error);
+    }
+}
+
+function getAvailableActions(phase) {
+    // This function will be expanded to be more context-aware
+    const actions = [
+        { type: 'fundraise', label: 'Fundraise', ap_cost: 1 },
+        { type: 'network', label: 'Network', ap_cost: 1 },
+        { type: 'sponsor_legislation', label: 'Sponsor Legislation', ap_cost: 2, params: { legislation_id: 'INFRASTRUCTURE' } }, // Example param
+        { type: 'declare_candidacy', label: 'Declare Candidacy', ap_cost: 2, params: { office_id: 'PRESIDENT' } }, // Example param
+        { type: 'use_favor', label: 'Use Favor', ap_cost: 0 },
+        { type: 'pass_turn', label: 'Pass Turn', ap_cost: 1}
+    ];
+
+    if (phase === 'ACTION_PHASE') {
+        return actions;
+    }
+    // Add logic for other phases
+    return [];
 }
 
 function updateTurnStatus() {
     const turnStatus = document.getElementById('turn-status');
-    if (!turnStatus || !currentGameState) return;
+    if (!turnStatus || !gameState) return;
     
-    const currentPlayer = currentGameState.players[currentGameState.current_player_index];
-    const remainingAP = currentGameState.action_points?.[currentPlayer.id] || 3;
-    const phase = currentGameState.current_phase;
-    const round = currentGameState.round_marker;
+    const currentPlayer = gameState.players[gameState.current_player_index];
+    const remainingAP = gameState.action_points?.[currentPlayer.id] || 3;
+    const phase = gameState.current_phase;
+    const round = gameState.round_marker;
     
     // Get phase-specific styling and description
     let phaseClass = '';
@@ -300,7 +403,7 @@ function updateTurnStatus() {
             <div class="player-turn">
                 <span class="player-icon" aria-hidden="true">👤</span>
                 <span class="player-name">${currentPlayer.name}</span>
-                <span class="player-number">Player ${currentGameState.current_player_index + 1}</span>
+                <span class="player-number">Player ${gameState.current_player_index + 1}</span>
             </div>
             
             <div class="phase-indicator ${phaseClass}">
@@ -342,9 +445,9 @@ function getPhaseIcon(phase) {
 }
 
 function updateCurrentPlayerInfo() {
-    if (!currentGameState) return;
+    if (!gameState) return;
     
-    const currentPlayer = currentGameState.players[currentGameState.current_player_index];
+    const currentPlayer = gameState.players[gameState.current_player_index];
     
     if (currentPlayerName) currentPlayerName.textContent = currentPlayer.name;
     if (currentPlayerPc) currentPlayerPc.textContent = currentPlayer.pc;
@@ -385,18 +488,18 @@ function getPlayerAvatar(player) {
 
 function updatePendingLegislationDisplay() {
     const pendingSection = document.getElementById('pending-legislation-section');
-    if (!pendingSection || !currentGameState) return;
+    if (!pendingSection || !gameState) return;
     
-    if (currentGameState.current_phase === 'LEGISLATION_PHASE' && currentGameState.term_legislation && currentGameState.term_legislation.length > 0) {
+    if (gameState.current_phase === 'LEGISLATION_PHASE' && gameState.term_legislation && gameState.term_legislation.length > 0) {
         pendingSection.classList.remove('hidden');
         pendingSection.innerHTML = `
             <div class="section-header">
                 <h3>Pending Legislation</h3>
             </div>
             <div class="legislation-list">
-                ${currentGameState.term_legislation.map(legislation => {
-                    const bill = currentGameState.legislation_options[legislation.legislation_id];
-                    const sponsor = currentGameState.players.find(p => p.id === legislation.sponsor_id);
+                ${gameState.term_legislation.map(legislation => {
+                    const bill = gameState.legislation_options[legislation.legislation_id];
+                    const sponsor = gameState.players.find(p => p.id === legislation.sponsor_id);
                     return `
                         <div class="legislation-item">
                             <div class="legislation-header">
@@ -420,9 +523,9 @@ function updatePendingLegislationDisplay() {
 
 function updatePlayerFavorsDisplay() {
     const favorsSection = document.getElementById('player-favors-section');
-    if (!favorsSection || !currentGameState) return;
+    if (!favorsSection || !gameState) return;
     
-    const currentPlayer = currentGameState.players[currentGameState.current_player_index];
+    const currentPlayer = gameState.players[gameState.current_player_index];
     const favors = currentPlayer.favors || [];
     
     if (favors.length > 0) {
@@ -446,9 +549,9 @@ function updatePlayerFavorsDisplay() {
 }
 
 function updateTurnLog() {
-    if (!logContent || !currentGameState) return;
+    if (!logContent || !gameState) return;
     
-    const logs = currentGameState.turn_log || [];
+    const logs = gameState.turn_log || [];
     logContent.innerHTML = logs.map(log => `<p>${log}</p>`).join('');
     
     // Auto-scroll to bottom
@@ -463,16 +566,16 @@ function clearGameLog() {
 
 function updateActionButtons() {
     const actionList = document.getElementById('action-list');
-    if (!actionList || !currentGameState) return;
+    if (!actionList || !gameState) return;
     
     actionList.innerHTML = '';
     
-    const currentPlayer = currentGameState.players[currentGameState.current_player_index];
-    const remainingAP = currentGameState.action_points?.[currentPlayer.id] || 0;
-    const phase = currentGameState.current_phase;
+    const currentPlayer = gameState.players[gameState.current_player_index];
+    const remainingAP = gameState.action_points?.[currentPlayer.id] || 0;
+    const phase = gameState.current_phase;
     
     // Show different UI based on game phase
-    if (phase === 'LEGISLATION_PHASE' && currentGameState.legislation_session_active) {
+    if (phase === 'LEGISLATION_PHASE' && gameState.legislation_session_active) {
         // Legislation session - show voting options
         showLegislationSessionUI();
         return;
@@ -496,7 +599,7 @@ function showLegislationSessionUI() {
     `;
     actionList.appendChild(sessionHeader);
     
-    if (currentGameState.current_trade_phase) {
+    if (gameState.current_trade_phase) {
         // Trading phase
         showTradingPhaseUI();
     } else {
@@ -550,8 +653,8 @@ function showVotingPhaseUI() {
     actionList.appendChild(votingHeader);
     
     // Show legislation to vote on
-    if (currentGameState.term_legislation && currentGameState.term_legislation.length > 0) {
-        currentGameState.term_legislation.forEach(legislation => {
+    if (gameState.term_legislation && gameState.term_legislation.length > 0) {
+        gameState.term_legislation.forEach(legislation => {
             if (!legislation.resolved) {
                 const legislationCard = document.createElement('div');
                 legislationCard.className = 'legislation-card';
@@ -559,7 +662,7 @@ function showVotingPhaseUI() {
                     <div class="legislation-info">
                         <h5>${legislation.title}</h5>
                         <p>${legislation.description}</p>
-                        <p><strong>Sponsored by:</strong> ${currentGameState.players[legislation.sponsor_id].name}</p>
+                        <p><strong>Sponsored by:</strong> ${gameState.players[legislation.sponsor_id].name}</p>
                     </div>
                     <div class="voting-actions">
                         <button onclick="performAction('support_legislation', {legislation_id: '${legislation.id}', support_amount: 1})" class="vote-btn support-btn">
@@ -623,7 +726,7 @@ function showRegularActionUI(remainingAP) {
     ];
     
     // Only show declare candidacy in round 4
-    if (currentGameState.round_marker === 4) {
+    if (gameState.round_marker === 4) {
         actions.push({ type: 'declare_candidacy', label: 'Declare Candidacy', description: 'Run for office' });
     }
     
@@ -703,9 +806,9 @@ function handleActionClick(actionType) {
 }
 
 function updateEventPhaseButton() {
-    if (!eventPhaseSection || !currentGameState) return;
+    if (!eventPhaseSection || !gameState) return;
     
-    if (currentGameState.current_phase === 'event_phase') {
+    if (gameState.current_phase === 'event_phase') {
         eventPhaseSection.classList.remove('hidden');
     } else {
         eventPhaseSection.classList.add('hidden');
@@ -742,7 +845,7 @@ function showLegislationMenu() {
         existingMenu.remove();
     }
     
-    const currentPlayer = currentGameState.players[currentGameState.current_player_index];
+    const currentPlayer = gameState.players[gameState.current_player_index];
     
     // Create modal overlay
     const overlay = document.createElement('div');
@@ -755,7 +858,7 @@ function showLegislationMenu() {
     modal.innerHTML = `
         <h3>Choose Legislation to Sponsor</h3>
         <div class="legislation-options">
-            ${Object.values(currentGameState.legislation_options).map(leg => `
+            ${Object.values(gameState.legislation_options).map(leg => `
                 <button class="legislation-option" data-legislation-id="${leg.id}">
                     <div><strong>${leg.title}</strong></div>
                     <div>Cost: ${leg.cost} PC | Success: ${leg.success_target} PC | Crit: ${leg.crit_target} PC</div>
@@ -792,7 +895,7 @@ function showFavorMenu() {
         existingMenu.remove();
     }
     
-    const currentPlayer = currentGameState.players[currentGameState.current_player_index];
+    const currentPlayer = gameState.players[gameState.current_player_index];
     
     // Create modal overlay
     const overlay = document.createElement('div');
@@ -869,7 +972,7 @@ function showCompromisingPositionChoice(favorId, favorDescription, parentOverlay
     const modal = document.createElement('div');
     modal.className = 'campaign-modal';
     
-    const currentPlayer = currentGameState.players[currentGameState.current_player_index];
+    const currentPlayer = gameState.players[gameState.current_player_index];
     
     modal.innerHTML = `
         <h3>Compromising Position</h3>
@@ -927,8 +1030,8 @@ function showTargetPlayerSelection(favorId, favorDescription, parentOverlay) {
     const modal = document.createElement('div');
     modal.className = 'campaign-modal';
     
-    const currentPlayer = currentGameState.players[currentGameState.current_player_index];
-    const otherPlayers = currentGameState.players.filter(p => p.id !== currentPlayer.id);
+    const currentPlayer = gameState.players[gameState.current_player_index];
+    const otherPlayers = gameState.players.filter(p => p.id !== currentPlayer.id);
     
     modal.innerHTML = `
         <h3>Select Target Player</h3>
@@ -976,10 +1079,10 @@ function showTargetPlayerSelection(favorId, favorDescription, parentOverlay) {
 }
 
 function showLegislationSupportMenu() {
-    if (!currentGameState || !currentGameState.term_legislation) return;
+    if (!gameState || !gameState.term_legislation) return;
     
-    const currentPlayer = currentGameState.players[currentGameState.current_player_index];
-    const availableLegislation = currentGameState.term_legislation.filter(l => 
+    const currentPlayer = gameState.players[gameState.current_player_index];
+    const availableLegislation = gameState.term_legislation.filter(l => 
         !l.resolved && l.sponsor_id !== currentPlayer.id
     );
     
@@ -999,8 +1102,8 @@ function showLegislationSupportMenu() {
         <h3>Support Legislation</h3>
         <div class="legislation-options">
             ${availableLegislation.map(legislation => {
-                const bill = currentGameState.legislation_options[legislation.legislation_id];
-                const sponsor = currentGameState.players.find(p => p.id === legislation.sponsor_id);
+                const bill = gameState.legislation_options[legislation.legislation_id];
+                const sponsor = gameState.players.find(p => p.id === legislation.sponsor_id);
                 return `
                     <button class="legislation-option" data-legislation-id="${legislation.legislation_id}">
                         <div><strong>${bill.title}</strong></div>
@@ -1043,10 +1146,10 @@ function showLegislationSupportMenu() {
 }
 
 function showLegislationOpposeMenu() {
-    if (!currentGameState || !currentGameState.term_legislation) return;
+    if (!gameState || !gameState.term_legislation) return;
     
-    const currentPlayer = currentGameState.players[currentGameState.current_player_index];
-    const availableLegislation = currentGameState.term_legislation.filter(l => 
+    const currentPlayer = gameState.players[gameState.current_player_index];
+    const availableLegislation = gameState.term_legislation.filter(l => 
         !l.resolved && l.sponsor_id !== currentPlayer.id
     );
     
@@ -1066,8 +1169,8 @@ function showLegislationOpposeMenu() {
         <h3>Oppose Legislation</h3>
         <div class="legislation-options">
             ${availableLegislation.map(legislation => {
-                const bill = currentGameState.legislation_options[legislation.legislation_id];
-                const sponsor = currentGameState.players.find(p => p.id === legislation.sponsor_id);
+                const bill = gameState.legislation_options[legislation.legislation_id];
+                const sponsor = gameState.players.find(p => p.id === legislation.sponsor_id);
                 return `
                     <button class="legislation-option" data-legislation-id="${legislation.legislation_id}">
                         <div><strong>${bill.title}</strong></div>
@@ -1110,7 +1213,7 @@ function showLegislationOpposeMenu() {
 }
 
 function showCampaignDialog() {
-    const currentPlayer = currentGameState.players[currentGameState.current_player_index];
+    const currentPlayer = gameState.players[gameState.current_player_index];
     
     // Create modal overlay
     const overlay = document.createElement('div');
@@ -1189,10 +1292,10 @@ function showCampaignDialog() {
 }
 
 function showTradeProposalMenu() {
-    if (!currentGameState || !currentGameState.term_legislation) return;
+    if (!gameState || !gameState.term_legislation) return;
     
-    const currentPlayer = currentGameState.players[currentGameState.current_player_index];
-    const availableLegislation = currentGameState.term_legislation.filter(l => 
+    const currentPlayer = gameState.players[gameState.current_player_index];
+    const availableLegislation = gameState.term_legislation.filter(l => 
         !l.resolved && l.sponsor_id !== currentPlayer.id
     );
     
@@ -1215,8 +1318,8 @@ function showTradeProposalMenu() {
             <select id="trade-legislation" required>
                 <option value="">Choose legislation...</option>
                 ${availableLegislation.map(legislation => {
-                    const bill = currentGameState.legislation_options[legislation.legislation_id];
-                    const sponsor = currentGameState.players.find(p => p.id === legislation.sponsor_id);
+                    const bill = gameState.legislation_options[legislation.legislation_id];
+                    const sponsor = gameState.players.find(p => p.id === legislation.sponsor_id);
                     return `<option value="${legislation.legislation_id}">${bill.title} (${sponsor.name})</option>`;
                 }).join('')}
             </select>
@@ -1226,7 +1329,7 @@ function showTradeProposalMenu() {
             <label for="trade-target-player">Target Player:</label>
             <select id="trade-target-player" required>
                 <option value="">Choose player...</option>
-                ${currentGameState.players
+                ${gameState.players
                     .filter(p => p.id !== currentPlayer.id)
                     .map(p => `<option value="${p.id}">${p.name}</option>`)
                     .join('')}
@@ -1284,7 +1387,7 @@ function showTradeProposalMenu() {
 }
 
 function showCandidacyMenu() {
-    const currentPlayer = currentGameState.players[currentGameState.current_player_index];
+    const currentPlayer = gameState.players[gameState.current_player_index];
     
     // Create modal overlay
     const overlay = document.createElement('div');
@@ -1301,7 +1404,7 @@ function showCandidacyMenu() {
             <label for="candidacy-office">Select Office:</label>
             <select id="candidacy-office" required>
                 <option value="">Choose an office...</option>
-                ${Object.values(currentGameState.offices || {}).map(office => {
+                ${Object.values(gameState.offices || {}).map(office => {
                     const canAfford = currentPlayer.pc >= office.candidacy_cost;
                     return `<option value="${office.id}" ${!canAfford ? 'disabled' : ''}>
                         ${office.title} (Cost: ${office.candidacy_cost} PC)${!canAfford ? ' - Cannot Afford' : ''}
@@ -1335,7 +1438,7 @@ function showCandidacyMenu() {
             return;
         }
         
-        const office = currentGameState.offices[officeId];
+        const office = gameState.offices[officeId];
         const totalCost = office.candidacy_cost + additionalPc;
         
         if (totalCost > currentPlayer.pc) {
@@ -1411,5 +1514,13 @@ function showMessage(message, type = 'success') {
 
 // Initialize
 document.addEventListener('DOMContentLoaded', () => {
-    showSetupScreen();
+    // New setup logic
+    document.getElementById('start-game-button').addEventListener('click', startNewGame);
+    document.getElementById('add-player-button').addEventListener('click', addPlayerInput);
+
+    // Initial setup with 2 players
+    const playerInputs = document.getElementById('player-inputs');
+    playerInputs.innerHTML = ''; // Clear existing
+    addPlayerInput();
+    addPlayerInput();
 }); 

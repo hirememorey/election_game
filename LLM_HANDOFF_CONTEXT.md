@@ -4,79 +4,34 @@
 
 **What this is:** A Python-based political strategy board game with a Flask backend and mobile-friendly web frontend. Players compete in elections through strategic actions, resource management, and political maneuvering.
 
-**Current State:** Fully functional game with rich mechanics, web interface, and comprehensive improvements to core gameplay systems. **All major bugs have been fixed and new features are fully tested.** **Action Points system is complete with enhanced frontend UI.** **Vintage political poster design system implemented.**
+**Current State:** Fully functional game with rich mechanics and a completely redesigned strategic web interface. **All major bugs have been fixed and new features are fully tested.** **The UI has been overhauled to a three-zone layout for strategic clarity.**
 
 **Architecture:** Clean separation between game logic (Python) and presentation (HTML/CSS/JS), with REST API communication.
 
 ## 📝 Recent Gameplay/Codebase Changes (Latest Updates)
 
-### Vintage Political Poster Design System Overhaul (LATEST - Just Completed)
-- **Complete UI Redesign**: Implemented vintage political poster design system with bold typography
-  - **Typography**: Impact font for headers, Georgia serif for body text, bold political messaging
-  - **Color System**: Patriotic color palette with bold red (#CC0000), deep blue (#003366), and gold (#FFD700)
-  - **Spacing System**: Dramatic spacing using CSS custom properties for political poster impact
-  - **Border Radius**: Bold, dramatic corners with political poster aesthetic
-  - **Shadows**: Dramatic shadow system matching vintage political poster design
-  - **Transitions**: Bold, dramatic timing for political impact
-  - **Files Modified**: `static/index.html`, `static/style.css` - Complete redesign
-  - **Impact**: Authentic political campaign interface that fits the game's theme
-  - **Status**: Fully implemented and deployed to GitHub
+### Strategic Three-Zone UI Overhaul (LATEST - Just Completed)
+- **Complete UI Redesign**: Implemented a new three-zone layout to enhance strategic decision-making. The vintage poster aesthetic has been streamlined to prioritize clarity.
+  - **Zone 1: Player Dashboard (Footer)**: A persistent bottom bar showing the current player's critical stats: Name, Archetype, Mandate, PC, AP (as a meter), and a list of held Favors.
+  - **Zone 2: Main Stage (Center)**: The primary interactive area. It displays available actions, event cards, and contextual UI for legislation and trading. It also contains the scrollable Game Log.
+  - **Zone 3: Intelligence Briefing (Header)**: A top bar containing a global Game Status Ticker (Round, Phase, Mood) and compact summary cards for all opponents, showing their public PC, favor count, and held offices.
+  - **Impact**: Provides players with all necessary information at a glance, separating personal status, global context, and available actions to reduce cognitive load and improve strategic planning.
+  - **Status**: Fully implemented and tested with a new smoke test (`test_new_ui_layout.py`).
 
-- **Enhanced Visual Hierarchy**: Improved information organization and user experience
-  - **Political Poster Design**: Bold card layout with dramatic shadows and patriotic colors
-  - **Bold Typography**: Impact font hierarchy with dramatic weights and political messaging
-  - **Dramatic Spacing**: Bold spacing system throughout the interface
-  - **Enhanced Buttons**: Political campaign button design with bold states and interactions
-  - **Mobile Optimization**: Touch-friendly interactions with proper button sizes
-  - **Accessibility**: High contrast design for maximum political impact
+- **Removed Complex Styling**: The previous "Vintage Political Poster" and "Apple-level" design systems have been replaced with a cleaner, more direct grid-based layout that is more maintainable.
 
-- **Political Layout System**: Bold, dramatic grid-based layout
-  - **Two-Column Layout**: Clear separation between game state and actions
-  - **Responsive Design**: Adapts beautifully to mobile and desktop screens
-  - **Improved Modals**: Enhanced modal design with political campaign styling
-  - **Better Forms**: Bold form styling with political focus states
-  - **Enhanced Game Log**: Better readability and visual organization
+- **JS Refactoring**: The `script.js` file was completely refactored. The monolithic `updateGameDisplay()` function was replaced with modular functions for each zone: `renderPlayerDashboard()`, `renderMainStage()`, and `renderIntelligenceBriefing()`.
 
-### Round 5 Confusion Fix (LATEST - Just Completed)
-- **Fixed Round Logic**: Legislation session now triggers at the END of round 4, not beginning of round 5
-  - **Clear Game Flow**: Rounds 1-4 = actions, then legislation session, then elections
-  - **No More Confusion**: Eliminated the confusing round 5 state
-  - **Better User Experience**: Players understand the game flow clearly
-  - **Files Modified**: `engine/engine.py` - Fixed round logic in `run_upkeep_phase()`
-  - **Impact**: Much clearer game progression and reduced player confusion
+### Round 5 Confusion Fix (Previously)
+- **Fixed Round Logic**: Legislation session now triggers at the END of round 4, not beginning of round 5.
+  - **Files Modified**: `engine/engine.py`
 
-- **Improved Legislation Session UI**: Enhanced the legislation session experience
-  - **Phase-Specific UI**: Clear distinction between trading and voting phases
-  - **Trading Phase**: Dedicated UI for proposing trades with clear instructions
-  - **Voting Phase**: Clear display of legislation to vote on with support/oppose buttons
-  - **Action Point Handling**: Clear AP display and Pass Turn functionality
-  - **Files Modified**: `static/script.js` - Added `showLegislationSessionUI()`, `showTradingPhaseUI()`, `showVotingPhaseUI()`
-  - **Files Modified**: `static/style.css` - Added legislation session styling
-  - **Impact**: Much clearer legislation session experience
-
-- **Pass Turn Functionality**: Added ability for players to pass their turn
-  - **No More Getting Stuck**: Players can always advance their turn, even with 0 AP
-  - **Clear Feedback**: Pass Turn button appears when no AP left
-  - **Better UX**: Players understand they can always progress
-  - **Files Modified**: `static/script.js` - Added Pass Turn button logic
-  - **Files Modified**: `static/style.css` - Added Pass Turn button styling
-  - **Impact**: Eliminated player frustration from being stuck
-
-### Recent Critical Bug Fixes (LATEST)
-- **Trading Action Visibility Fix**: Fixed critical bug where trading actions weren't showing during legislation sessions
-  - **Issue**: Frontend was checking for `'legislation_session'` but backend uses `'LEGISLATION_PHASE'`
-  - **Files Modified**: `static/script.js` - Updated phase name checks in action buttons, phase icons, and pending legislation display
-  - **Impact**: Trading actions now properly appear during legislation sessions
-  - **Status**: Fixed and deployed
-
-- **Multiple Legislation Sponsorship Fix**: Fixed a bug that prevented players from sponsoring more than one piece of legislation per term. The system now correctly allows multiple bills to be sponsored and queued for the end-of-term legislation session.
-  - **Issue**: The game engine was incorrectly blocking the sponsorship of a new bill if another one was already pending in the same turn.
-  - **Files Modified**: `engine/resolvers.py`
-  - **Impact**: Players can now sponsor multiple pieces of legislation in a single term, queuing them up for the end-of-term session as intended.
-  - **Status**: Fixed and deployed
+### Recent Critical Bug Fixes (Previously)
+- **Trading Action Visibility Fix**: Fixed critical bug where trading actions weren't showing during legislation sessions.
+- **Multiple Legislation Sponsorship Fix**: Fixed a bug that prevented players from sponsoring more than one piece of legislation per term.
 
 ### Major Gameplay Mechanics Overhaul (Previous)
-- **Incumbent/Outsider Public Mood Logic**: Completely redesigned public mood effects to create strategic tension
+- **Incumbent/Outsider Public Mood Logic**: Completely redesigned public mood effects to create strategic tension.
   - **Incumbents** (office-holders) **benefit** from **positive** public mood changes
   - **Outsiders** (non-office-holders) **benefit** from **negative** public mood changes
   - **Incumbents** **suffer** from **negative** public mood changes
@@ -344,6 +299,7 @@
 - **`test_legislation_timing.py`**: Legislation session timing
 - **`test_mood_system.py`**: Mood system functionality
 - **`performance_test.py`**: Performance benchmarking
+- **`test_new_ui_layout.py`**: A smoke test to ensure the core game loop works with the new UI.
 
 ### All Tests Passing
 - ✅ Trading mechanic works correctly
@@ -355,19 +311,19 @@
 - ✅ No leftover legislation between terms
 - ✅ Player index properly reset between terms
 - ✅ Action Points system backend works correctly
+- ✅ **NEW: Core game loop is verified with the new UI via `test_new_ui_layout.py`**.
 
 ## 🎯 Strategic Context for Next LLM
 
 ### Immediate Opportunities
-1. **Frontend Implementation**: Complete the Action Points system UI (see `FRONTEND_IMPLEMENTATION_GUIDE.md`)
-2. **Game Balance Testing**: The PC commitment system and trading mechanic are ready for extensive playtesting to evaluate balance
-3. **Network Action Design Implementation**: See `NETWORK_ACTION_DESIGN.md` for detailed specifications on merging Network and Form Alliance actions into a single, more engaging action system
-4. **Re-enable Form Alliance**: If testing shows the simplified action set works well, consider re-implementing Form Alliance or the merged Network design
-5. **Database Integration**: Replace in-memory storage with persistent database
-6. **Multiplayer Real-time**: Add WebSocket support for live multiplayer
-7. **Advanced AI**: Add AI opponents with strategic decision-making
-8. **Game Variants**: Different election scenarios, rule sets
-9. **Analytics**: Track game statistics and player behavior
+1. **UI Polish & Animation**: The new layout is functional but spartan. It's a perfect canvas for adding targeted animations, better styling, and UX refinements to bring it to life without clutter.
+2. **Game Balance Testing**: The new UI makes it easier to assess the game state. Now is the time for extensive playtesting to evaluate the balance of AP costs, PC commitment, and trading.
+3. **Network Action Design Implementation**: See `NETWORK_ACTION_DESIGN.md` for detailed specifications on merging Network and Form Alliance actions into a single, more engaging action system.
+4. **Database Integration**: Replace in-memory storage with persistent database.
+5. **Multiplayer Real-time**: Add WebSocket support for live multiplayer
+6. **Advanced AI**: Add AI opponents with strategic decision-making
+7. **Game Variants**: Different election scenarios, rule sets
+8. **Analytics**: Track game statistics and player behavior
 
 ### Technical Debt to Address
 1. **Error Handling**: More robust error handling in API
@@ -391,12 +347,12 @@
 ### For Game Logic
 - `engine/resolvers.py`: Contains all action resolution logic (updated with favor fixes)
 - `engine/engine.py`: Main game flow and turn management (updated with automatic event phases)
-- `models/game_state.py`: Data structures and state management (updated with trading and term fixes)
+- `models/game_state.py`: Data structures and state management (updated with trading and term transition fixes)
 
 ### For Frontend
-- `static/script.js`: All frontend game logic and API calls (updated with favor menu and PC commitment)
-- `static/index.html`: Game interface structure (Apple-level design)
-- `static/style.css`: Apple-inspired design system with SF Pro Display typography
+- **`static/script.js`**: All frontend game logic and API calls, now refactored into modular, zone-based rendering functions.
+- **`static/index.html`**: Game interface structure, now a simple three-zone layout.
+- **`static/style.css`**: A new, simpler CSS file implementing the grid-based three-zone design.
 
 ### For API
 - `server.py`: All API endpoints and request handling
@@ -487,12 +443,13 @@ PORT=5001 python3 server.py
 ## 🎯 Recommended Next Steps
 
 ### High Impact, Low Effort
-1. **Frontend Implementation**: Complete Action Points system UI (see `FRONTEND_IMPLEMENTATION_GUIDE.md`)
-2. **Game Balance Testing**: Extensive playtesting of PC commitment and trading systems
-3. **Improve UI/UX**: Better visual feedback and animations
-4. **Add Sound Effects**: Audio feedback for actions
-5. **Game Settings**: Configurable game parameters
-6. **Re-enable Form Alliance**: If testing shows simplified actions work well
+1. **UI Polish**: The new layout is a functional wireframe. The top priority is to apply high-quality styling, transitions, and responsive design improvements to make it visually appealing.
+2. **Extensive Playtesting**: Test the game flow and balance with the new, clearer UI.
+3. **Balance Adjustments**: Fine-tune AP costs and PC commitment amounts based on playtesting.
+4. **Consider Network Action Design**: If Form Alliance is missed, implement the merged Network/Alliance system from `NETWORK_ACTION_DESIGN.md`
+5. **Add Sound Effects**: Audio feedback for actions
+6. **Game Settings**: Configurable game parameters
+7. **Re-enable Form Alliance**: If testing shows simplified actions work well
 
 ### Medium Impact, Medium Effort
 1. **Database Integration**: PostgreSQL/MongoDB for persistence
@@ -610,227 +567,48 @@ PORT=5001 python3 server.py
 - **Player Archetype Display**: Fixed missing archetype information in UI
 - **Form Alliance Removal**: Successfully removed for simplified testing
 - **Trading Implementation**: Successfully added trading mechanic with comprehensive testing
+- **UI Overhaul**: Replaced the previous complex design with a clear, functional, three-zone strategic layout.
 
-## 🔄 Re-enabling Form Alliance (If Needed)
-
-If you want to re-enable the Form Alliance action:
-
-1. **Restore Action Class** in `engine/actions.py`:
-   ```python
-   @dataclass
-   class ActionFormAlliance(Action):
-       pass
-   ```
-
-2. **Restore Resolver** in `engine/resolvers.py`:
-   ```python
-   def resolve_form_alliance(state: GameState, action: ActionFormAlliance) -> GameState:
-       # Copy from git history or NETWORK_ACTION_DESIGN.md
-   ```
-
-3. **Update Imports** in all affected files
-4. **Restore Frontend Button** in `static/script.js`
-5. **Restore CLI Option** in `cli.py`
-6. **Test**: Run `test_form_alliance_removal.py` to verify restoration
-
-## 🎨 Frontend Implementation Requirements: Action Points System
+## 🎨 Frontend Implementation Requirements: Three-Zone Layout
 
 ### Overview
-The Action Points system has been fully implemented in the backend but **requires frontend implementation**. This is a high-priority task that will complete Phase 2 of the game refinements.
+The frontend has been **completely refactored** to a three-zone layout. The previous implementation guides are now obsolete. The new system is simpler and more modular.
 
-### What Needs to Be Implemented
+### How It Works
 
-#### 1. Action Points Display
-**Location**: `static/script.js` - `updateActionButtons()` function
-**Requirements**:
-- Show remaining Action Points for current player
-- Display AP costs for each action button
-- Disable actions when insufficient AP
-- Clear visual indication of whose turn it is
+The `updateUi()` function in `static/script.js` is the new main rendering entry point. It calls three helper functions, one for each zone:
 
-**Implementation Pattern**:
-```javascript
-// Add to updateActionButtons()
-const currentPlayer = gameState.players[gameState.current_player_index];
-const remainingAP = gameState.action_points[currentPlayer.id] || 3;
+1.  **`renderIntelligenceBriefing()`**:
+    *   Populates the top bar.
+    *   Renders the `game-status-ticker` with the current round, phase, and public mood.
+    *   Renders a summary card for each opponent in the `intelligence-briefing` div, showing their name, PC, favor count, and office.
 
-// Show AP display
-const apDisplay = document.createElement('div');
-apDisplay.className = 'action-points-display';
-apDisplay.innerHTML = `
-    <strong>${currentPlayer.name}'s Turn</strong><br>
-    Action Points: ${remainingAP}/3
-`;
-actionList.appendChild(apDisplay);
+2.  **`renderMainStage()`**:
+    *   Populates the central content area.
+    *   Renders the available action buttons in the `action-list` div based on the current game phase.
+    *   Renders the game history into the `game-log` div.
+    *   (This function will also be responsible for showing contextual UI like Event Cards or Trading menus in the future).
 
-// Update action buttons with AP costs
-const actions = [
-    { type: 'fundraise', label: 'Fundraise', ap_cost: 1, description: 'Gain Political Capital' },
-    { type: 'network', label: 'Network', ap_cost: 1, description: 'Gain PC and favors' },
-    { type: 'sponsor_legislation', label: 'Sponsor Legislation', ap_cost: 2, description: 'Create legislation' },
-    { type: 'campaign', label: 'Campaign', ap_cost: 2, description: 'Place influence for future election' },
-    // ... other actions
-];
+3.  **`renderPlayerDashboard()`**:
+    *   Populates the sticky footer.
+    *   Displays the current player's name, archetype, mandate, PC, and favors.
+    *   Renders the visual AP meter (`#ap-meter`) showing spent and remaining Action Points.
 
-// Disable actions when insufficient AP
-const canAfford = remainingAP >= action.ap_cost;
-button.disabled = !canAfford;
-```
-
-#### 2. Campaign Action UI
-**Location**: `static/script.js` - Add new action button and handler
-**Requirements**:
-- Office selection dropdown (STATE_SENATOR, CONGRESS_SEAT, GOVERNOR, US_SENATOR, PRESIDENT)
-- PC amount input field
-- Validation (must have enough PC)
-- Clear success/error feedback
-
-**Implementation Pattern**:
-```javascript
-// Add to actions array
-{ type: 'campaign', label: 'Campaign', ap_cost: 2, description: 'Place influence for future election' }
-
-// Add campaign handler
-function handleCampaignAction() {
-    const officeSelect = document.getElementById('campaign-office');
-    const pcInput = document.getElementById('campaign-pc');
-    
-    const officeId = officeSelect.value;
-    const influenceAmount = parseInt(pcInput.value);
-    
-    if (!officeId || !influenceAmount || influenceAmount <= 0) {
-        alert('Please select an office and enter a valid PC amount');
-        return;
-    }
-    
-    // Call API
-    performAction('campaign', {
-        office_id: officeId,
-        influence_amount: influenceAmount
-    });
-}
-
-// Add campaign modal/dialog
-function showCampaignDialog() {
-    const modal = document.createElement('div');
-    modal.className = 'campaign-modal';
-    modal.innerHTML = `
-        <h3>Campaign for Office</h3>
-        <select id="campaign-office">
-            <option value="">Select Office...</option>
-            <option value="STATE_SENATOR">State Senator</option>
-            <option value="CONGRESS_SEAT">Congress Seat</option>
-            <option value="GOVERNOR">Governor</option>
-            <option value="US_SENATOR">US Senator</option>
-            <option value="PRESIDENT">President</option>
-        </select>
-        <input type="number" id="campaign-pc" placeholder="PC to commit" min="1">
-        <button onclick="handleCampaignAction()">Campaign</button>
-        <button onclick="closeModal()">Cancel</button>
-    `;
-    document.body.appendChild(modal);
-}
-```
-
-#### 3. Turn Status Display
-**Location**: `static/script.js` - `updateGameState()` function
-**Requirements**:
-- Clear indication of current player
-- Remaining AP display
-- Turn phase information
-- Visual feedback for turn transitions
-
-**Implementation Pattern**:
-```javascript
-// Add to updateGameState()
-const turnStatus = document.getElementById('turn-status');
-const currentPlayer = gameState.players[gameState.current_player_index];
-const remainingAP = gameState.action_points[currentPlayer.id] || 3;
-
-turnStatus.innerHTML = `
-    <div class="turn-info">
-        <strong>Current Turn:</strong> ${currentPlayer.name}<br>
-        <strong>Action Points:</strong> ${remainingAP}/3<br>
-        <strong>Phase:</strong> ${gameState.current_phase}
-    </div>
-`;
-```
-
-#### 4. CSS Styling
-**Location**: `static/style.css`
-**Requirements**:
-- Action points display styling
-- Campaign modal styling
-- Disabled action button styling
-- Turn status styling
-- Mobile responsive design
-
-**Implementation Pattern**:
-```css
-.action-points-display {
-    background: #f0f0f0;
-    padding: 10px;
-    margin: 10px 0;
-    border-radius: 5px;
-    text-align: center;
-    font-weight: bold;
-}
-
-.campaign-modal {
-    position: fixed;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    background: white;
-    padding: 20px;
-    border: 2px solid #333;
-    border-radius: 10px;
-    z-index: 1000;
-}
-
-.action-button:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
-}
-
-.turn-info {
-    background: #e8f4fd;
-    padding: 15px;
-    border-radius: 8px;
-    margin: 10px 0;
-}
-```
-
-### API Integration
-The backend already provides all necessary data:
-- `gameState.action_points`: Object mapping player_id to remaining AP
-- `gameState.campaign_influences`: Array of campaign influences
-- Campaign action endpoint: `POST /api/game/<id>/action` with `action_type: 'campaign'`
-
-### Testing Requirements
-1. **AP Display**: Verify AP are shown correctly for current player
-2. **AP Validation**: Verify actions are disabled when insufficient AP
-3. **Campaign Action**: Verify office selection and PC input work
-4. **Turn Advancement**: Verify turn status updates correctly
-5. **Mobile Responsiveness**: Verify UI works on mobile devices
-
-### Files to Modify
-- `static/script.js`: Main implementation
-- `static/style.css`: Styling
-- `static/index.html`: May need minor updates for new elements
+### Files to Modify for UI Changes
+- **`static/script.js`**: Modify the `render...` functions to change what's displayed.
+- **`static/style.css`**: Modify the CSS to change the appearance and layout.
+- **`static/index.html`**: Only modify this if you need to change the fundamental three-zone structure.
 
 ### Success Criteria
-- Players can see their remaining Action Points
-- Action buttons show AP costs and are disabled when insufficient
-- Campaign action works with office selection and PC input
-- Turn status is clear and updates correctly
-- UI is mobile responsive and user-friendly
+- Players can clearly see their own stats, opponent stats, and available actions in their dedicated zones.
+- The UI is responsive and functional on mobile.
+- The core game loop remains fast and bug-free.
 
 ## 🎯 Immediate Development Priorities
 
-1. **Frontend Implementation**: Complete the Action Points system UI (see Frontend Implementation Requirements section above)
-2. **Extensive Playtesting**: Test the Action Points system and PC commitment systems thoroughly
-3. **Balance Adjustments**: Fine-tune AP costs and PC commitment amounts based on playtesting
+1. **UI Polish**: The new layout is a functional wireframe. The top priority is to apply high-quality styling, transitions, and responsive design improvements to make it visually appealing.
+2. **Extensive Playtesting**: Test the game flow and balance with the new, clearer UI.
+3. **Balance Adjustments**: Fine-tune AP costs and PC commitment amounts based on playtesting.
 4. **Consider Network Action Design**: If Form Alliance is missed, implement the merged Network/Alliance system from `NETWORK_ACTION_DESIGN.md`
 5. **Database Integration**: For production readiness
 6. **Enhanced Testing**: More comprehensive unit tests for edge cases
@@ -850,4 +628,4 @@ The backend already provides all necessary data:
 
 ---
 
-**The project is in excellent shape with a solid foundation, clear architecture, and comprehensive improvements. All major bugs have been fixed, new features are fully functional and tested, and the game is ready for extensive playtesting. The next LLM has a strong base to build upon with clear technical patterns and strategic direction established. The most immediate opportunity is completing the Action Points system frontend implementation and extensive playtesting of the new PC commitment and trading systems to ensure they enhance rather than detract from the game experience.**
+**The project is in excellent shape with a solid foundation, clear architecture, and comprehensive improvements. The UI has been completely overhauled for strategic clarity and maintainability. The next LLM has a strong, simplified base to build upon. The most immediate opportunity is to add high-quality styling and animations to the new functional UI layout.**

@@ -49,7 +49,7 @@ A Python-based political strategy board game with a Flask backend and mobile-fri
 
 ### ✅ What's Working
 - Complete game engine with all core mechanics
-- **Vintage Political Poster Design**: Authentic political campaign aesthetic with bold typography and patriotic colors
+- **Strategic Three-Zone UI**: A redesigned interface focusing on clarity and strategic decision-making, with dedicated zones for player status, game actions, and opponent intelligence.
 - API communication between frontend/backend
 - Static file serving (fixed from 404 issues)
 - Performance tested (~5-10ms response times)
@@ -107,9 +107,9 @@ See `DEPLOYMENT.md` for step-by-step instructions for Render, Netlify, Heroku, R
 - **`game_data.py`**: Game data loading and configuration
 
 ### Frontend (HTML/CSS/JS)
-- **`static/index.html`**: Main game interface with vintage political poster design
-- **`static/script.js`**: Game logic and API communication
-- **`static/style.css`**: Vintage political poster design system with Impact and Georgia typography
+- **`static/index.html`**: Main game interface with a three-zone strategic layout.
+- **`static/script.js`**: Game logic and API communication, refactored for the new UI.
+- **`static/style.css`**: New design system implementing the three-zone layout.
 
 ### API Endpoints
 - `POST /api/game`: Create new game
@@ -129,14 +129,15 @@ See `DEPLOYMENT.md` for step-by-step instructions for Render, Netlify, Heroku, R
 - **`test_legislation_timing.py`**: Legislation session timing
 - **`test_mood_system.py`**: Mood system functionality
 - **`performance_test.py`**: Performance benchmarking
+- **`test_new_ui_layout.py`**: Smoke test for the new strategic UI layout.
 
 ### Run Tests
 ```bash
 # Run all tests
-python3 test_*.py
+python3 -m unittest discover -p "test_*.py"
 
 # Run specific test
-python3 test_action_points_system.py
+python3 test_new_ui_layout.py
 ```
 
 ## 📚 Documentation
@@ -201,7 +202,7 @@ python3 test_action_points_system.py
 - **In-memory Storage**: Game state lost on server restart (production needs database)
 - **Single Session**: No persistent user accounts or game history
 - **No AI Opponents**: All players must be human
-- **Vintage Political Poster Design**: Fully implemented and ready for user experience testing
+- **Strategic Three-Zone UI**: Fully implemented and ready for user experience testing
 
 ### Recent Bug Fixes
 - **Use Favor Action**: Fixed to work with selection menu
@@ -214,14 +215,14 @@ python3 test_action_points_system.py
 - **Action Point Handling**: ✅ **RESOLVED** - Clear UI and Pass Turn functionality added
 - **Multiple Legislation Sponsorship**: ✅ **RESOLVED** - Fixed a bug that prevented players from sponsoring multiple pieces of legislation in the same term.
 - **Skip Trading**: Fixed: Skip Trading button in legislation session now works correctly and advances to the voting phase (previously logged 'Unknown action type: complete_trading').
+- **UI Overhaul**: ✅ **RESOLVED** - Replaced the previous design with a clearer, more strategic three-zone layout.
 
 ## 🎯 Next Steps
 
 ### High Priority
-1. **Vintage Political Poster Design Testing**: Test the new design system across devices and gather user feedback
-2. **Extensive Playtesting**: Test Action Points and trading systems thoroughly
-3. **Balance Adjustments**: Fine-tune AP costs and PC commitment amounts
-4. **Legislation Session Testing**: Test the improved legislation session flow (no more round 5 confusion)
+1. **Extensive Playtesting**: Test Action Points and trading systems thoroughly within the new UI.
+2. **Balance Adjustments**: Fine-tune AP costs and PC commitment amounts.
+3. **UI Polish**: Add animations and refined styling to the new layout.
 
 ### Medium Priority
 1. **Database Integration**: Replace in-memory storage with persistent database
