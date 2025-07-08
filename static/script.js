@@ -335,11 +335,12 @@ async function performAction(actionType, params = {}) {
             }),
         });
         const data = await response.json();
+        gameId = data.game_id; // Corrected from data.id to data.game_id
+        gameState = data.state;
         if (data.error) {
             alert(data.error);
             return;
         }
-        gameState = data.state;
         updateUi();
     } catch (error) {
         console.error('Error performing action:', error);
@@ -1514,8 +1515,8 @@ function showMessage(message, type = 'success') {
 
 // Initialize
 document.addEventListener('DOMContentLoaded', () => {
-    // New setup logic
-    document.getElementById('start-game-button').addEventListener('click', startNewGame);
+    // Correctly wire up the buttons
+    document.getElementById('start-game-button').addEventListener('click', startGame);
     document.getElementById('add-player-button').addEventListener('click', addPlayerInput);
 
     // Initial setup with 2 players
