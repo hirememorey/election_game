@@ -167,6 +167,44 @@ This document tracks the major improvements and features that have been implemen
 **Testing**: Manual testing confirms improved game flow
 **Impact**: Much clearer game flow and better user experience
 
+### 10. **Action Points System Fixes** - COMPLETED
+**Status**: Fully implemented and tested
+
+**What it does**:
+- Fixed AP management during legislation session voting phase
+- Fixed AP management during election phase
+- Ensures players can vote on legislation during legislation sessions
+- Ensures players can declare candidacy during election phase
+- Proper AP granting at phase transitions
+
+**Technical Implementation**:
+- `engine/engine.py`: Added AP granting (1 AP) at start of voting phase in legislation session
+- `engine/engine.py`: Added AP granting (3 AP) at start of election phase
+- `test_pc_commitment_and_term_transition.py`: Updated to properly advance through trading phase before voting
+
+**Testing**: `test_pc_commitment_and_term_transition.py` now passes all tests
+**Impact**: Resolves AP validation errors and ensures smooth gameplay flow
+
+### 11. **Round 5 Confusion Fix** - COMPLETED
+**Status**: Fully implemented and tested
+
+**What it does**:
+- Fixes the confusing round 5 state where legislation session would trigger
+- Legislation session now triggers at the END of round 4 (not beginning of round 5)
+- Clear game flow: Rounds 1-4 = actions, then legislation session, then elections
+- Improved legislation session UI with clear trading and voting phases
+- Added Pass Turn functionality for better user experience
+
+**Technical Implementation**:
+- `engine/engine.py`: Fixed round logic in `run_upkeep_phase()` to trigger legislation at end of round 4
+- `engine/engine.py`: Enhanced `run_legislation_session()` to clear action points during legislation
+- `static/script.js`: Added phase-specific UI for legislation sessions
+- `static/script.js`: Added Pass Turn button when players have 0 AP
+- `static/style.css`: Added styling for legislation session UI components
+
+**Testing**: Manual testing confirms improved game flow
+**Impact**: Much clearer game flow and better user experience
+
 ## 🎮 Gameplay Improvements
 
 ### Enhanced Strategic Depth

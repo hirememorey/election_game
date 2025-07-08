@@ -11,8 +11,34 @@ from engine.engine import GameEngine
 from game_data import load_game_data
 from engine.actions import (
     ActionSponsorLegislation, ActionSupportLegislation, ActionOpposeLegislation,
-    ActionDeclareCandidacy, ActionFundraise, ActionNetwork
+    ActionDeclareCandidacy, ActionFundraise, ActionNetwork, ActionPassTurn
 )
+
+def advance_to_player(state, engine, player_id):
+    """Advance the turn to the specified player by using up AP of current player."""
+    while state.get_current_player().id != player_id:
+        current_id = state.get_current_player().id
+        # Use up all AP for the current player
+        while state.action_points[current_id] > 0:
+            action = ActionFundraise(player_id=current_id)
+            state = engine.process_action(state, action)
+    # Now it's the target player's turn
+    # If the target player has 0 AP, just return
+    if state.action_points[player_id] == 0:
+        return state
+    return state
+
+def ensure_all_players_used_ap(state, engine):
+    """Ensure all players have used up their AP before running upkeep."""
+    # Keep processing actions for the current player until all players have 0 AP
+    while any(state.action_points[p.id] > 0 for p in state.players):
+        current_id = state.get_current_player().id
+        if state.action_points[current_id] > 0:
+            action = ActionFundraise(player_id=current_id)
+            state = engine.process_action(state, action)
+        # If current player has 0 AP, the turn will advance automatically
+        # The next iteration will act for the new current player
+    return state
 
 def test_pc_commitment_and_term_transition():
     """Test PC commitment features and term transition fixes."""
@@ -45,6 +71,7 @@ def test_pc_commitment_and_term_transition():
     
     # Alice sponsors legislation
     print("Alice sponsors legislation...")
+    state = advance_to_player(state, engine, 0)
     legislation_action = ActionSponsorLegislation(player_id=0, legislation_id="INFRASTRUCTURE")
     state = engine.process_action(state, legislation_action)
     print(f"Alice PC after sponsoring: {state.players[0].pc}")
@@ -52,44 +79,56 @@ def test_pc_commitment_and_term_transition():
     
     # Bob networks
     print("Bob networks...")
+    state = advance_to_player(state, engine, 1)
     network_action = ActionNetwork(player_id=1)
     state = engine.process_action(state, network_action)
     print(f"Bob PC after networking: {state.players[1].pc}")
     
     # Advance to upkeep (end of round 1)
     print("Advancing to upkeep...")
+    state = ensure_all_players_used_ap(state, engine)
     state = engine.run_upkeep_phase(state)
     print(f"After upkeep: Round {state.round_marker}, Phase {state.current_phase}")
     print(f"Term legislation count: {len(state.term_legislation)}")
     
-    # Complete rounds 2-4 with minimal actions
-    for round_num in range(2, 5):
-        print(f"\n--- Round {round_num} ---")
-        state = engine.run_event_phase(state)
-        
-        # Just fundraise to advance turns
-        for player_id in range(len(state.players)):
-            action = ActionFundraise(player_id=player_id)
-            state = engine.process_action(state, action)
-            print(f"Player {player_id} fundraises, PC: {state.players[player_id].pc}")
-        
-        state = engine.run_upkeep_phase(state)
-        print(f"After round {round_num} upkeep: Round {state.round_marker}, Phase {state.current_phase}")
+    # Check if we're already in legislation session (end of term)
+    if state.legislation_session_active:
+        print("Already in legislation session - skipping rounds 2-4")
+    else:
+        # Complete rounds 2-4 with minimal actions
+        for round_num in range(2, 5):
+            print(f"\n--- Round {round_num} ---")
+            state = engine.run_event_phase(state)
+            for player_id in range(len(state.players)):
+                state = advance_to_player(state, engine, player_id)
+                action = ActionFundraise(player_id=player_id)
+                state = engine.process_action(state, action)
+                print(f"Player {player_id} fundraises, PC: {state.players[player_id].pc}")
+            state = ensure_all_players_used_ap(state, engine)
+            state = engine.run_upkeep_phase(state)
+            print(f"After round {round_num} upkeep: Round {state.round_marker}, Phase {state.current_phase}")
     
     # Test 2: Legislation session with PC commitment
     print("\n📋 Test 2: Legislation session with PC commitment")
     print(f"Legislation session active: {state.legislation_session_active}")
     print(f"Current phase: {state.current_phase}")
-    
-    # Simulate legislation session voting with PC commitment
+
+    # Complete trading phase by having each player pass
+    for player_id in range(len(state.players)):
+        state = advance_to_player(state, engine, player_id)
+        pass_action = ActionPassTurn(player_id=player_id)
+        state = engine.process_action(state, pass_action)
+
     # Alice supports with 5 PC
     print("Alice supports legislation with 5 PC...")
+    state = advance_to_player(state, engine, 0)
     support_action = ActionSupportLegislation(player_id=0, legislation_id="INFRASTRUCTURE", support_amount=5)
     state = engine.process_action(state, support_action)
     print(f"Alice PC after supporting: {state.players[0].pc}")
-    
+
     # Bob opposes with 3 PC
     print("Bob opposes legislation with 3 PC...")
+    state = advance_to_player(state, engine, 1)
     oppose_action = ActionOpposeLegislation(player_id=1, legislation_id="INFRASTRUCTURE", oppose_amount=3)
     state = engine.process_action(state, oppose_action)
     print(f"Bob PC after opposing: {state.players[1].pc}")
@@ -102,9 +141,10 @@ def test_pc_commitment_and_term_transition():
     # Complete legislation session
     print("Completing legislation session...")
     while state.legislation_session_active:
-        action = ActionFundraise(player_id=state.current_player_index)
+        state = advance_to_player(state, engine, state.get_current_player().id)
+        action = ActionFundraise(player_id=state.get_current_player().id)
         state = engine.process_action(state, action)
-        print(f"Player {state.current_player_index} advances legislation session")
+        print(f"Player {state.get_current_player().id} advances legislation session")
     
     print(f"After legislation session: Phase {state.current_phase}")
     
@@ -113,6 +153,7 @@ def test_pc_commitment_and_term_transition():
     
     # Alice declares candidacy for President with 10 PC committed
     print("Alice declares candidacy for President with 10 PC committed...")
+    state = advance_to_player(state, engine, 0)
     candidacy_action = ActionDeclareCandidacy(
         player_id=0, 
         office_id="PRESIDENT", 
@@ -145,6 +186,7 @@ def test_pc_commitment_and_term_transition():
     
     # Alice sponsors legislation again
     print("Alice sponsors legislation in new term...")
+    state = advance_to_player(state, engine, 0)
     legislation_action2 = ActionSponsorLegislation(player_id=0, legislation_id="HEALTHCARE")
     state = engine.process_action(state, legislation_action2)
     print(f"Alice PC after sponsoring: {state.players[0].pc}")
@@ -152,6 +194,7 @@ def test_pc_commitment_and_term_transition():
     
     # Bob supports with 8 PC
     print("Bob supports legislation with 8 PC...")
+    state = advance_to_player(state, engine, 1)
     support_action2 = ActionSupportLegislation(player_id=1, legislation_id="HEALTHCARE", support_amount=8)
     state = engine.process_action(state, support_action2)
     print(f"Bob PC after supporting: {state.players[1].pc}")

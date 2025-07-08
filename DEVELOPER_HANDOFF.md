@@ -350,27 +350,17 @@ PORT=5001 python3 server.py
 - **Public Mood Balance**: Incumbent/outsider effect magnitudes may need adjustment
 
 ### Recent Bug Fixes
-- **Action Points System**: Backend fully implemented and tested
-- **Use Favor Action**: Fixed to work with selection menu
-- **PC Commitment**: Added custom PC amounts for legislation and candidacy
-- **Automatic Event Phases**: Events now draw automatically
-- **PEEK_EVENT Favor**: Now properly reveals top event card
-- **Term Transitions**: Fixed state cleanup between terms
-- **Legislation Timing**: Fixed premature legislation resolution
-- **Support/Oppose Restrictions**: Now properly restricted to legislation session
-- **Static File Serving**: Fixed 404 errors for CSS/JS files
-- **Player Archetype Display**: Fixed missing archetype information in UI
-- **Form Alliance Removal**: Successfully removed for simplified testing
-- **Trading Implementation**: Successfully added trading mechanic with comprehensive testing
-- **NEW**: Incumbent/outsider public mood logic implemented and tested
-- **NEW**: Enhanced turn status display with phase-specific styling
-- **NEW**: Production deployment on Render with proper configuration
-- **NEW**: Game data aligned with actual game mechanics
-- **NEW**: Round 5 confusion fixed - legislation session now triggers at end of round 4
-- **NEW**: Improved legislation session UI with clear trading and voting phases
-- **NEW**: Added Pass Turn functionality for better user experience
-- **NEW**: Enhanced action point handling during legislation sessions
-- **Media Scrutiny Favor Logic**: Fixed to halve only the base 5 PC from Fundraise actions, with bonuses added after halving. This matches the intended design and ensures fair application of the effect. (2024-07-07)
+- **Trading action visibility fixed** (frontend/backend phase name alignment)
+- **Media Scrutiny favor logic fixed**
+- **Action Points System Fixes** (NEW - Latest)
+  - Fixed AP management during legislation session voting phase
+  - Fixed AP management during election phase
+  - Ensures players can vote on legislation during legislation sessions
+  - Ensures players can declare candidacy during election phase
+  - Proper AP granting at phase transitions
+  - **Technical**: Added AP granting (1 AP) at start of voting phase in legislation session
+  - **Technical**: Added AP granting (3 AP) at start of election phase
+  - **Testing**: `test_pc_commitment_and_term_transition.py` now passes all tests
 
 ## 🎯 Recommended Development Approach
 

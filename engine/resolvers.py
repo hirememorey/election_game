@@ -63,19 +63,23 @@ def resolve_fundraise(state: GameState, action: ActionFundraise) -> GameState:
         state.add_log(f"{player.name} takes the Fundraise action but loses 5 PC due to the stock market crash.")
         return state
 
-    pc_gain = 5
+    base_pc_gain = 5
+    # Check for media scrutiny effect (halve only the base 5 PC)
+    if player.id in state.media_scrutiny_players:
+        halved_base = base_pc_gain // 2
+        state.add_log(f"{player.name} is under media scrutiny. Base PC gain is halved to {halved_base}.")
+        pc_gain = halved_base
+    else:
+        pc_gain = base_pc_gain
+
+    # Add bonuses after halving
     if player.archetype.id == "FUNDRAISER":
         pc_gain += 2
         state.add_log(f"Archetype bonus: +2 PC for The Fundraiser.")
     if any(ally.id == "HEDGE_FUND_BRO" for ally in player.allies):
         pc_gain += 10
         state.add_log(f"Ally bonus: +10 PC from Steve McRoberts.")
-    
-    # Check for media scrutiny effect
-    if player.id in state.media_scrutiny_players:
-        pc_gain = pc_gain // 2  # Halve the PC gain
-        state.add_log(f"{player.name} is under media scrutiny. PC gain is halved to {pc_gain}.")
-    
+
     player.pc += pc_gain
     state.add_log(f"{player.name} takes the Fundraise action and gains {pc_gain} PC.")
     return state
@@ -408,9 +412,9 @@ def resolve_upkeep(state: GameState) -> GameState:
         state.active_effects.remove("STOCK_CRASH")
     
     # Clear negative favor effects that expire at end of round
-    state.media_scrutiny_players.clear()  # Media scrutiny expires at end of round
     if state.media_scrutiny_players:
         state.add_log("Media scrutiny effects have cleared for the new round.")
+    state.media_scrutiny_players.clear()  # Media scrutiny expires at end of round
     
     # Handle hot potato effect
     if state.hot_potato_holder is not None:

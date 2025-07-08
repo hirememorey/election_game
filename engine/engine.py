@@ -142,6 +142,9 @@ class GameEngine:
                     state.current_player_index = 0  # Reset for voting
                     state.add_log("\n--- VOTING PHASE ---")
                     state.add_log("Trading complete. Players may now vote on legislation.")
+                    # Grant 1 AP to each player for voting
+                    for player in state.players:
+                        state.action_points[player.id] = 1
                     state.current_phase = "LEGISLATION_PHASE"
                     return state
                 else:
@@ -238,9 +241,10 @@ class GameEngine:
         """Triggers the election resolutions and resets for the new term."""
         state.current_phase = "ELECTION_PHASE"
         state.add_log("\n--- ELECTION PHASE ---")
-        
+        # Grant 3 AP to each player at the start of the election phase
+        for player in state.players:
+            state.action_points[player.id] = 3
         new_state = resolvers.resolve_elections(state)
-
         # Reset for the new term
         new_state.round_marker = 1
         new_state.current_player_index = 0  # Reset player index for new term
@@ -251,13 +255,10 @@ class GameEngine:
         for effect in list(new_state.active_effects):
             if effect in ["WAR_BREAKS_OUT", "VOTER_APATHY"]: # Add other term-long effects here
                 new_state.active_effects.remove(effect)
-
         new_state.add_log("\nA new term begins!")
-        
         # Automatically run the event phase for the new term
         new_state.add_log("\n--- EVENT PHASE ---")
         new_state = self.run_event_phase(new_state)
-        
         return new_state
 
     def run_event_phase(self, state: GameState) -> GameState:
