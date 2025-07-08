@@ -24,10 +24,11 @@ function announceToScreenReader(message) {
     }
 }
 
-// DOM elements
+// DOM elements - updated to match HTML structure
 const setupScreen = document.getElementById('setup-screen');
 const gameScreen = document.getElementById('game-screen');
-const startGameBtn = document.getElementById('start-game-btn');
+const startGameBtn = document.getElementById('start-game-button'); // Fixed ID
+const addPlayerBtn = document.getElementById('add-player-button'); // Added this
 const newGameBtn = document.getElementById('new-game-btn');
 const runEventBtn = document.getElementById('run-event-btn');
 const playerForm = document.getElementById('player-form');
@@ -52,9 +53,12 @@ const currentPlayerArchetypeDesc = document.getElementById('current-player-arche
 const currentPlayerMandateTitle = document.getElementById('current-player-mandate-title');
 const currentPlayerMandateDesc = document.getElementById('current-player-mandate-desc');
 
-// Event listeners
+// Event listeners - updated to match actual HTML structure
 if (startGameBtn) {
-    startGameBtn.addEventListener('click', startNewGame);
+    startGameBtn.addEventListener('click', startNewGame); // Fixed function name
+}
+if (addPlayerBtn) {
+    addPlayerBtn.addEventListener('click', addPlayerInput); // Added this
 }
 if (newGameBtn) {
     newGameBtn.addEventListener('click', showSetupScreen);
@@ -65,11 +69,32 @@ if (runEventBtn) {
 if (playerForm) {
     playerForm.addEventListener('submit', function(e) {
         e.preventDefault();
-        startNewGame();
+        startNewGame(); // Fixed function name
     });
 }
 if (clearLogBtn) {
     clearLogBtn.addEventListener('click', clearGameLog);
+}
+
+// Initial setup when DOM is loaded
+document.addEventListener('DOMContentLoaded', () => {
+    // Initial setup with 2 players
+    const playerInputs = document.getElementById('player-inputs');
+    if (playerInputs) {
+        playerInputs.innerHTML = ''; // Clear existing
+        addPlayerInput();
+        addPlayerInput();
+    }
+});
+
+// Add player input function
+function addPlayerInput() {
+    const playerInputs = document.getElementById('player-inputs');
+    const newInput = document.createElement('input');
+    newInput.type = 'text';
+    newInput.placeholder = `Player ${playerInputs.children.length + 1} Name`;
+    newInput.className = 'player-name-input';
+    playerInputs.appendChild(newInput);
 }
 
 // API functions
@@ -115,12 +140,13 @@ async function startNewGame() {
     console.log('startNewGame called');
     
     const playerNames = [];
-    for (let i = 1; i <= 4; i++) {
-        const input = document.getElementById(`player${i}`);
-        if (input && input.value.trim()) {
+    const playerInputs = document.querySelectorAll('.player-name-input');
+    
+    playerInputs.forEach(input => {
+        if (input.value.trim()) {
             playerNames.push(input.value.trim());
         }
-    }
+    });
     
     console.log('Player names:', playerNames);
     
@@ -132,8 +158,7 @@ async function startNewGame() {
     try {
         if (startGameBtn) {
             startGameBtn.disabled = true;
-            const btnText = startGameBtn.querySelector('.btn-text');
-            if (btnText) btnText.textContent = 'Creating Game...';
+            startGameBtn.textContent = 'Creating Game...';
         }
         
         console.log('Making API call to create game...');
@@ -151,8 +176,7 @@ async function startNewGame() {
     } finally {
         if (startGameBtn) {
             startGameBtn.disabled = false;
-            const btnText = startGameBtn.querySelector('.btn-text');
-            if (btnText) btnText.textContent = 'Start Game';
+            startGameBtn.textContent = 'Start Game';
         }
     }
 }
@@ -1514,14 +1538,4 @@ function showMessage(message, type = 'success') {
 }
 
 // Initialize
-document.addEventListener('DOMContentLoaded', () => {
-    // Correctly wire up the buttons
-    document.getElementById('start-game-button').addEventListener('click', startGame);
-    document.getElementById('add-player-button').addEventListener('click', addPlayerInput);
-
-    // Initial setup with 2 players
-    const playerInputs = document.getElementById('player-inputs');
-    playerInputs.innerHTML = ''; // Clear existing
-    addPlayerInput();
-    addPlayerInput();
-}); 
+// Event listeners are already set up at the top of the file 
