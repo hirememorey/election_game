@@ -49,7 +49,7 @@ A Python-based political strategy board game with a Flask backend and mobile-fri
 
 ### ✅ What's Working
 - Complete game engine with all core mechanics
-- **Apple-Level Web Interface**: Professional, modern frontend with Apple-inspired design system
+- **Vintage Political Poster Design**: Authentic political campaign aesthetic with bold typography and patriotic colors
 - API communication between frontend/backend
 - Static file serving (fixed from 404 issues)
 - Performance tested (~5-10ms response times)
@@ -107,9 +107,9 @@ See `DEPLOYMENT.md` for step-by-step instructions for Render, Netlify, Heroku, R
 - **`game_data.py`**: Game data loading and configuration
 
 ### Frontend (HTML/CSS/JS)
-- **`static/index.html`**: Main game interface with Apple-level design
+- **`static/index.html`**: Main game interface with vintage political poster design
 - **`static/script.js`**: Game logic and API communication
-- **`static/style.css`**: Apple-inspired design system with SF Pro Display typography
+- **`static/style.css`**: Vintage political poster design system with Impact and Georgia typography
 
 ### API Endpoints
 - `POST /api/game`: Create new game
@@ -155,7 +155,7 @@ python3 test_action_points_system.py
 - Variable AP costs for different actions (1-2 AP)
 - Campaign action for placing influence
 - Automatic turn advancement when AP exhausted
-- **Status**: Backend fully implemented, frontend enhanced with Apple-level design
+- **Status**: Backend fully implemented, frontend enhanced with vintage political poster design
 
 ### Trading Mechanic
 - Players can trade PC and favors during legislation sessions
@@ -201,7 +201,7 @@ python3 test_action_points_system.py
 - **In-memory Storage**: Game state lost on server restart (production needs database)
 - **Single Session**: No persistent user accounts or game history
 - **No AI Opponents**: All players must be human
-- **Apple-Level Design**: Fully implemented and ready for user experience testing
+- **Vintage Political Poster Design**: Fully implemented and ready for user experience testing
 
 ### Recent Bug Fixes
 - **Use Favor Action**: Fixed to work with selection menu
@@ -218,7 +218,7 @@ python3 test_action_points_system.py
 ## 🎯 Next Steps
 
 ### High Priority
-1. **Apple-Level Design Testing**: Test the new design system across devices and gather user feedback
+1. **Vintage Political Poster Design Testing**: Test the new design system across devices and gather user feedback
 2. **Extensive Playtesting**: Test Action Points and trading systems thoroughly
 3. **Balance Adjustments**: Fine-tune AP costs and PC commitment amounts
 4. **Legislation Session Testing**: Test the improved legislation session flow (no more round 5 confusion)

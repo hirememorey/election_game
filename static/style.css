@@ -1,72 +1,77 @@
-/* Apple-Level Design System for Election Game - Enhanced */
+/* Vintage Political Poster Design System for Election Game */
 
 /* ===== CSS CUSTOM PROPERTIES ===== */
 :root {
-  /* Colors - Apple-inspired palette with enhanced contrast and sophistication */
-  --color-primary: #007AFF;
-  --color-primary-dark: #0056CC;
-  --color-primary-light: #4DA3FF;
-  --color-primary-ultra-light: #E3F2FD;
-  --color-secondary: #5856D6;
-  --color-secondary-dark: #3634A3;
-  --color-secondary-light: #E8EAF6;
-  --color-success: #34C759;
-  --color-success-dark: #28A745;
-  --color-success-light: #E8F5E8;
-  --color-warning: #FF9500;
-  --color-warning-dark: #E6850E;
-  --color-warning-light: #FFF8E1;
-  --color-danger: #FF3B30;
-  --color-danger-dark: #DC3545;
-  --color-danger-light: #FFEBEE;
-  --color-info: #5AC8FA;
-  --color-info-dark: #17A2B8;
-  --color-info-light: #E1F5FE;
+  /* Colors - Vintage Political Campaign Palette */
+  --color-primary: #CC0000;          /* Bold Red */
+  --color-primary-dark: #8B0000;     /* Dark Red */
+  --color-primary-light: #FF4444;    /* Light Red */
+  --color-primary-ultra-light: #FFE6E6;
+  --color-secondary: #003366;        /* Deep Blue */
+  --color-secondary-dark: #001F3F;   /* Darker Blue */
+  --color-secondary-light: #4A90E2;  /* Light Blue */
+  --color-secondary-ultra-light: #E6F0FF;
+  --color-accent: #FFD700;           /* Gold */
+  --color-accent-dark: #B8860B;      /* Dark Gold */
+  --color-accent-light: #FFE55C;     /* Light Gold */
+  --color-success: #228B22;          /* Forest Green */
+  --color-success-dark: #006400;     /* Dark Green */
+  --color-success-light: #90EE90;    /* Light Green */
+  --color-warning: #FF8C00;          /* Dark Orange */
+  --color-warning-dark: #FF4500;     /* Red Orange */
+  --color-warning-light: #FFB84D;    /* Light Orange */
+  --color-danger: #DC143C;           /* Crimson */
+  --color-danger-dark: #8B0000;      /* Dark Red */
+  --color-danger-light: #FF6B6B;     /* Light Red */
+  --color-info: #1E90FF;             /* Dodger Blue */
+  --color-info-dark: #0066CC;        /* Dark Blue */
+  --color-info-light: #87CEEB;       /* Sky Blue */
   
-  /* Neutral colors - Enhanced sophistication with better contrast */
-  --color-background: #FAFBFC;
-  --color-surface: #FFFFFF;
-  --color-surface-secondary: #F8F9FA;
-  --color-surface-tertiary: #F1F3F4;
-  --color-surface-quaternary: #E8EAED;
-  --color-border: #DADCE0;
-  --color-border-light: #E8EAED;
-  --color-border-lighter: #F1F3F4;
-  --color-border-ultra-light: #F8F9FA;
+  /* Neutral colors - Vintage Paper and Ink */
+  --color-background: #F5F5DC;       /* Cream */
+  --color-surface: #FFFFFF;           /* White */
+  --color-surface-secondary: #F8F8F0; /* Light Cream */
+  --color-surface-tertiary: #F0F0E0; /* Warm Gray */
+  --color-surface-quaternary: #E8E8D8; /* Darker Cream */
+  --color-border: #8B7355;           /* Brown */
+  --color-border-light: #CD853F;     /* Peru */
+  --color-border-lighter: #DEB887;   /* Burlywood */
+  --color-border-ultra-light: #F5DEB3; /* Wheat */
   
-  /* Text colors - Enhanced contrast and hierarchy for better readability */
-  --color-text-primary: #202124;
-  --color-text-secondary: #5F6368;
-  --color-text-tertiary: #9AA0A6;
-  --color-text-quaternary: #BDC1C6;
-  --color-text-inverse: #FFFFFF;
-  --color-text-inverse-secondary: rgba(255, 255, 255, 0.9);
-  --color-text-inverse-tertiary: rgba(255, 255, 255, 0.7);
+  /* Text colors - High Contrast for Vintage Posters */
+  --color-text-primary: #000000;     /* Black */
+  --color-text-secondary: #2F2F2F;   /* Dark Gray */
+  --color-text-tertiary: #4A4A4A;    /* Medium Gray */
+  --color-text-quaternary: #696969;  /* Dim Gray */
+  --color-text-inverse: #FFFFFF;     /* White */
+  --color-text-inverse-secondary: rgba(255, 255, 255, 0.95);
+  --color-text-inverse-tertiary: rgba(255, 255, 255, 0.8);
   
-  /* Typography - SF Pro Display with enhanced weights and spacing */
-  --font-family: 'SF Pro Display', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  --font-family-mono: 'SF Mono', Monaco, 'Cascadia Code', 'Roboto Mono', Consolas, 'Courier New', monospace;
+  /* Typography - Bold, Impactful Fonts for Political Posters */
+  --font-family: 'Impact', 'Bebas Neue', 'Arial Black', 'Helvetica Black', sans-serif;
+  --font-family-secondary: 'Georgia', 'Times New Roman', serif;
+  --font-family-mono: 'Courier New', 'Monaco', 'Consolas', monospace;
   
-  /* Font sizes - Enhanced granular scale with better proportions */
-  --font-size-xs: 0.75rem;    /* 12px */
-  --font-size-sm: 0.875rem;   /* 14px */
-  --font-size-base: 1rem;     /* 16px */
-  --font-size-lg: 1.125rem;   /* 18px */
-  --font-size-xl: 1.25rem;    /* 20px */
-  --font-size-2xl: 1.5rem;    /* 24px */
-  --font-size-3xl: 1.875rem;  /* 30px */
-  --font-size-4xl: 2.25rem;   /* 36px */
-  --font-size-5xl: 3rem;      /* 48px */
-  --font-size-6xl: 3.75rem;   /* 60px */
+  /* Font sizes - Bold, Impactful Scale for Political Posters */
+  --font-size-xs: 0.875rem;   /* 14px */
+  --font-size-sm: 1rem;       /* 16px */
+  --font-size-base: 1.125rem; /* 18px */
+  --font-size-lg: 1.375rem;   /* 22px */
+  --font-size-xl: 1.625rem;   /* 26px */
+  --font-size-2xl: 2rem;      /* 32px */
+  --font-size-3xl: 2.5rem;    /* 40px */
+  --font-size-4xl: 3rem;      /* 48px */
+  --font-size-5xl: 3.75rem;   /* 60px */
+  --font-size-6xl: 4.5rem;    /* 72px */
   
-  /* Font weights - Enhanced SF Pro Display weights */
-  --font-weight-thin: 100;
+  /* Font weights - Bold and Heavy for Impact */
   --font-weight-light: 300;
   --font-weight-normal: 400;
   --font-weight-medium: 500;
   --font-weight-semibold: 600;
   --font-weight-bold: 700;
   --font-weight-heavy: 800;
+  --font-weight-black: 900;
   
   /* Line heights - Enhanced for better readability */
   --line-height-tight: 1.2;
@@ -101,22 +106,22 @@
   --radius-4xl: 2rem;     /* 32px */
   --radius-full: 9999px;
   
-  /* Shadows - Enhanced Apple-style shadow system with more depth */
-  --shadow-xs: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
-  --shadow-sm: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
-  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
-  --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
-  --shadow-2xl: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
-  --shadow-3xl: 0 35px 60px -15px rgba(0, 0, 0, 0.3);
+  /* Shadows - Dramatic Vintage Poster Shadows */
+  --shadow-xs: 0 2px 4px 0 rgba(0, 0, 0, 0.15);
+  --shadow-sm: 0 3px 6px 0 rgba(0, 0, 0, 0.2), 0 2px 4px 0 rgba(0, 0, 0, 0.1);
+  --shadow-md: 0 6px 12px -2px rgba(0, 0, 0, 0.25), 0 4px 8px -2px rgba(0, 0, 0, 0.15);
+  --shadow-lg: 0 12px 24px -4px rgba(0, 0, 0, 0.3), 0 8px 16px -4px rgba(0, 0, 0, 0.2);
+  --shadow-xl: 0 20px 40px -8px rgba(0, 0, 0, 0.35), 0 12px 24px -6px rgba(0, 0, 0, 0.25);
+  --shadow-2xl: 0 30px 60px -12px rgba(0, 0, 0, 0.4), 0 16px 32px -8px rgba(0, 0, 0, 0.3);
+  --shadow-3xl: 0 40px 80px -16px rgba(0, 0, 0, 0.45), 0 20px 40px -10px rgba(0, 0, 0, 0.35);
   
-  /* Transitions - Enhanced Apple-style timing with spring animations */
-  --transition-fast: 150ms cubic-bezier(0.4, 0, 0.2, 1);
-  --transition-normal: 250ms cubic-bezier(0.4, 0, 0.2, 1);
-  --transition-slow: 350ms cubic-bezier(0.4, 0, 0.2, 1);
-  --transition-bounce: 300ms cubic-bezier(0.68, -0.55, 0.265, 1.55);
-  --transition-spring: 400ms cubic-bezier(0.175, 0.885, 0.32, 1.275);
-  --transition-elastic: 500ms cubic-bezier(0.68, -0.55, 0.265, 1.55);
+  /* Transitions - Bold, Dramatic Timing for Political Impact */
+  --transition-fast: 200ms cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  --transition-normal: 300ms cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  --transition-slow: 400ms cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  --transition-bounce: 350ms cubic-bezier(0.68, -0.55, 0.265, 1.55);
+  --transition-spring: 450ms cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  --transition-elastic: 600ms cubic-bezier(0.68, -0.55, 0.265, 1.55);
   
   /* Z-index scale - Enhanced for better layering */
   --z-dropdown: 1000;
@@ -128,9 +133,9 @@
   --z-tooltip: 1070;
   --z-toast: 1080;
   
-  /* Focus styles - Enhanced accessibility */
-  --focus-ring: 0 0 0 3px rgba(0, 122, 255, 0.3);
-  --focus-ring-inset: inset 0 0 0 3px rgba(0, 122, 255, 0.3);
+  /* Focus styles - Bold Political Focus */
+  --focus-ring: 0 0 0 4px rgba(204, 0, 0, 0.4);
+  --focus-ring-inset: inset 0 0 0 4px rgba(204, 0, 0, 0.4);
 }
 
 /* ===== RESET & BASE STYLES ===== */
@@ -164,7 +169,7 @@ html {
 }
 
 body {
-  font-family: var(--font-family);
+  font-family: var(--font-family-secondary);
   font-size: var(--font-size-base);
   font-weight: var(--font-weight-normal);
   line-height: var(--line-height-normal);
@@ -192,7 +197,10 @@ body {
 
 /* ===== SETUP SCREEN ===== */
 .setup-screen {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #CC0000 0%, #003366 50%, #8B0000 100%);
+  background-image: 
+    radial-gradient(circle at 20% 80%, rgba(255, 215, 0, 0.1) 0%, transparent 50%),
+    radial-gradient(circle at 80% 20%, rgba(255, 215, 0, 0.1) 0%, transparent 50%);
   justify-content: center;
   align-items: center;
   padding: var(--spacing-6);
@@ -208,8 +216,10 @@ body {
   left: 0;
   right: 0;
   bottom: 0;
-  background: radial-gradient(circle at 20% 80%, rgba(120, 119, 198, 0.3) 0%, transparent 50%),
-              radial-gradient(circle at 80% 20%, rgba(255, 119, 198, 0.3) 0%, transparent 50%);
+  background: 
+    radial-gradient(circle at 20% 80%, rgba(255, 215, 0, 0.2) 0%, transparent 50%),
+    radial-gradient(circle at 80% 20%, rgba(255, 215, 0, 0.15) 0%, transparent 50%),
+    url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="stars" width="20" height="20" patternUnits="userSpaceOnUse"><circle cx="10" cy="10" r="0.5" fill="white" opacity="0.3"/></pattern></defs><rect width="100" height="100" fill="url(%23stars)"/></svg>');
   pointer-events: none;
 }
 
@@ -233,12 +243,13 @@ body {
 }
 
 .setup-header {
-  background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-secondary) 100%);
+  background: linear-gradient(135deg, #CC0000 0%, #003366 100%);
   padding: var(--spacing-20);
   text-align: center;
   color: var(--color-text-inverse);
   position: relative;
   overflow: hidden;
+  border-bottom: 4px solid var(--color-accent);
 }
 
 .setup-header::before {
@@ -288,23 +299,29 @@ body {
 
 .logo h1 {
   font-size: var(--font-size-6xl);
-  font-weight: var(--font-weight-heavy);
-  letter-spacing: -0.03em;
+  font-weight: var(--font-weight-black);
+  letter-spacing: -0.02em;
   line-height: var(--line-height-tight);
   margin-bottom: var(--spacing-3);
-  background: linear-gradient(135deg, #FFFFFF 0%, #F0F0F0 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-  text-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  color: #FFFFFF;
+  text-shadow: 
+    0 4px 8px rgba(0, 0, 0, 0.4),
+    0 0 0 2px rgba(255, 215, 0, 0.8),
+    0 0 0 4px rgba(0, 0, 0, 0.3);
+  text-transform: uppercase;
+  font-family: 'Impact', 'Arial Black', sans-serif;
 }
 
 .subtitle {
   font-size: var(--font-size-xl);
-  font-weight: var(--font-weight-medium);
-  opacity: 0.95;
-  letter-spacing: 0.02em;
-  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-accent);
+  letter-spacing: 0.05em;
+  text-shadow: 
+    0 2px 4px rgba(0, 0, 0, 0.3),
+    0 0 0 1px rgba(255, 215, 0, 0.6);
+  text-transform: uppercase;
+  font-family: 'Georgia', serif;
 }
 
 .setup-content {
@@ -400,15 +417,14 @@ body {
 }
 
 .game-header {
-  background: rgba(255, 255, 255, 0.95);
-  border-bottom: 1px solid var(--color-border-light);
+  background: linear-gradient(135deg, #CC0000 0%, #003366 100%);
+  color: var(--color-text-inverse);
   padding: var(--spacing-8);
-  box-shadow: var(--shadow-md);
+  box-shadow: var(--shadow-xl);
   position: sticky;
   top: 0;
   z-index: var(--z-sticky);
-  backdrop-filter: blur(30px);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+  border-bottom: 3px solid var(--color-accent);
 }
 
 .header-content {
@@ -420,11 +436,16 @@ body {
 }
 
 .header-left h1 {
-  font-size: var(--font-size-2xl);
-  font-weight: var(--font-weight-bold);
-  color: var(--color-text-primary);
+  font-size: var(--font-size-3xl);
+  font-weight: var(--font-weight-black);
+  color: var(--color-text-inverse);
   margin-bottom: var(--spacing-2);
-  letter-spacing: -0.025em;
+  letter-spacing: -0.02em;
+  text-transform: uppercase;
+  font-family: 'Impact', 'Arial Black', sans-serif;
+  text-shadow: 
+    0 4px 8px rgba(0, 0, 0, 0.4),
+    0 0 0 2px rgba(255, 215, 0, 0.8);
 }
 
 .game-meta {
@@ -435,12 +456,14 @@ body {
 
 .meta-item {
   font-size: var(--font-size-sm);
-  color: var(--color-text-secondary);
-  font-weight: var(--font-weight-medium);
+  color: var(--color-text-inverse);
+  font-weight: var(--font-weight-bold);
   padding: var(--spacing-2) var(--spacing-3);
-  background: var(--color-surface-secondary);
+  background: rgba(255, 255, 255, 0.2);
   border-radius: var(--radius-full);
-  border: 1px solid var(--color-border-light);
+  border: 2px solid var(--color-accent);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
 }
 
 .game-content {
@@ -456,16 +479,15 @@ body {
 }
 
 .enhanced-turn-status {
-  background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-secondary) 100%);
+  background: linear-gradient(135deg, #CC0000 0%, #003366 100%);
   color: var(--color-text-inverse);
   padding: var(--spacing-10);
   border-radius: var(--radius-3xl);
   text-align: center;
-  box-shadow: var(--shadow-xl);
+  box-shadow: var(--shadow-2xl);
   position: relative;
   overflow: hidden;
-  backdrop-filter: blur(20px);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  border: 3px solid var(--color-accent);
 }
 
 .enhanced-turn-status::before {
@@ -678,21 +700,22 @@ body {
 }
 
 .action-points-display {
-  background: linear-gradient(135deg, var(--color-success) 0%, var(--color-info) 100%);
+  background: linear-gradient(135deg, #CC0000 0%, #003366 100%);
   color: var(--color-text-inverse);
   padding: var(--spacing-4) var(--spacing-6);
   border-radius: var(--radius-full);
   font-size: var(--font-size-sm);
-  font-weight: var(--font-weight-semibold);
+  font-weight: var(--font-weight-bold);
   display: flex;
   align-items: center;
   gap: var(--spacing-3);
   box-shadow: var(--shadow-md);
   position: relative;
   overflow: hidden;
-  backdrop-filter: blur(10px);
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  border: 2px solid var(--color-accent);
   transition: all var(--transition-spring);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
 }
 
 .action-points-display::before {
@@ -723,16 +746,18 @@ body {
 
 .action-btn {
   background: var(--color-surface);
-  border: 2px solid var(--color-border-light);
-  border-radius: var(--radius-2xl);
+  border: 3px solid var(--color-border);
+  border-radius: var(--radius-lg);
   padding: var(--spacing-8);
   cursor: pointer;
   transition: all var(--transition-spring);
   text-align: left;
   position: relative;
   overflow: hidden;
-  backdrop-filter: blur(10px);
   min-height: 120px;
+  box-shadow: var(--shadow-md);
+  text-transform: uppercase;
+  font-weight: var(--font-weight-bold);
 }
 
 .action-btn::before {
@@ -742,7 +767,7 @@ body {
   left: 0;
   right: 0;
   bottom: 0;
-  background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-secondary) 100%);
+  background: linear-gradient(135deg, #CC0000 0%, #003366 100%);
   opacity: 0;
   transition: opacity var(--transition-spring);
   z-index: 0;
@@ -760,9 +785,10 @@ body {
 }
 
 .action-btn:hover:not(:disabled) {
-  border-color: var(--color-primary);
+  border-color: var(--color-accent);
   transform: translateY(-4px);
   box-shadow: var(--shadow-xl);
+  background: var(--color-surface-secondary);
 }
 
 .action-btn:hover:not(:disabled)::before {
@@ -787,20 +813,23 @@ body {
 
 .action-label {
   font-size: var(--font-size-base);
-  font-weight: var(--font-weight-semibold);
+  font-weight: var(--font-weight-bold);
   color: var(--color-text-primary);
   margin-bottom: var(--spacing-2);
   position: relative;
   z-index: 1;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
 }
 
 .action-cost {
   font-size: var(--font-size-sm);
-  color: var(--color-primary);
+  color: var(--color-accent);
   font-weight: var(--font-weight-bold);
   margin-bottom: var(--spacing-2);
   position: relative;
   z-index: 1;
+  text-transform: uppercase;
 }
 
 .action-cost::before {
@@ -867,9 +896,13 @@ body {
 }
 
 .btn-primary {
-  background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-dark) 100%);
+  background: linear-gradient(135deg, #CC0000 0%, #8B0000 100%);
   color: var(--color-text-inverse);
   box-shadow: var(--shadow-md);
+  border: 2px solid var(--color-accent);
+  text-transform: uppercase;
+  font-weight: var(--font-weight-bold);
+  letter-spacing: 0.05em;
 }
 
 .btn-primary::before {
@@ -884,9 +917,10 @@ body {
 }
 
 .btn-primary:hover {
-  background: linear-gradient(135deg, var(--color-primary-dark) 0%, var(--color-primary) 100%);
+  background: linear-gradient(135deg, #8B0000 0%, #CC0000 100%);
   transform: translateY(-2px);
   box-shadow: var(--shadow-lg);
+  border-color: var(--color-accent-light);
 }
 
 .btn-primary:hover::before {

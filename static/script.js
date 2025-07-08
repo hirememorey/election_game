@@ -691,6 +691,9 @@ function handleActionClick(actionType) {
         case 'propose_trade':
             showTradeProposalMenu();
             break;
+        case 'complete_trading':
+            performAction('complete_trading');
+            break;
         case 'pass_turn':
             performAction('pass_turn');
             break;

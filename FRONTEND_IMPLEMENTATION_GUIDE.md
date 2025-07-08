@@ -1,45 +1,45 @@
-# Frontend Implementation Guide: Apple-Level Design System
+# Frontend Implementation Guide: Vintage Political Poster Design System
 
 ## 🎯 Overview
 
-This guide provides information about the Apple-level design system that has been implemented in the political board game. The design system is fully functional and deployed - this guide covers testing, refinement, and potential enhancements.
+This guide provides information about the vintage political poster design system that has been implemented in the political board game. The design system is fully functional and deployed - this guide covers testing, refinement, and potential enhancements.
 
 ## 📋 Current Status
 
-**Apple-Level Design System**: ✅ **COMPLETED AND DEPLOYED**
+**Vintage Political Poster Design System**: ✅ **COMPLETED AND DEPLOYED**
 
 ### What's Been Implemented
-- **Complete UI Redesign**: Apple-inspired design with SF Pro Display typography
-- **Modern Color Palette**: Semantic color system with Apple-inspired colors
-- **Consistent Spacing**: CSS custom properties for consistent spacing throughout
-- **Card-Based Layout**: Modern card design with subtle shadows and hover effects
-- **Enhanced Typography**: Proper font hierarchy with Apple's design principles
+- **Complete UI Redesign**: Vintage political poster design with Impact and Georgia typography
+- **Patriotic Color Palette**: Bold color system with red, blue, and gold patriotic colors
+- **Dramatic Spacing**: CSS custom properties for bold political poster spacing
+- **Political Card Layout**: Bold card design with dramatic shadows and patriotic effects
+- **Bold Typography**: Impact font hierarchy with political campaign principles
 - **Mobile Optimization**: Touch-friendly interactions with proper button sizes
-- **Accessibility**: Better contrast ratios and focus states
-- **Smooth Animations**: Apple-style transitions and micro-interactions
+- **High Contrast**: Maximum contrast design for political impact
+- **Dramatic Animations**: Bold political poster transitions and micro-interactions
 
 ## 🏗️ Current Frontend Structure
 
 ### Key Files
-- `static/index.html`: Main game interface with Apple-level design
+- `static/index.html`: Main game interface with vintage political poster design
 - `static/script.js`: Game logic and API communication
-- `static/style.css`: Apple-inspired design system with SF Pro Display typography
+- `static/style.css`: Vintage political poster design system with Impact and Georgia typography
 
 ### Design System Features
-- **Typography**: SF Pro Display font with proper font weights and sizes
-- **Color Palette**: Apple-inspired semantic colors (primary: #007AFF, etc.)
-- **Spacing**: CSS custom properties for consistent spacing (--spacing-xs to --spacing-3xl)
-- **Border Radius**: Apple-style rounded corners with consistent radius system
-- **Shadows**: Subtle shadow system matching Apple's design language
-- **Transitions**: Smooth animations (150ms, 250ms, 350ms) for all interactions
+- **Typography**: Impact font for headers, Georgia serif for body text with bold political messaging
+- **Color Palette**: Patriotic colors (red: #CC0000, blue: #003366, gold: #FFD700)
+- **Spacing**: CSS custom properties for dramatic political poster spacing
+- **Border Radius**: Bold, dramatic corners with political poster aesthetic
+- **Shadows**: Dramatic shadow system matching vintage political poster design
+- **Transitions**: Bold, dramatic timing (200ms, 300ms, 400ms) for political impact
 - **Mobile**: Touch-friendly interactions with proper button sizes (44px minimum)
-- **Accessibility**: Better contrast ratios and focus states
+- **Accessibility**: High contrast design for maximum political impact
 
 ## 🎨 Testing and Refinement Tasks
 
 ### Task 1: Design System Testing
 
-**Goal**: Test the Apple-level design system across different devices and scenarios
+**Goal**: Test the vintage political poster design system across different devices and scenarios
 
 **Testing Areas**:
 - **Mobile Responsiveness**: Test on various mobile devices and screen sizes
@@ -69,14 +69,14 @@ function testDesignSystem() {
 
 ### Task 2: User Experience Testing
 
-**Goal**: Gather user feedback on the Apple-level design system
+**Goal**: Gather user feedback on the vintage political poster design system
 
 **Testing Areas**:
 - **Visual Hierarchy**: Is the information hierarchy clear and intuitive?
-- **Color Usage**: Are the Apple-inspired colors working well for the game context?
-- **Typography**: Is the SF Pro Display font readable and appropriate?
-- **Spacing**: Is the consistent spacing system creating a clean, organized layout?
-- **Animations**: Are the transitions smooth and enhancing the experience?
+- **Color Usage**: Are the patriotic colors working well for the political game context?
+- **Typography**: Are the Impact and Georgia fonts readable and appropriate for political messaging?
+- **Spacing**: Is the dramatic spacing system creating a bold, organized layout?
+- **Animations**: Are the transitions dramatic and enhancing the political experience?
 
 **Implementation**:
 ```javascript

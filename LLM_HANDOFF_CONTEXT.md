@@ -4,37 +4,37 @@
 
 **What this is:** A Python-based political strategy board game with a Flask backend and mobile-friendly web frontend. Players compete in elections through strategic actions, resource management, and political maneuvering.
 
-**Current State:** Fully functional game with rich mechanics, web interface, and comprehensive improvements to core gameplay systems. **All major bugs have been fixed and new features are fully tested.** **Action Points system is complete with enhanced frontend UI.** **Apple-level design system implemented.**
+**Current State:** Fully functional game with rich mechanics, web interface, and comprehensive improvements to core gameplay systems. **All major bugs have been fixed and new features are fully tested.** **Action Points system is complete with enhanced frontend UI.** **Vintage political poster design system implemented.**
 
 **Architecture:** Clean separation between game logic (Python) and presentation (HTML/CSS/JS), with REST API communication.
 
 ## 📝 Recent Gameplay/Codebase Changes (Latest Updates)
 
-### Apple-Level Design System Overhaul (LATEST - Just Completed)
-- **Complete UI Redesign**: Implemented Apple-inspired design system with SF Pro Display typography
-  - **Typography**: Apple's signature SF Pro Display font with proper font weights and sizes
-  - **Color System**: Semantic color palette with Apple-inspired colors (primary: #007AFF, etc.)
-  - **Spacing System**: Consistent spacing using CSS custom properties (--spacing-xs to --spacing-3xl)
-  - **Border Radius**: Apple-style rounded corners with consistent radius system
-  - **Shadows**: Subtle shadow system matching Apple's design language
-  - **Transitions**: Smooth animations (150ms, 250ms, 350ms) for all interactions
+### Vintage Political Poster Design System Overhaul (LATEST - Just Completed)
+- **Complete UI Redesign**: Implemented vintage political poster design system with bold typography
+  - **Typography**: Impact font for headers, Georgia serif for body text, bold political messaging
+  - **Color System**: Patriotic color palette with bold red (#CC0000), deep blue (#003366), and gold (#FFD700)
+  - **Spacing System**: Dramatic spacing using CSS custom properties for political poster impact
+  - **Border Radius**: Bold, dramatic corners with political poster aesthetic
+  - **Shadows**: Dramatic shadow system matching vintage political poster design
+  - **Transitions**: Bold, dramatic timing for political impact
   - **Files Modified**: `static/index.html`, `static/style.css` - Complete redesign
-  - **Impact**: Professional, modern interface that meets Apple's design standards
+  - **Impact**: Authentic political campaign interface that fits the game's theme
   - **Status**: Fully implemented and deployed to GitHub
 
 - **Enhanced Visual Hierarchy**: Improved information organization and user experience
-  - **Card-Based Design**: Modern card layout with subtle shadows and hover effects
-  - **Better Typography**: Improved font hierarchy with proper weights and sizes
-  - **Improved Spacing**: Consistent spacing system throughout the interface
-  - **Enhanced Buttons**: Modern button design with proper states and interactions
+  - **Political Poster Design**: Bold card layout with dramatic shadows and patriotic colors
+  - **Bold Typography**: Impact font hierarchy with dramatic weights and political messaging
+  - **Dramatic Spacing**: Bold spacing system throughout the interface
+  - **Enhanced Buttons**: Political campaign button design with bold states and interactions
   - **Mobile Optimization**: Touch-friendly interactions with proper button sizes
-  - **Accessibility**: Better contrast ratios and focus states for accessibility
+  - **Accessibility**: High contrast design for maximum political impact
 
-- **Modern Layout System**: Clean, responsive grid-based layout
+- **Political Layout System**: Bold, dramatic grid-based layout
   - **Two-Column Layout**: Clear separation between game state and actions
   - **Responsive Design**: Adapts beautifully to mobile and desktop screens
-  - **Improved Modals**: Enhanced modal design with backdrop blur effects
-  - **Better Forms**: Improved form styling with proper focus states
+  - **Improved Modals**: Enhanced modal design with political campaign styling
+  - **Better Forms**: Bold form styling with political focus states
   - **Enhanced Game Log**: Better readability and visual organization
 
 ### Round 5 Confusion Fix (LATEST - Just Completed)
