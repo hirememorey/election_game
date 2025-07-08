@@ -462,21 +462,140 @@ function clearGameLog() {
 }
 
 function updateActionButtons() {
+    const actionList = document.getElementById('action-list');
     if (!actionList || !currentGameState) return;
     
-    const currentPlayer = currentGameState.players[currentGameState.current_player_index];
-    const remainingAP = currentGameState.action_points?.[currentPlayer.id] || 3;
+    actionList.innerHTML = '';
     
-    // Update action points display
-    if (actionPointsDisplay) {
-        actionPointsDisplay.innerHTML = `
-            <span class="ap-icon">⚡</span>
-            <span class="ap-text">${remainingAP}/3 AP</span>
-        `;
+    const currentPlayer = currentGameState.players[currentGameState.current_player_index];
+    const remainingAP = currentGameState.action_points?.[currentPlayer.id] || 0;
+    const phase = currentGameState.current_phase;
+    
+    // Show different UI based on game phase
+    if (phase === 'LEGISLATION_PHASE' && currentGameState.legislation_session_active) {
+        // Legislation session - show voting options
+        showLegislationSessionUI();
+        return;
     }
     
-    // Clear existing actions
-    actionList.innerHTML = '';
+    // Normal action phase - show regular actions
+    showRegularActionUI(remainingAP);
+}
+
+function showLegislationSessionUI() {
+    const actionList = document.getElementById('action-list');
+    
+    // Add legislation session header
+    const sessionHeader = document.createElement('div');
+    sessionHeader.className = 'legislation-session-header';
+    sessionHeader.innerHTML = `
+        <div class="session-info">
+            <h3>🗳️ Legislation Session</h3>
+            <p>Vote on bills sponsored this term. Trading phase first, then voting.</p>
+        </div>
+    `;
+    actionList.appendChild(sessionHeader);
+    
+    if (currentGameState.current_trade_phase) {
+        // Trading phase
+        showTradingPhaseUI();
+    } else {
+        // Voting phase
+        showVotingPhaseUI();
+    }
+}
+
+function showTradingPhaseUI() {
+    const actionList = document.getElementById('action-list');
+    
+    const tradingHeader = document.createElement('div');
+    tradingHeader.className = 'trading-phase-header';
+    tradingHeader.innerHTML = `
+        <div class="phase-info">
+            <h4>🤝 Trading Phase</h4>
+            <p>Propose trades for votes on legislation</p>
+        </div>
+    `;
+    actionList.appendChild(tradingHeader);
+    
+    // Add trading actions
+    const actions = [
+        { type: 'propose_trade', label: 'Propose Trade', description: 'Offer PC/favors for votes' },
+        { type: 'complete_trading', label: 'Skip Trading', description: 'Move to voting phase' }
+    ];
+    
+    actions.forEach(action => {
+        const button = document.createElement('button');
+        button.className = 'action-button trading-action';
+        button.innerHTML = `
+            <div class="action-label">${action.label}</div>
+            <div class="action-description">${action.description}</div>
+        `;
+        button.onclick = () => handleActionClick(action.type);
+        actionList.appendChild(button);
+    });
+}
+
+function showVotingPhaseUI() {
+    const actionList = document.getElementById('action-list');
+    
+    const votingHeader = document.createElement('div');
+    votingHeader.className = 'voting-phase-header';
+    votingHeader.innerHTML = `
+        <div class="phase-info">
+            <h4>🗳️ Voting Phase</h4>
+            <p>Vote on legislation</p>
+        </div>
+    `;
+    actionList.appendChild(votingHeader);
+    
+    // Show legislation to vote on
+    if (currentGameState.term_legislation && currentGameState.term_legislation.length > 0) {
+        currentGameState.term_legislation.forEach(legislation => {
+            if (!legislation.resolved) {
+                const legislationCard = document.createElement('div');
+                legislationCard.className = 'legislation-card';
+                legislationCard.innerHTML = `
+                    <div class="legislation-info">
+                        <h5>${legislation.title}</h5>
+                        <p>${legislation.description}</p>
+                        <p><strong>Sponsored by:</strong> ${currentGameState.players[legislation.sponsor_id].name}</p>
+                    </div>
+                    <div class="voting-actions">
+                        <button onclick="performAction('support_legislation', {legislation_id: '${legislation.id}', support_amount: 1})" class="vote-btn support-btn">
+                            Support
+                        </button>
+                        <button onclick="performAction('oppose_legislation', {legislation_id: '${legislation.id}', oppose_amount: 1})" class="vote-btn oppose-btn">
+                            Oppose
+                        </button>
+                    </div>
+                `;
+                actionList.appendChild(legislationCard);
+            }
+        });
+    } else {
+        const noLegislation = document.createElement('div');
+        noLegislation.className = 'no-legislation';
+        noLegislation.innerHTML = `
+            <p>No legislation to vote on. Moving to elections.</p>
+        `;
+        actionList.appendChild(noLegislation);
+    }
+}
+
+function showRegularActionUI(remainingAP) {
+    const actionList = document.getElementById('action-list');
+    
+    // Add AP display
+    const apDisplay = document.createElement('div');
+    apDisplay.className = 'action-points-display';
+    apDisplay.innerHTML = `
+        <div class="ap-info">
+            <span class="ap-icon">⚡</span>
+            <span class="ap-text">${remainingAP}/3 Action Points</span>
+        </div>
+    `;
+    actionList.appendChild(apDisplay);
     
     // Define action costs
     const actionCosts = {
@@ -494,124 +613,52 @@ function updateActionButtons() {
         'complete_trading': 0
     };
     
-    // Define available actions based on game state
-    const actions = [];
+    // Show available actions
+    const actions = [
+        { type: 'fundraise', label: 'Fundraise', description: 'Gain Political Capital' },
+        { type: 'network', label: 'Network', description: 'Gain PC and political favors' },
+        { type: 'sponsor_legislation', label: 'Sponsor Legislation', description: 'Create legislation for votes/mood' },
+        { type: 'campaign', label: 'Campaign', description: 'Place influence for future elections' },
+        { type: 'use_favor', label: 'Use Favor', description: 'Strategic advantage actions' }
+    ];
     
-    // Basic actions
-    actions.push({
-        type: 'fundraise',
-        label: 'Fundraise',
-        description: 'Gain Political Capital',
-        ap_cost: 1
-    });
-    
-    actions.push({
-        type: 'network',
-        label: 'Network',
-        description: 'Gain PC and political favors',
-        ap_cost: 1
-    });
-    
-    actions.push({
-        type: 'sponsor_legislation',
-        label: 'Sponsor Legislation',
-        description: 'Create legislation for votes and mood',
-        ap_cost: 2
-    });
-    
-    // Campaign action (new)
-    actions.push({
-        type: 'campaign',
-        label: 'Campaign',
-        description: 'Place influence for future election',
-        ap_cost: 2
-    });
-    
-    // Use Favor (only if player has favors)
-    const favors = currentPlayer.favors || [];
-    if (favors.length > 0) {
-        actions.push({
-            type: 'use_favor',
-            label: 'Use Favor',
-            description: 'Use a political favor',
-            ap_cost: 0
-        });
-    }
-    
-    // Declare Candidacy (only in Round 4)
+    // Only show declare candidacy in round 4
     if (currentGameState.round_marker === 4) {
-        actions.push({
-            type: 'declare_candidacy',
-            label: 'Declare Candidacy',
-            description: 'Run for office',
-            ap_cost: 2
-        });
+        actions.push({ type: 'declare_candidacy', label: 'Declare Candidacy', description: 'Run for office' });
     }
     
-    // Legislation session actions
-    if (currentGameState.current_phase === 'LEGISLATION_PHASE' && currentGameState.term_legislation && currentGameState.term_legislation.length > 0) {
-        actions.push({
-            type: 'support_legislation',
-            label: 'Support Legislation',
-            description: 'Support pending legislation',
-            ap_cost: 1
-        });
-        
-        actions.push({
-            type: 'oppose_legislation',
-            label: 'Oppose Legislation',
-            description: 'Oppose pending legislation',
-            ap_cost: 1
-        });
-        
-        // Trading actions
-        actions.push({
-            type: 'propose_trade',
-            label: 'Propose Trade',
-            description: 'Propose a trade for votes',
-            ap_cost: 0
-        });
-    }
-    
-    // Create action buttons
     actions.forEach(action => {
-        const canAfford = remainingAP >= action.ap_cost;
-        const button = document.createElement('button');
-        button.className = 'action-btn';
-        button.disabled = !canAfford;
-        button.setAttribute('aria-label', `${action.label}: ${action.description}. Cost: ${action.ap_cost} Action Points.`);
+        const apCost = actionCosts[action.type] || 0;
+        const canAfford = remainingAP >= apCost;
         
+        const button = document.createElement('button');
+        button.className = `action-button ${canAfford ? '' : 'disabled'}`;
+        button.disabled = !canAfford;
         button.innerHTML = `
             <div class="action-label">${action.label}</div>
-            <div class="action-cost">${action.ap_cost} AP</div>
+            <div class="action-cost">${apCost} AP</div>
             <div class="action-description">${action.description}</div>
         `;
         
         if (!canAfford) {
-            button.title = `Not enough Action Points. Need ${action.ap_cost}, have ${remainingAP}`;
-            button.setAttribute('aria-describedby', 'insufficient-ap');
+            button.title = `Not enough Action Points. Need ${apCost}, have ${remainingAP}`;
         }
         
-        button.onclick = () => {
-            // Add click feedback
-            button.style.transform = 'scale(0.98)';
-            setTimeout(() => {
-                button.style.transform = '';
-            }, 150);
-            
-            handleActionClick(action.type);
-        };
-        
+        button.onclick = () => handleActionClick(action.type);
         actionList.appendChild(button);
     });
     
-    // Add insufficient AP message for screen readers
-    if (actions.some(action => remainingAP < action.ap_cost)) {
-        const insufficientMsg = document.createElement('div');
-        insufficientMsg.id = 'insufficient-ap';
-        insufficientMsg.className = 'sr-only';
-        insufficientMsg.textContent = 'Some actions are disabled due to insufficient Action Points.';
-        actionList.appendChild(insufficientMsg);
+    // Add Pass Turn button if no AP left
+    if (remainingAP === 0) {
+        const passButton = document.createElement('button');
+        passButton.className = 'action-button pass-turn-btn';
+        passButton.innerHTML = `
+            <div class="action-label">Pass Turn</div>
+            <div class="action-cost">0 AP</div>
+            <div class="action-description">End your turn</div>
+        `;
+        passButton.onclick = () => handleActionClick('pass_turn');
+        actionList.appendChild(passButton);
     }
 }
 
@@ -643,6 +690,9 @@ function handleActionClick(actionType) {
             break;
         case 'propose_trade':
             showTradeProposalMenu();
+            break;
+        case 'pass_turn':
+            performAction('pass_turn');
             break;
         default:
             console.log('Unknown action type:', actionType);

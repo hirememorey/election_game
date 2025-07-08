@@ -45,11 +45,11 @@ A Python-based political strategy board game with a Flask backend and mobile-fri
 
 ## 🎯 Current State
 
-**Status**: Fully functional game with rich mechanics, web interface, and comprehensive improvements to core gameplay systems. **All major bugs have been fixed and new features are fully tested.**
+**Status**: Fully functional game with rich mechanics, Apple-level web interface, and comprehensive improvements to core gameplay systems. **All major bugs have been fixed and new features are fully tested.**
 
 ### ✅ What's Working
 - Complete game engine with all core mechanics
-- Web interface with mobile responsiveness
+- **Apple-Level Web Interface**: Professional, modern frontend with Apple-inspired design system
 - API communication between frontend/backend
 - Static file serving (fixed from 404 issues)
 - Performance tested (~5-10ms response times)
@@ -107,9 +107,9 @@ See `DEPLOYMENT.md` for step-by-step instructions for Render, Netlify, Heroku, R
 - **`game_data.py`**: Game data loading and configuration
 
 ### Frontend (HTML/CSS/JS)
-- **`static/index.html`**: Main game interface
+- **`static/index.html`**: Main game interface with Apple-level design
 - **`static/script.js`**: Game logic and API communication
-- **`static/style.css`**: Mobile-responsive styling
+- **`static/style.css`**: Apple-inspired design system with SF Pro Display typography
 
 ### API Endpoints
 - `POST /api/game`: Create new game
@@ -155,7 +155,7 @@ python3 test_action_points_system.py
 - Variable AP costs for different actions (1-2 AP)
 - Campaign action for placing influence
 - Automatic turn advancement when AP exhausted
-- **Status**: Backend fully implemented, frontend needs implementation
+- **Status**: Backend fully implemented, frontend enhanced with Apple-level design
 
 ### Trading Mechanic
 - Players can trade PC and favors during legislation sessions
@@ -201,7 +201,7 @@ python3 test_action_points_system.py
 - **In-memory Storage**: Game state lost on server restart (production needs database)
 - **Single Session**: No persistent user accounts or game history
 - **No AI Opponents**: All players must be human
-- **Frontend Implementation**: Action Points UI needs completion (see FRONTEND_IMPLEMENTATION_GUIDE.md)
+- **Apple-Level Design**: Fully implemented and ready for user experience testing
 
 ### Recent Bug Fixes
 - **Use Favor Action**: Fixed to work with selection menu
@@ -210,13 +210,16 @@ python3 test_action_points_system.py
 - **Term Transitions**: Fixed state cleanup between terms
 - **Legislation Timing**: Fixed premature legislation resolution
 - **Static File Serving**: Fixed 404 errors for CSS/JS files
+- **Round 5 Confusion**: ✅ **RESOLVED** - Legislation session now triggers at end of round 4
+- **Action Point Handling**: ✅ **RESOLVED** - Clear UI and Pass Turn functionality added
 
 ## 🎯 Next Steps
 
 ### High Priority
-1. **Frontend Implementation**: Complete Action Points system UI (see FRONTEND_IMPLEMENTATION_GUIDE.md)
+1. **Apple-Level Design Testing**: Test the new design system across devices and gather user feedback
 2. **Extensive Playtesting**: Test Action Points and trading systems thoroughly
 3. **Balance Adjustments**: Fine-tune AP costs and PC commitment amounts
+4. **Legislation Session Testing**: Test the improved legislation session flow (no more round 5 confusion)
 
 ### Medium Priority
 1. **Database Integration**: Replace in-memory storage with persistent database

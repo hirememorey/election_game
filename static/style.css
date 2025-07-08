@@ -1309,4 +1309,197 @@ body {
   .legislation-details {
     font-size: var(--font-size-xs);
   }
+}
+
+/* Legislation Session UI */
+.legislation-session-header {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: var(--spacing-lg);
+    border-radius: var(--border-radius-lg);
+    margin-bottom: var(--spacing-md);
+    text-align: center;
+}
+
+.legislation-session-header h3 {
+    margin: 0 0 var(--spacing-sm) 0;
+    font-size: 1.5rem;
+    font-weight: 600;
+}
+
+.legislation-session-header p {
+    margin: 0;
+    opacity: 0.9;
+    font-size: 0.95rem;
+}
+
+.trading-phase-header,
+.voting-phase-header {
+    background: var(--color-surface);
+    border: 2px solid var(--color-border);
+    border-radius: var(--border-radius-md);
+    padding: var(--spacing-md);
+    margin-bottom: var(--spacing-md);
+}
+
+.trading-phase-header h4,
+.voting-phase-header h4 {
+    margin: 0 0 var(--spacing-xs) 0;
+    color: var(--color-primary);
+    font-size: 1.1rem;
+    font-weight: 600;
+}
+
+.trading-phase-header p,
+.voting-phase-header p {
+    margin: 0;
+    color: var(--color-text-secondary);
+    font-size: 0.9rem;
+}
+
+.trading-action {
+    background: var(--color-surface);
+    border: 2px solid var(--color-primary);
+    color: var(--color-primary);
+    transition: all var(--transition-fast);
+}
+
+.trading-action:hover:not(:disabled) {
+    background: var(--color-primary);
+    color: white;
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+}
+
+.legislation-card {
+    background: var(--color-surface);
+    border: 2px solid var(--color-border);
+    border-radius: var(--border-radius-md);
+    padding: var(--spacing-md);
+    margin-bottom: var(--spacing-md);
+    transition: all var(--transition-fast);
+}
+
+.legislation-card:hover {
+    border-color: var(--color-primary);
+    box-shadow: var(--shadow-sm);
+}
+
+.legislation-info h5 {
+    margin: 0 0 var(--spacing-xs) 0;
+    color: var(--color-text-primary);
+    font-size: 1.1rem;
+    font-weight: 600;
+}
+
+.legislation-info p {
+    margin: 0 0 var(--spacing-xs) 0;
+    color: var(--color-text-secondary);
+    font-size: 0.9rem;
+    line-height: 1.4;
+}
+
+.voting-actions {
+    display: flex;
+    gap: var(--spacing-sm);
+    margin-top: var(--spacing-sm);
+}
+
+.vote-btn {
+    flex: 1;
+    padding: var(--spacing-sm) var(--spacing-md);
+    border: 2px solid transparent;
+    border-radius: var(--border-radius-sm);
+    font-weight: 600;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: all var(--transition-fast);
+    min-height: 44px;
+}
+
+.support-btn {
+    background: var(--color-success);
+    color: white;
+}
+
+.support-btn:hover {
+    background: var(--color-success-dark);
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-sm);
+}
+
+.oppose-btn {
+    background: var(--color-danger);
+    color: white;
+}
+
+.oppose-btn:hover {
+    background: var(--color-danger-dark);
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-sm);
+}
+
+.no-legislation {
+    background: var(--color-surface);
+    border: 2px solid var(--color-border);
+    border-radius: var(--border-radius-md);
+    padding: var(--spacing-md);
+    text-align: center;
+    color: var(--color-text-secondary);
+}
+
+/* Enhanced Action Points Display */
+.action-points-display {
+    background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+    color: white;
+    padding: var(--spacing-md);
+    border-radius: var(--border-radius-md);
+    margin-bottom: var(--spacing-md);
+    text-align: center;
+    box-shadow: var(--shadow-sm);
+}
+
+.ap-info {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--spacing-xs);
+}
+
+.ap-icon {
+    font-size: 1.2rem;
+}
+
+.ap-text {
+    font-weight: 600;
+    font-size: 1.1rem;
+}
+
+/* Disabled Action Buttons */
+.action-button.disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    background: var(--color-surface);
+    border-color: var(--color-border);
+    color: var(--color-text-secondary);
+}
+
+.action-button.disabled:hover {
+    transform: none;
+    box-shadow: none;
+}
+
+/* Pass Turn Button */
+.pass-turn-btn {
+    background: var(--color-surface);
+    border: 2px solid var(--color-warning);
+    color: var(--color-warning);
+    transition: all var(--transition-fast);
+}
+
+.pass-turn-btn:hover {
+    background: var(--color-warning);
+    color: white;
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
 } 

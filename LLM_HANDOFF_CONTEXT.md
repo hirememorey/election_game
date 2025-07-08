@@ -37,6 +37,31 @@
   - **Better Forms**: Improved form styling with proper focus states
   - **Enhanced Game Log**: Better readability and visual organization
 
+### Round 5 Confusion Fix (LATEST - Just Completed)
+- **Fixed Round Logic**: Legislation session now triggers at the END of round 4, not beginning of round 5
+  - **Clear Game Flow**: Rounds 1-4 = actions, then legislation session, then elections
+  - **No More Confusion**: Eliminated the confusing round 5 state
+  - **Better User Experience**: Players understand the game flow clearly
+  - **Files Modified**: `engine/engine.py` - Fixed round logic in `run_upkeep_phase()`
+  - **Impact**: Much clearer game progression and reduced player confusion
+
+- **Improved Legislation Session UI**: Enhanced the legislation session experience
+  - **Phase-Specific UI**: Clear distinction between trading and voting phases
+  - **Trading Phase**: Dedicated UI for proposing trades with clear instructions
+  - **Voting Phase**: Clear display of legislation to vote on with support/oppose buttons
+  - **Action Point Handling**: Clear AP display and Pass Turn functionality
+  - **Files Modified**: `static/script.js` - Added `showLegislationSessionUI()`, `showTradingPhaseUI()`, `showVotingPhaseUI()`
+  - **Files Modified**: `static/style.css` - Added legislation session styling
+  - **Impact**: Much clearer legislation session experience
+
+- **Pass Turn Functionality**: Added ability for players to pass their turn
+  - **No More Getting Stuck**: Players can always advance their turn, even with 0 AP
+  - **Clear Feedback**: Pass Turn button appears when no AP left
+  - **Better UX**: Players understand they can always progress
+  - **Files Modified**: `static/script.js` - Added Pass Turn button logic
+  - **Files Modified**: `static/style.css` - Added Pass Turn button styling
+  - **Impact**: Eliminated player frustration from being stuck
+
 ### Recent Critical Bug Fixes (LATEST)
 - **Trading Action Visibility Fix**: Fixed critical bug where trading actions weren't showing during legislation sessions
   - **Issue**: Frontend was checking for `'legislation_session'` but backend uses `'LEGISLATION_PHASE'`

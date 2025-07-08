@@ -18,7 +18,7 @@
 - **Recent Bug Fixes**: Trading action visibility fixed (frontend/backend phase name alignment)
 
 ### Major Features Implemented
-1. **Apple-Level Design System** (NEW - Just Completed)
+1. **Apple-Level Design System** (COMPLETED - Just Deployed)
    - **Complete UI Redesign**: Apple-inspired design with SF Pro Display typography
    - **Modern Color Palette**: Semantic color system with Apple-inspired colors
    - **Consistent Spacing**: CSS custom properties for consistent spacing throughout
@@ -93,7 +93,7 @@
 ## 🚨 Current Limitations
 
 ### High Priority
-- **Frontend Implementation**: Action Points system UI needs completion (see `FRONTEND_IMPLEMENTATION_GUIDE.md`)
+- **Apple-Level Design System**: Fully implemented and deployed - ready for user experience testing
 - **In-memory Storage**: Game state lost on server restart (production needs database)
 
 ### Medium Priority
@@ -113,6 +113,9 @@
 - PC commitment amounts (are they strategic?)
 - Incumbent/outsider public mood effects (is the tension engaging?)
 - Overall game flow and pacing
+- Apple-level design system user experience
+- **NEW**: Test the improved legislation session flow (no more round 5 confusion)
+- **NEW**: Test Pass Turn functionality and action point handling
 
 ### 2. **Balance Adjustments** (MEDIUM PRIORITY)
 **What**: Fine-tune AP costs and PC commitment amounts based on playtesting
@@ -336,6 +339,9 @@ PORT=5001 python3 server.py
 - **In-memory Storage**: Game state lost on server restart (production needs database)
 - **Single Session**: No persistent user accounts or game history
 - **No AI Opponents**: All players must be human
+- **Apple-Level Design**: Fully implemented and ready for user experience testing
+- **Round 5 Issues**: ✅ **RESOLVED** - Legislation session now triggers at end of round 4
+- **Action Point Confusion**: ✅ **RESOLVED** - Clear UI and Pass Turn functionality added
 - **Limited Analytics**: No game statistics or performance tracking
 - **Missing Form Alliance**: Strategic depth reduced - consider Network Action Design
 - **Trading Balance**: Trading mechanic may need balance adjustments based on playtesting
@@ -360,14 +366,18 @@ PORT=5001 python3 server.py
 - **NEW**: Enhanced turn status display with phase-specific styling
 - **NEW**: Production deployment on Render with proper configuration
 - **NEW**: Game data aligned with actual game mechanics
+- **NEW**: Round 5 confusion fixed - legislation session now triggers at end of round 4
+- **NEW**: Improved legislation session UI with clear trading and voting phases
+- **NEW**: Added Pass Turn functionality for better user experience
+- **NEW**: Enhanced action point handling during legislation sessions
 
 ## 🎯 Recommended Development Approach
 
-### Phase 1: Complete Action Points Frontend (1-2 days)
-1. Follow `FRONTEND_IMPLEMENTATION_GUIDE.md` step-by-step
-2. Implement AP display, action costs, and campaign UI
-3. Test thoroughly on mobile devices
-4. Ensure all existing functionality still works
+### Phase 1: Apple-Level Design System Testing (1-2 days)
+1. Test the new Apple-level design system across different devices
+2. Verify mobile responsiveness and touch interactions
+3. Test accessibility features and contrast ratios
+4. Gather user feedback on the new design system
 
 ### Phase 2: Extensive Playtesting (2-3 days)
 1. Play multiple games with different strategies
@@ -412,7 +422,7 @@ If you want to re-enable the Form Alliance action:
 
 **The project is in excellent shape with a solid foundation, clear architecture, and comprehensive improvements. All major bugs have been fixed, new features are fully functional and tested, and the game is ready for extensive playtesting.**
 
-**The most immediate opportunity is completing the Action Points system frontend implementation, which will unlock the full potential of the multiple-actions-per-turn system and provide a much more engaging gameplay experience.**
+**The most immediate opportunity is testing the new Apple-level design system and gathering user feedback, which will help validate the design decisions and identify any UX improvements needed.**
 
 **The codebase is well-documented, thoroughly tested, and follows clear patterns that make it easy to extend and maintain. The next developer has a strong foundation to build upon with clear technical direction and strategic priorities established.**
 
@@ -420,4 +430,4 @@ If you want to re-enable the Form Alliance action:
 
 ---
 
-**Good luck with the implementation! The backend is solid and tested, so focus on creating a smooth, intuitive user experience for the Action Points system.** 🗳️ 
+**Good luck with the implementation! The backend is solid and tested, and the frontend now has an Apple-level design system, so focus on user experience testing and gameplay balance.** 🗳️ 

@@ -183,11 +183,16 @@ class GameEngine:
         # After upkeep, advance the round marker
         state.round_marker += 1
         
-        if state.round_marker > 4:
+        if state.round_marker >= 5:
             # End of the term, trigger the Legislation Session Phase
+            # Reset round marker to 4 for clarity during legislation session
+            state.round_marker = 4
+            state.add_log("\n--- END OF TERM ---")
+            state.add_log("Round 4 complete. Moving to legislation session.")
             return self.run_legislation_session(state)
         else:
             # Otherwise, automatically start the next round with the Event Phase
+            state.add_log(f"\n--- ROUND {state.round_marker} ---")
             state.add_log("\n--- EVENT PHASE ---")
             return self.run_event_phase(state)
 
@@ -197,6 +202,10 @@ class GameEngine:
         state.legislation_session_active = True
         state.add_log("\n--- LEGISLATION SESSION ---")
         state.add_log("All sponsored legislation from this term will now be voted on.")
+        
+        # Clear action points during legislation session - players vote, don't take regular actions
+        for player in state.players:
+            state.action_points[player.id] = 0
         
         # Move any current pending legislation to term legislation
         if state.pending_legislation and not state.pending_legislation.resolved:

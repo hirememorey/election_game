@@ -7,7 +7,7 @@ This document tracks the major improvements and features that have been implemen
 ## ✅ Recently Implemented Features
 
 ### 1. **Action Points System (Phase 2)** - COMPLETED
-**Status**: Backend fully implemented and tested, frontend needs implementation
+**Status**: Backend fully implemented and tested, frontend enhanced with Apple-level design
 
 **What it does**:
 - Players get 3 Action Points per turn instead of 1 action
@@ -27,7 +27,7 @@ This document tracks the major improvements and features that have been implemen
 
 **Testing**: `test_action_points_system.py` provides comprehensive testing
 **Impact**: Dramatically increases player autonomy and speeds up gameplay
-**Frontend Status**: **NEEDS IMPLEMENTATION** - See `FRONTEND_IMPLEMENTATION_GUIDE.md`
+**Frontend Status**: **ENHANCED** - Apple-level design system implemented
 
 ### 2. **Trading Mechanic** - COMPLETED
 **Status**: Fully implemented and tested
@@ -147,6 +147,26 @@ This document tracks the major improvements and features that have been implemen
 **Testing**: `test_form_alliance_removal.py` verifies the action is gone
 **Impact**: Simplified action set for easier testing and balance
 
+### 9. **Round 5 Confusion Fix** - COMPLETED
+**Status**: Fully implemented and tested
+
+**What it does**:
+- Fixes the confusing round 5 state where legislation session would trigger
+- Legislation session now triggers at the END of round 4 (not beginning of round 5)
+- Clear game flow: Rounds 1-4 = actions, then legislation session, then elections
+- Improved legislation session UI with clear trading and voting phases
+- Added Pass Turn functionality for better user experience
+
+**Technical Implementation**:
+- `engine/engine.py`: Fixed round logic in `run_upkeep_phase()` to trigger legislation at end of round 4
+- `engine/engine.py`: Enhanced `run_legislation_session()` to clear action points during legislation
+- `static/script.js`: Added phase-specific UI for legislation sessions
+- `static/script.js`: Added Pass Turn button when players have 0 AP
+- `static/style.css`: Added styling for legislation session UI components
+
+**Testing**: Manual testing confirms improved game flow
+**Impact**: Much clearer game flow and better user experience
+
 ## 🎮 Gameplay Improvements
 
 ### Enhanced Strategic Depth
@@ -161,6 +181,9 @@ This document tracks the major improvements and features that have been implemen
 - **Smooth Transitions**: Proper state cleanup between terms
 - **Clear Phases**: Legislation sessions are clearly defined
 - **Better Feedback**: Enhanced UI with action costs and turn status
+- **Apple-Level Design**: Professional, modern interface with excellent user experience
+- **Clear Round Logic**: No more round 5 confusion - legislation triggers at end of round 4
+- **Pass Turn Functionality**: Players can always advance their turn, even with 0 AP
 
 ### Enhanced Player Interaction
 - **Trading**: Players can negotiate deals during legislation sessions
