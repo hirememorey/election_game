@@ -15,7 +15,7 @@
 - **Static File Serving**: Fixed from 404 issues, properly configured
 - **Comprehensive Testing**: 10+ test files covering all major functionality
 - **Production Deployment**: Successfully deployed to Render at https://election-game.onrender.com
-- **Recent Bug Fixes**: Trading action visibility fixed (frontend/backend phase name alignment)
+- **Recent Bug Fixes**: Trading action visibility fixed (frontend/backend phase name alignment), Media Scrutiny favor logic fixed
 
 ### Major Features Implemented
 1. **Apple-Level Design System** (COMPLETED - Just Deployed)
@@ -370,6 +370,7 @@ PORT=5001 python3 server.py
 - **NEW**: Improved legislation session UI with clear trading and voting phases
 - **NEW**: Added Pass Turn functionality for better user experience
 - **NEW**: Enhanced action point handling during legislation sessions
+- **Media Scrutiny Favor Logic**: Fixed to halve only the base 5 PC from Fundraise actions, with bonuses added after halving. This matches the intended design and ensures fair application of the effect. (2024-07-07)
 
 ## 🎯 Recommended Development Approach
 

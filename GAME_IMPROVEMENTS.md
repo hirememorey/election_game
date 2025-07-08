@@ -343,6 +343,9 @@ This document tracks the major improvements and features that have been implemen
 
 ## [2024-07-07] Major Update: Negative Favors System
 
+#### Media Scrutiny Fix (2024-07-07)
+- The Media Scrutiny negative favor now halves only the base 5 PC from Fundraise actions. Any bonuses (such as archetype or ally bonuses) are added after halving the base amount. This ensures the effect is fair and consistent with the intended design.
+
 ### Overview
 A new set of **negative Political Favors** has been added to the game to balance the Network action and introduce meaningful risk/reward. Players who Network now have a chance to draw negative favors, which introduce temporary or strategic disadvantages.
 
