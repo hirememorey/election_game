@@ -212,6 +212,7 @@ python3 test_action_points_system.py
 - **Static File Serving**: Fixed 404 errors for CSS/JS files
 - **Round 5 Confusion**: ✅ **RESOLVED** - Legislation session now triggers at end of round 4
 - **Action Point Handling**: ✅ **RESOLVED** - Clear UI and Pass Turn functionality added
+- **Multiple Legislation Sponsorship**: ✅ **RESOLVED** - Fixed a bug that prevented players from sponsoring multiple pieces of legislation in the same term.
 
 ## 🎯 Next Steps
 

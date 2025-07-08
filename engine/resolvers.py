@@ -211,11 +211,6 @@ def resolve_sponsor_legislation(state: GameState, action: ActionSponsorLegislati
     player = state.get_player_by_id(action.player_id)
     if not player: return state
     
-    # Check if there's already pending legislation
-    if state.pending_legislation and not state.pending_legislation.resolved:
-        state.add_log(f"There's already pending legislation. {player.name} must wait for it to be resolved.")
-        return state
-    
     bill = state.legislation_options[action.legislation_id]
     if player.pc < bill.cost:
         state.add_log(f"Not enough PC to sponsor {bill.title}.")
@@ -226,6 +221,12 @@ def resolve_sponsor_legislation(state: GameState, action: ActionSponsorLegislati
     state.add_log(f"This legislation will be voted on during the end-of-term legislation session.")
     
     # Create pending legislation for other players to respond to during the term
+    # If there's already pending legislation, move it to term_legislation first
+    if state.pending_legislation and not state.pending_legislation.resolved:
+        state.term_legislation.append(state.pending_legislation)
+        state.pending_legislation = None
+    
+    # Create new pending legislation
     state.pending_legislation = PendingLegislation(
         legislation_id=action.legislation_id,
         sponsor_id=player.id

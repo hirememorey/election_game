@@ -69,6 +69,12 @@
   - **Impact**: Trading actions now properly appear during legislation sessions
   - **Status**: Fixed and deployed
 
+- **Multiple Legislation Sponsorship Fix**: Fixed a bug that prevented players from sponsoring more than one piece of legislation per term. The system now correctly allows multiple bills to be sponsored and queued for the end-of-term legislation session.
+  - **Issue**: The game engine was incorrectly blocking the sponsorship of a new bill if another one was already pending in the same turn.
+  - **Files Modified**: `engine/resolvers.py`
+  - **Impact**: Players can now sponsor multiple pieces of legislation in a single term, queuing them up for the end-of-term session as intended.
+  - **Status**: Fixed and deployed
+
 ### Major Gameplay Mechanics Overhaul (Previous)
 - **Incumbent/Outsider Public Mood Logic**: Completely redesigned public mood effects to create strategic tension
   - **Incumbents** (office-holders) **benefit** from **positive** public mood changes
