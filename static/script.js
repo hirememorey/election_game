@@ -802,11 +802,23 @@ function showFavorMenu() {
     modal.innerHTML = `
         <h3>Choose a Favor to Use</h3>
         <div class="favor-options">
-            ${currentPlayer.favors.map(favor => `
-                <button class="favor-option" data-favor-id="${favor.id}" data-favor-description="${favor.description}">
-                    <div><strong>${favor.description}</strong></div>
-                </button>
-            `).join('')}
+            ${currentPlayer.favors.map(favor => {
+                const isNegative = favor.id.startsWith('POLITICAL_DEBT') || 
+                                  favor.id.startsWith('PUBLIC_GAFFE') || 
+                                  favor.id.startsWith('MEDIA_SCRUTINY') || 
+                                  favor.id.startsWith('COMPROMISING_POSITION') || 
+                                  favor.id.startsWith('POLITICAL_HOT_POTATO');
+                
+                return `
+                    <button class="favor-option ${isNegative ? 'negative-favor' : ''}" 
+                            data-favor-id="${favor.id}" 
+                            data-favor-description="${favor.description}"
+                            data-is-negative="${isNegative}">
+                        <div><strong>${favor.description}</strong></div>
+                        ${isNegative ? '<div class="negative-indicator">⚠️ Negative Effect</div>' : ''}
+                    </button>
+                `;
+            }).join('')}
         </div>
         <div class="modal-buttons">
             <button class="btn-secondary cancel-btn">Cancel</button>
@@ -818,15 +830,78 @@ function showFavorMenu() {
         button.addEventListener('click', () => {
             const favorId = button.dataset.favorId;
             const favorDescription = button.dataset.favorDescription;
+            const isNegative = button.dataset.isNegative === 'true';
             
-            // Check if this favor requires a target
-            if (favorDescription.includes('Target player') || favorDescription.includes('Choose one player')) {
+            // Handle different types of favors
+            if (favorId === 'COMPROMISING_POSITION') {
+                showCompromisingPositionChoice(favorId, favorDescription, overlay);
+            } else if (favorDescription.includes('Target player') || 
+                      favorDescription.includes('Choose one player') ||
+                      favorDescription.includes('pass this card to another player')) {
                 showTargetPlayerSelection(favorId, favorDescription, overlay);
             } else {
                 // No target needed, use favor directly
                 performAction('use_favor', { favor_id: favorId });
                 overlay.remove();
             }
+        });
+    });
+    
+    modal.querySelector('.cancel-btn').addEventListener('click', () => {
+        overlay.remove();
+    });
+    
+    overlay.appendChild(modal);
+    document.body.appendChild(overlay);
+}
+
+function showCompromisingPositionChoice(favorId, favorDescription, parentOverlay) {
+    // Remove the parent modal
+    parentOverlay.remove();
+    
+    // Create new modal for choice selection
+    const overlay = document.createElement('div');
+    overlay.className = 'modal-overlay';
+    
+    const modal = document.createElement('div');
+    modal.className = 'campaign-modal';
+    
+    const currentPlayer = currentGameState.players[currentGameState.current_player_index];
+    
+    modal.innerHTML = `
+        <h3>Compromising Position</h3>
+        <p>${favorDescription}</p>
+        
+        <div class="form-group">
+            <label>Choose your response:</label>
+            <div class="choice-options">
+                <button class="choice-btn" data-choice="discard_favors">
+                    <strong>Discard Two Political Favors</strong>
+                    <div class="choice-desc">Lose two of your political favors to keep your archetype secret.</div>
+                </button>
+                <button class="choice-btn" data-choice="reveal_archetype">
+                    <strong>Reveal Your Archetype</strong>
+                    <div class="choice-desc">All players will know your archetype and its special abilities.</div>
+                </button>
+            </div>
+        </div>
+        
+        <div class="modal-buttons">
+            <button class="btn-secondary cancel-btn">Cancel</button>
+        </div>
+    `;
+    
+    // Add event listeners
+    modal.querySelectorAll('.choice-btn').forEach(button => {
+        button.addEventListener('click', () => {
+            const choice = button.dataset.choice;
+            
+            performAction('use_favor', { 
+                favor_id: favorId,
+                choice: choice
+            });
+            
+            overlay.remove();
         });
     });
     

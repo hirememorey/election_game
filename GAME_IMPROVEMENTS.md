@@ -341,6 +341,28 @@ This document tracks the major improvements and features that have been implemen
 - **Strategic PC commitment decisions**
 - **Smooth automatic event phases**
 
+## [2024-07-07] Major Update: Negative Favors System
+
+### Overview
+A new set of **negative Political Favors** has been added to the game to balance the Network action and introduce meaningful risk/reward. Players who Network now have a chance to draw negative favors, which introduce temporary or strategic disadvantages.
+
+### New Negative Favors
+- **Political Debt:** Owe a political debt to another player, who can force you to abstain or vote with them on legislation.
+- **Public Gaffe:** Your next public action (Sponsor Legislation, Declare Candidacy, or Campaign) costs +1 AP.
+- **Media Scrutiny:** All PC gained from Fundraise actions this round is halved.
+- **Compromising Position:** Choose to discard two Political Favors or reveal your Archetype to all players.
+- **Political Hot Potato:** Pass this to another player; whoever holds it at Upkeep loses 5 Influence.
+
+### Rationale
+- **Strategic Depth:** Players must now weigh the risk of drawing a negative favor when Networking, making Fundraising a more attractive and safe alternative in some situations.
+- **Player Interaction:** Negative favors often involve other players, increasing negotiation, leverage, and emergent diplomacy.
+- **Game Balance:** The Network action is no longer strictly superior to Fundraising, and the overall favor economy is more dynamic.
+
+### Implementation Notes
+- All negative favors are fully integrated in both backend and frontend.
+- The UI visually distinguishes negative favors and provides special handling for choices (e.g., Compromising Position).
+- Comprehensive tests confirm the new system works as intended.
+
 ---
 
 **The game has evolved significantly with rich mechanics, comprehensive testing, and a solid foundation for future development. All major features are implemented and tested, with clear next steps for continued improvement.** 🗳️ 

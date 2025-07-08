@@ -411,6 +411,11 @@ function testDesignPerformance() {
 4. **Add additional animations** if needed
 5. **Consider accessibility improvements** based on testing
 
+## Negative Favors UI (2024-07-07)
+- The favor menu now visually distinguishes negative favors (red border, warning icon).
+- Special UI is provided for favors that require a choice (e.g., Compromising Position).
+- Target selection and confirmation dialogs are updated to support new negative favor mechanics.
+
 ---
 
 **The Apple-level design system is fully implemented and deployed. Focus on testing, gathering user feedback, and optimizing the user experience.** 

@@ -830,6 +830,12 @@ The backend already provides all necessary data:
 6. **Enhanced Testing**: More comprehensive unit tests for edge cases
 7. **UI Polish**: Better visual feedback and animations
 
+## [2024-07-07] Negative Favors System
+- The Political Favors system now includes negative favors, which can impose temporary or strategic disadvantages on players.
+- The backend tracks and resolves all negative favor effects, including debts, public gaffes, media scrutiny, compromising positions, and hot potato.
+- The frontend visually distinguishes negative favors and provides special UI for player choices and targeting.
+- See GAME_IMPROVEMENTS.md for rationale and details.
+
 ---
 
 **The project is in excellent shape with a solid foundation, clear architecture, and comprehensive improvements. All major bugs have been fixed, new features are fully functional and tested, and the game is ready for extensive playtesting. The next LLM has a strong base to build upon with clear technical patterns and strategic direction established. The most immediate opportunity is completing the Action Points system frontend implementation and extensive playtesting of the new PC commitment and trading systems to ensure they enhance rather than detract from the game experience.**

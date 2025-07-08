@@ -1093,6 +1093,63 @@ body {
   color: var(--color-text-primary);
 }
 
+/* Negative favor styling */
+.favor-option.negative-favor {
+  border-color: var(--color-danger);
+  background: linear-gradient(135deg, #fff5f5 0%, #fed7d7 100%);
+}
+
+.favor-option.negative-favor:hover {
+  border-color: var(--color-danger-dark);
+  box-shadow: 0 4px 12px rgba(220, 53, 69, 0.3);
+}
+
+.negative-indicator {
+  font-size: var(--font-size-sm);
+  color: var(--color-danger);
+  font-weight: var(--font-weight-medium);
+  margin-top: var(--spacing-1);
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-1);
+}
+
+.choice-options {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-3);
+  margin-top: var(--spacing-3);
+}
+
+.choice-btn {
+  display: block;
+  width: 100%;
+  padding: var(--spacing-4);
+  border: 2px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  background: var(--color-surface);
+  cursor: pointer;
+  transition: var(--transition-normal);
+  text-align: left;
+}
+
+.choice-btn:hover {
+  border-color: var(--color-primary);
+  box-shadow: var(--shadow-md);
+}
+
+.choice-btn strong {
+  display: block;
+  color: var(--color-text-primary);
+  margin-bottom: var(--spacing-2);
+}
+
+.choice-desc {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+  line-height: var(--line-height-relaxed);
+}
+
 .loading {
   display: inline-block;
   width: 20px;

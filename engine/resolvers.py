@@ -70,6 +70,12 @@ def resolve_fundraise(state: GameState, action: ActionFundraise) -> GameState:
     if any(ally.id == "HEDGE_FUND_BRO" for ally in player.allies):
         pc_gain += 10
         state.add_log(f"Ally bonus: +10 PC from Steve McRoberts.")
+    
+    # Check for media scrutiny effect
+    if player.id in state.media_scrutiny_players:
+        pc_gain = pc_gain // 2  # Halve the PC gain
+        state.add_log(f"{player.name} is under media scrutiny. PC gain is halved to {pc_gain}.")
+    
     player.pc += pc_gain
     state.add_log(f"{player.name} takes the Fundraise action and gains {pc_gain} PC.")
     return state
@@ -146,6 +152,53 @@ def resolve_use_favor(state: GameState, action: ActionUseFavor) -> GameState:
             state.add_log(f"{player.name} uses '{favor.description}' but the Event Deck is empty.")
         player.pc += 5  # Optionally, still give 5 PC as a bonus
         state.add_log(f"{player.name} gains 5 PC.")
+    
+    # Negative favor effects
+    elif favor.id == "POLITICAL_DEBT":
+        if action.target_player_id >= 0:
+            creditor = state.get_player_by_id(action.target_player_id)
+            if creditor and creditor != player:
+                state.political_debts[player.id] = creditor.id
+                state.add_log(f"{player.name} owes a political debt to {creditor.name}. {creditor.name} can force {player.name} to abstain or vote with them on future legislation.")
+            else:
+                state.add_log(f"{player.name} uses '{favor.description}' but the target is invalid.")
+        else:
+            state.add_log(f"{player.name} uses '{favor.description}' but no target was specified.")
+    
+    elif favor.id == "PUBLIC_GAFFE":
+        state.public_gaffe_players.add(player.id)
+        state.add_log(f"{player.name} has made a public gaffe. Their next public action (Sponsor Legislation, Declare Candidacy, or Campaign) will cost +1 AP.")
+    
+    elif favor.id == "MEDIA_SCRUTINY":
+        state.media_scrutiny_players.add(player.id)
+        state.add_log(f"{player.name} is under media scrutiny. All PC gained from Fundraise actions this round will be halved.")
+    
+    elif favor.id == "COMPROMISING_POSITION":
+        if action.choice == "discard_favors":
+            # Discard two favors
+            if len(player.favors) >= 2:
+                discarded = player.favors[:2]
+                player.favors = player.favors[2:]
+                state.add_log(f"{player.name} discards two Political Favors to avoid revealing their archetype.")
+            else:
+                state.add_log(f"{player.name} doesn't have enough favors to discard. Their archetype is revealed to all players.")
+                state.compromised_players.add(player.id)
+        elif action.choice == "reveal_archetype":
+            state.compromised_players.add(player.id)
+            state.add_log(f"{player.name} reveals their archetype to all players.")
+        else:
+            state.add_log(f"{player.name} uses '{favor.description}' but no choice was specified.")
+    
+    elif favor.id == "POLITICAL_HOT_POTATO":
+        if action.target_player_id >= 0:
+            target = state.get_player_by_id(action.target_player_id)
+            if target and target != player:
+                state.hot_potato_holder = target.id
+                state.add_log(f"{player.name} passes the politically toxic dossier to {target.name}. Whoever holds it when the next Upkeep Phase begins will lose 5 Influence.")
+            else:
+                state.add_log(f"{player.name} uses '{favor.description}' but the target is invalid.")
+        else:
+            state.add_log(f"{player.name} uses '{favor.description}' but no target was specified.")
     
     else:
         # Generic favor effect
@@ -352,6 +405,39 @@ def resolve_upkeep(state: GameState) -> GameState:
         state.active_effects.remove("UNEXPECTED_SURPLUS")
     if "STOCK_CRASH" in state.active_effects:
         state.active_effects.remove("STOCK_CRASH")
+    
+    # Clear negative favor effects that expire at end of round
+    state.media_scrutiny_players.clear()  # Media scrutiny expires at end of round
+    if state.media_scrutiny_players:
+        state.add_log("Media scrutiny effects have cleared for the new round.")
+    
+    # Handle hot potato effect
+    if state.hot_potato_holder is not None:
+        hot_potato_player = state.get_player_by_id(state.hot_potato_holder)
+        if hot_potato_player:
+            # Find the player's influence (campaign influences)
+            player_influences = [inf for inf in state.campaign_influences if inf.player_id == state.hot_potato_holder]
+            if player_influences:
+                # Remove 5 influence (or all if less than 5)
+                total_influence = sum(inf.influence_amount for inf in player_influences)
+                influence_to_remove = min(5, total_influence)
+                
+                # Remove influence from campaign influences
+                remaining_to_remove = influence_to_remove
+                for influence in player_influences:
+                    if remaining_to_remove <= 0:
+                        break
+                    if influence.influence_amount <= remaining_to_remove:
+                        state.campaign_influences.remove(influence)
+                        remaining_to_remove -= influence.influence_amount
+                    else:
+                        influence.influence_amount -= remaining_to_remove
+                        remaining_to_remove = 0
+                
+                state.add_log(f"{hot_potato_player.name} loses {influence_to_remove} Influence for holding the politically toxic dossier.")
+            
+            # Clear the hot potato
+            state.hot_potato_holder = None
 
     return state
 

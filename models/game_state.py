@@ -73,6 +73,14 @@ class GameState:
     # Lingering effects from events, identified by event ID
     active_effects: Set[str] = field(default_factory=set)
     
+    # Negative favor effects tracking
+    negative_favor_effects: Dict[int, List[Dict]] = field(default_factory=dict)  # player_id -> list of active negative effects
+    political_debts: Dict[int, int] = field(default_factory=dict)  # debtor_id -> creditor_id
+    hot_potato_holder: Optional[int] = None  # player_id currently holding the hot potato
+    public_gaffe_players: Set[int] = field(default_factory=set)  # players with public gaffe effect
+    media_scrutiny_players: Set[int] = field(default_factory=set)  # players with media scrutiny effect
+    compromised_players: Set[int] = field(default_factory=set)  # players who revealed their archetype
+    
     # History for checking mandates/events
     last_sponsor_result: Dict = field(default_factory=dict) # {'player_id': int, 'passed': bool}
     legislation_history: List[Dict] = field(default_factory=list) # [{'sponsor_id': int, 'leg_id': str, 'outcome': str}]

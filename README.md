@@ -238,4 +238,12 @@ Feel free to submit issues and enhancement requests! See `LLM_HANDOFF_CONTEXT.md
 
 ## 📄 License
 
-This project is open source and available under the [MIT License](LICENSE). 
+This project is open source and available under the [MIT License](LICENSE).
+
+## Changelog
+
+### 2024-07-07
+- Added a negative favors system: Networking can now yield negative Political Favors, introducing risk/reward and new strategic depth. See GAME_IMPROVEMENTS.md for details.
+
+## Features
+- Political Favors system (now includes both positive and negative favors for richer gameplay) 

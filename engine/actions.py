@@ -29,6 +29,7 @@ class ActionDeclareCandidacy(Action):
 class ActionUseFavor(Action):
     favor_id: str
     target_player_id: int = -1  # For favors that affect other players, -1 means no target
+    choice: str = ""  # For favors that require a choice (e.g., "discard_favors" or "reveal_archetype")
 
 @dataclass
 class ActionSupportLegislation(Action):

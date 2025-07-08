@@ -91,6 +91,15 @@ class GameEngine:
         
         # Check action point cost
         action_cost = self.action_point_costs.get(action.__class__.__name__, 0)
+        
+        # Apply public gaffe effect (increased AP cost for public actions)
+        if player.id in state.public_gaffe_players:
+            if action.__class__.__name__ in ["ActionSponsorLegislation", "ActionDeclareCandidacy", "ActionCampaign"]:
+                action_cost += 1
+                state.add_log(f"{player.name} must pay +1 AP due to public gaffe effect.")
+                # Remove the effect after it's applied
+                state.public_gaffe_players.discard(player.id)
+        
         if state.action_points[player.id] < action_cost:
             raise ValueError(f"Not enough action points. Need {action_cost}, have {state.action_points[player.id]}.")
         

@@ -119,6 +119,12 @@ def load_political_favors():
         PoliticalFavor(id="MEDIA_SPIN", description="Improve public mood by 1."),
         PoliticalFavor(id="POLITICAL_PRESSURE", description="Target player loses 3 PC."),
         PoliticalFavor(id="PEEK_EVENT", description="Look at the top card of the Event Deck and gain 5 PC."),
+        # Negative favors for risk/reward balance
+        PoliticalFavor(id="POLITICAL_DEBT", description="You owe a political debt to another player. They can force you to abstain or vote with them on future legislation."),
+        PoliticalFavor(id="PUBLIC_GAFFE", description="Your next public action (Sponsor Legislation, Declare Candidacy, or Campaign) costs +1 AP due to damage control."),
+        PoliticalFavor(id="MEDIA_SCRUTINY", description="For the remainder of this round, all PC gained from Fundraise actions is halved (rounded down)."),
+        PoliticalFavor(id="COMPROMISING_POSITION", description="Choose one: discard two of your Political Favors, or reveal your Player Archetype to all players."),
+        PoliticalFavor(id="POLITICAL_HOT_POTATO", description="You've been handed a politically toxic dossier. Pass this card to another player. Whoever holds it when the next Upkeep Phase begins loses 5 Influence."),
     ]
 
 # Appendix F: Legislation Reference

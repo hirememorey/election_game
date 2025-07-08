@@ -145,7 +145,13 @@ def serialize_game_state(state):
                 'office_id': influence.office_id,
                 'influence_amount': influence.influence_amount
             } for influence in state.campaign_influences
-        ]
+        ],
+        # Negative favor effects
+        'political_debts': state.political_debts,
+        'hot_potato_holder': state.hot_potato_holder,
+        'public_gaffe_players': list(state.public_gaffe_players),
+        'media_scrutiny_players': list(state.media_scrutiny_players),
+        'compromised_players': list(state.compromised_players)
     }
 
 @app.route('/api/game', methods=['POST'])
@@ -221,7 +227,8 @@ def process_action(game_id):
     elif action_type == 'use_favor':
         favor_id = data.get('favor_id')
         target_player_id = data.get('target_player_id', -1)
-        action = ActionUseFavor(player_id=player_id, favor_id=favor_id, target_player_id=target_player_id)
+        choice = data.get('choice', '')
+        action = ActionUseFavor(player_id=player_id, favor_id=favor_id, target_player_id=target_player_id, choice=choice)
     elif action_type == 'support_legislation':
         legislation_id = data.get('legislation_id')
         support_amount = data.get('support_amount')
