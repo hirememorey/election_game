@@ -404,6 +404,11 @@ A new set of **negative Political Favors** has been added to the game to balance
 - The UI visually distinguishes negative favors and provides special handling for choices (e.g., Compromising Position).
 - Comprehensive tests confirm the new system works as intended.
 
+## [2024-07-08] Bug Fix: Skip Trading Button in Legislation Session
+
+- Fixed a frontend bug where clicking "Skip Trading" during the legislation session did nothing and logged `Unknown action type: complete_trading` in the console.
+- The frontend now correctly triggers the `complete_trading` action, allowing the game to proceed to the voting phase as intended.
+
 ---
 
 **The game has evolved significantly with rich mechanics, comprehensive testing, and a solid foundation for future development. All major features are implemented and tested, with clear next steps for continued improvement.** 🗳️ 

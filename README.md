@@ -213,6 +213,7 @@ python3 test_action_points_system.py
 - **Round 5 Confusion**: ✅ **RESOLVED** - Legislation session now triggers at end of round 4
 - **Action Point Handling**: ✅ **RESOLVED** - Clear UI and Pass Turn functionality added
 - **Multiple Legislation Sponsorship**: ✅ **RESOLVED** - Fixed a bug that prevented players from sponsoring multiple pieces of legislation in the same term.
+- **Skip Trading**: Fixed: Skip Trading button in legislation session now works correctly and advances to the voting phase (previously logged 'Unknown action type: complete_trading').
 
 ## 🎯 Next Steps
 

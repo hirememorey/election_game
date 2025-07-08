@@ -845,6 +845,9 @@ The backend already provides all necessary data:
 #### Media Scrutiny Favor Logic Fix (2024-07-07)
 - Media Scrutiny now halves only the base 5 PC from Fundraise actions. Bonuses (archetype, allies) are added after halving. This matches the intended design and ensures consistent, fair application of the effect.
 
+### [2024-07-08] Bug Fix: Skip Trading Button in Legislation Session
+- Fixed a frontend bug where clicking "Skip Trading" during the legislation session did nothing and logged `Unknown action type: complete_trading` in the console. The frontend now correctly triggers the `complete_trading` action, allowing the game to proceed to the voting phase as intended.
+
 ---
 
 **The project is in excellent shape with a solid foundation, clear architecture, and comprehensive improvements. All major bugs have been fixed, new features are fully functional and tested, and the game is ready for extensive playtesting. The next LLM has a strong base to build upon with clear technical patterns and strategic direction established. The most immediate opportunity is completing the Action Points system frontend implementation and extensive playtesting of the new PC commitment and trading systems to ensure they enhance rather than detract from the game experience.**
