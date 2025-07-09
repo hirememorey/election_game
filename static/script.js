@@ -257,6 +257,17 @@ function showGameScreen() {
 
 function updateUi() {
     if (!gameState) return;
+    
+    // Safety check for required game state properties
+    if (!gameState.players || !Array.isArray(gameState.players) || gameState.players.length === 0) {
+        console.error('Game state missing players array');
+        return;
+    }
+    
+    if (typeof gameState.current_player_index !== 'number' || gameState.current_player_index < 0 || gameState.current_player_index >= gameState.players.length) {
+        console.error('Invalid current player index:', gameState.current_player_index);
+        return;
+    }
 
     renderIntelligenceBriefing();
     renderMainStage();
@@ -265,6 +276,10 @@ function updateUi() {
 
 function renderIntelligenceBriefing() {
     const briefingDiv = document.getElementById('intelligence-briefing');
+    if (!briefingDiv) {
+        console.error('Intelligence briefing div not found');
+        return;
+    }
     briefingDiv.innerHTML = ''; // Clear previous state
 
     gameState.players.forEach(player => {
@@ -273,8 +288,8 @@ function renderIntelligenceBriefing() {
             opponentSummary.className = 'opponent-summary';
             opponentSummary.innerHTML = `
                 <h4>${player.name}</h4>
-                <p>PC: ${player.pc}</p>
-                <p>Favors: ${player.favors.length}</p>
+                <p>PC: ${player.pc || 0}</p>
+                <p>Favors: ${player.favors && Array.isArray(player.favors) ? player.favors.length : 0}</p>
                 <p>Office: ${player.office || 'None'}</p>
             `;
             briefingDiv.appendChild(opponentSummary);
@@ -282,11 +297,19 @@ function renderIntelligenceBriefing() {
     });
 
     const gameStatusTicker = document.getElementById('game-status-ticker');
-    gameStatusTicker.innerHTML = `Round: ${gameState.round_marker} | Phase: ${gameState.current_phase} | Public Mood: ${gameState.public_mood}`;
+    if (!gameStatusTicker) {
+        console.error('Game status ticker div not found');
+        return;
+    }
+    gameStatusTicker.innerHTML = `Round: ${gameState.round_marker || 1} | Phase: ${gameState.current_phase || 'Unknown'} | Public Mood: ${gameState.public_mood || 0}`;
 }
 
 function renderMainStage() {
     const actionList = document.getElementById('action-list');
+    if (!actionList) {
+        console.error('Action list div not found');
+        return;
+    }
     actionList.innerHTML = '';
 
     const availableActions = getAvailableActions(gameState.current_phase);
@@ -298,7 +321,7 @@ function renderMainStage() {
         
         // Simple disabling logic for now
         const currentPlayer = gameState.players[gameState.current_player_index];
-        const apLeft = gameState.action_points[currentPlayer.id];
+        const apLeft = gameState.action_points ? gameState.action_points[currentPlayer.id] || 0 : 0;
         if (apLeft < (actionInfo.ap_cost || 1)) {
             button.disabled = true;
         }
@@ -308,21 +331,33 @@ function renderMainStage() {
     
     // Render game log
     const logDiv = document.getElementById('game-log');
-    logDiv.innerHTML = gameState.log.map(entry => `<p>${entry}</p>`).join('');
-    logDiv.scrollTop = logDiv.scrollHeight;
+    if (!logDiv) {
+        console.error('Game log div not found');
+        return;
+    }
+    if (gameState.log && Array.isArray(gameState.log)) {
+        logDiv.innerHTML = gameState.log.map(entry => `<p>${entry}</p>`).join('');
+        logDiv.scrollTop = logDiv.scrollHeight;
+    } else {
+        logDiv.innerHTML = '<p>Game log will appear here...</p>';
+    }
 }
 
 function renderPlayerDashboard() {
     const dashboardDiv = document.getElementById('player-dashboard');
+    if (!dashboardDiv) {
+        console.error('Player dashboard div not found');
+        return;
+    }
     const currentPlayer = gameState.players[gameState.current_player_index];
     
     dashboardDiv.innerHTML = `
         <div class="dashboard-section">
-            <h3>${currentPlayer.name} (${currentPlayer.archetype.name})</h3>
-            <p>${currentPlayer.mandate.name}: ${currentPlayer.mandate.description}</p>
+            <h3>${currentPlayer.name} (${currentPlayer.archetype ? currentPlayer.archetype.name : 'Unknown'})</h3>
+            <p>${currentPlayer.mandate ? currentPlayer.mandate.name : 'Unknown'}: ${currentPlayer.mandate ? currentPlayer.mandate.description : 'No mandate'}</p>
         </div>
         <div class="dashboard-section">
-            <h3>PC: ${currentPlayer.pc}</h3>
+            <h3>PC: ${currentPlayer.pc || 0}</h3>
         </div>
         <div class="dashboard-section">
             <h3>Action Points</h3>
@@ -330,13 +365,17 @@ function renderPlayerDashboard() {
         </div>
         <div class="dashboard-section">
             <h3>Favors</h3>
-            <p>${currentPlayer.favors.map(f => f.name).join(', ') || 'None'}</p>
+            <p>${currentPlayer.favors && Array.isArray(currentPlayer.favors) ? currentPlayer.favors.map(f => f.name).join(', ') : 'None'}</p>
         </div>
     `;
 
     const apMeter = document.getElementById('ap-meter');
+    if (!apMeter) {
+        console.error('AP meter div not found');
+        return;
+    }
     const totalAp = 3;
-    const spentAp = totalAp - gameState.action_points[currentPlayer.id];
+    const spentAp = totalAp - (gameState.action_points ? gameState.action_points[currentPlayer.id] || 0 : 0);
 
     for (let i = 0; i < totalAp; i++) {
         const pip = document.createElement('div');

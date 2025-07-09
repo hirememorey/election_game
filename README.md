@@ -120,6 +120,15 @@ See `DEPLOYMENT.md` for step-by-step instructions for Render, Netlify, Heroku, R
 
 ## 🧪 Testing
 
+### Frontend Robustness & Error Handling
+- The frontend now includes robust null checks and defensive coding to prevent UI crashes from undefined/null data, especially during game startup or after backend changes.
+- A new test script, `test_frontend_fix.py`, is included. It verifies that the game can be started and the UI renders without JavaScript errors (such as the previous `.map` on undefined bug).
+- To run the test:
+  ```bash
+  python3 test_frontend_fix.py
+  ```
+  This will check the backend, create a game, and verify all required properties for the frontend to function.
+
 ### Comprehensive Test Coverage
 - **`test_action_points_system.py`**: Action Points system functionality
 - **`test_trading_mechanic.py`**: Trading system functionality

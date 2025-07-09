@@ -83,3 +83,14 @@ The new structure is designed to be easy to modify.
 ---
 
 **The new frontend architecture is complete and functional. Future work should focus on polishing the visual design (adding animations, better typography, etc.) within this new, solid structure.** 
+
+## 🛡️ Frontend Error Handling & Defensive Coding
+
+- The frontend JavaScript now includes robust null/undefined checks for all critical data (such as players, action points, favors, and log arrays) to prevent UI crashes and improve user experience.
+- Defensive coding patterns are used throughout the UI rendering functions to ensure that missing or malformed backend data does not break the interface.
+- If a required DOM element is missing, a clear error is logged to the console and rendering is skipped for that section.
+- The script `test_frontend_fix.py` is provided to automatically verify that the game can be started and the UI will not crash due to missing or undefined data. Run it with:
+  ```bash
+  python3 test_frontend_fix.py
+  ```
+- This approach ensures that future backend or data model changes are less likely to cause frontend errors, and makes the codebase more maintainable and robust. 
