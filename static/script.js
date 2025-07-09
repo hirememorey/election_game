@@ -241,11 +241,12 @@ function showSetupScreen() {
     if (gameScreen) gameScreen.classList.add('hidden');
     gameId = null;
     gameState = null;
-    
     // Clear form
-    for (let i = 1; i <= 4; i++) {
-        const input = document.getElementById(`player${i}`);
-        if (input) input.value = '';
+    const playerInputs = document.getElementById('player-inputs');
+    if (playerInputs) {
+        playerInputs.innerHTML = '';
+        addPlayerInput();
+        addPlayerInput();
     }
 }
 
