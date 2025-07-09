@@ -344,8 +344,11 @@ function renderMainStage() {
         console.error('Game log div not found');
         return;
     }
-    if (gameState.log && Array.isArray(gameState.log)) {
-        logDiv.innerHTML = gameState.log.map(entry => `<p>${entry}</p>`).join('');
+    const logToShow = (gameState.turn_log && Array.isArray(gameState.turn_log) && gameState.turn_log.length > 0)
+        ? gameState.turn_log
+        : (gameState.log && Array.isArray(gameState.log) ? gameState.log : []);
+    if (logToShow.length > 0) {
+        logDiv.innerHTML = logToShow.map(entry => `<p>${entry}</p>`).join('');
         logDiv.scrollTop = logDiv.scrollHeight;
     } else {
         logDiv.innerHTML = '<p>Game log will appear here...</p>';
