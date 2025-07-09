@@ -317,15 +317,17 @@ function renderMainStage() {
         const button = document.createElement('button');
         button.innerText = actionInfo.label;
         button.className = 'action-button';
-        button.onclick = () => performAction(actionInfo.type, actionInfo.params);
-        
+        if (actionInfo.type === 'use_favor') {
+            button.onclick = showFavorMenu;
+        } else {
+            button.onclick = () => performAction(actionInfo.type, actionInfo.params);
+        }
         // Simple disabling logic for now
         const currentPlayer = gameState.players[gameState.current_player_index];
         const apLeft = gameState.action_points ? gameState.action_points[currentPlayer.id] || 0 : 0;
         if (apLeft < (actionInfo.ap_cost || 1)) {
             button.disabled = true;
         }
-
         actionList.appendChild(button);
     });
     
