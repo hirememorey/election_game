@@ -70,6 +70,9 @@ The new structure is designed to be easy to modify.
 ### Issue 3: An action button isn't working.
 **Solution**: The logic for creating action buttons is in `renderMainStage()`. The `performAction()` function handles the API call. Check these two functions for errors.
 
+### Issue 4: The setup screen or game screen doesn't appear/disappear correctly.
+**Solution**: The UI now uses a `.hidden` CSS class to toggle visibility between the setup and game screens. The JavaScript functions `showSetupScreen()` and `showGameScreen()` add or remove this class as needed. If the screens are not transitioning, check that `.hidden` is defined in `style.css` and that the correct class is being toggled in `script.js`.
+
 ## ✅ Success Criteria
 
 - [x] The UI is clearly divided into the three logical zones.
