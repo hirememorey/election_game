@@ -366,6 +366,7 @@ function renderPlayerDashboard() {
     dashboardDiv.innerHTML = `
         <div class="dashboard-section">
             <h3>${currentPlayer.name} (${currentPlayer.archetype ? currentPlayer.archetype.title : 'Unknown'})</h3>
+            <p class="archetype-desc">${currentPlayer.archetype ? currentPlayer.archetype.description : ''}</p>
             <p>${currentPlayer.mandate ? currentPlayer.mandate.title : 'Unknown'}: ${currentPlayer.mandate ? currentPlayer.mandate.description : 'No mandate'}</p>
         </div>
         <div class="dashboard-section">
