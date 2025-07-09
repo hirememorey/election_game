@@ -329,6 +329,15 @@ function renderMainStage() {
         actionList.appendChild(button);
     });
     
+    // Add event phase button if in EVENT_PHASE or event_phase
+    if (gameState.current_phase === 'EVENT_PHASE' || gameState.current_phase === 'event_phase') {
+        const eventBtn = document.createElement('button');
+        eventBtn.innerText = 'Run Event Phase';
+        eventBtn.className = 'action-button event-phase-button';
+        eventBtn.onclick = runEventPhase;
+        actionList.appendChild(eventBtn);
+    }
+
     // Render game log
     const logDiv = document.getElementById('game-log');
     if (!logDiv) {
@@ -353,8 +362,8 @@ function renderPlayerDashboard() {
     
     dashboardDiv.innerHTML = `
         <div class="dashboard-section">
-            <h3>${currentPlayer.name} (${currentPlayer.archetype ? currentPlayer.archetype.name : 'Unknown'})</h3>
-            <p>${currentPlayer.mandate ? currentPlayer.mandate.name : 'Unknown'}: ${currentPlayer.mandate ? currentPlayer.mandate.description : 'No mandate'}</p>
+            <h3>${currentPlayer.name} (${currentPlayer.archetype ? currentPlayer.archetype.title : 'Unknown'})</h3>
+            <p>${currentPlayer.mandate ? currentPlayer.mandate.title : 'Unknown'}: ${currentPlayer.mandate ? currentPlayer.mandate.description : 'No mandate'}</p>
         </div>
         <div class="dashboard-section">
             <h3>PC: ${currentPlayer.pc || 0}</h3>
