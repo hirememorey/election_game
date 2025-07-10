@@ -415,6 +415,7 @@ function testDesignPerformance() {
 - The favor menu now visually distinguishes negative favors (red border, warning icon).
 - Special UI is provided for favors that require a choice (e.g., Compromising Position).
 - Target selection and confirmation dialogs are updated to support new negative favor mechanics.
+- The favor menu now filters out negative favors (Political Debt, Public Gaffe, Media Scrutiny, Compromising Position, Political Hot Potato). These are never shown to the player, as they are applied immediately when drawn from Networking.
 
 ---
 

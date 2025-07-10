@@ -58,8 +58,18 @@ This document tracks the major improvements and features that have been implemen
 - Selection menu for different favor types
 - PEEK_EVENT favor reveals top event card
 - Favors are consumed when used
+- **New:** Negative favors (e.g., Political Debt, Public Gaffe, Media Scrutiny, Compromising Position, Political Hot Potato) are applied immediately when drawn and are never kept in hand. Players cannot choose to use them; the effect is automatic. The frontend no longer shows negative favors in the favor menu.
+
+**Negative Favors List:**
+- **Political Debt:** You owe a political debt to another player. They can force you to abstain or vote with them on future legislation.
+- **Public Gaffe:** Your next public action (Sponsor Legislation, Declare Candidacy, or Campaign) costs +1 AP due to damage control.
+- **Media Scrutiny:** For the remainder of this round, all PC gained from Fundraise actions is halved (rounded down).
+- **Compromising Position:** Choose one: discard two of your Political Favors, or reveal your Player Archetype to all players. (If drawn, archetype is revealed automatically.)
+- **Political Hot Potato:** You've been handed a politically toxic dossier. Pass this card to another player. Whoever holds it when the next Upkeep Phase begins loses 5 Influence. (If drawn, it is immediately passed to a random other player.)
 
 **Technical Implementation**:
+- `engine/resolvers.py`: Negative favors are now applied immediately in `resolve_network()`
+- `static/script.js`: Favor menu only shows positive favors
 - `engine/actions.py`: Added `ActionUseFavor` class
 - `engine/resolvers.py`: Added `resolve_use_favor()` with different favor effects
 - `server.py`: Added favor action handling

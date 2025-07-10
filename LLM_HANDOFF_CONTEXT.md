@@ -75,6 +75,11 @@
   - **Impact**: Players can now sponsor multiple pieces of legislation in a single term, queuing them up for the end-of-term session as intended.
   - **Status**: Fixed and deployed
 
+### Negative Favors System (LATEST)
+- **Immediate Application:** Negative favors (Political Debt, Public Gaffe, Media Scrutiny, Compromising Position, Political Hot Potato) are now applied immediately when drawn from Networking and are never kept in hand. Players cannot choose to use them; the effect is automatic.
+- **Backend:** `resolve_network()` in `engine/resolvers.py` applies negative favor effects instantly.
+- **Frontend:** Favor menu only shows positive favors; negative favors are never shown to the player.
+
 ### Major Gameplay Mechanics Overhaul (Previous)
 - **Incumbent/Outsider Public Mood Logic**: Completely redesigned public mood effects to create strategic tension
   - **Incumbents** (office-holders) **benefit** from **positive** public mood changes

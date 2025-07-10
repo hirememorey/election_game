@@ -64,7 +64,7 @@ A Python-based political strategy board game with a Flask backend and mobile-fri
 
 **Available Actions:**
 - **Fundraise** (1 AP): Gain Political Capital (PC)
-- **Network** (1 AP): Gain PC and political favors
+- **Network** (1 AP): Gain PC and political favors (note: negative favors are applied immediately)
 - **Sponsor Legislation** (2 AP): Create legislation for votes/mood
 - **Declare Candidacy** (2 AP): Run for office (Round 4 only)
 - **Use Favor** (0 AP): Strategic advantage actions with selection menu
@@ -168,6 +168,7 @@ python3 test_action_points_system.py
 - Selection menu for different favor types
 - PEEK_EVENT favor reveals top event card
 - Favors are consumed when used
+- **New:** Negative favors (e.g., Political Debt, Public Gaffe, Media Scrutiny, Compromising Position, Political Hot Potato) are applied immediately when drawn and are never kept in hand. Players cannot choose to use them; the effect is automatic.
 
 ### PC Commitment System
 - Custom PC amounts for legislation support/opposition
@@ -245,7 +246,7 @@ This project is open source and available under the [MIT License](LICENSE).
 ## Changelog
 
 ### 2024-07-07
-- Added a negative favors system: Networking can now yield negative Political Favors, introducing risk/reward and new strategic depth. See GAME_IMPROVEMENTS.md for details.
+- Added a negative favors system: Networking can now yield negative Political Favors, introducing risk/reward and new strategic depth. **Negative favors are now applied immediately when drawn and are not kept in hand.** See GAME_IMPROVEMENTS.md for details.
 
 ## Features
 - Political Favors system (now includes both positive and negative favors for richer gameplay) 

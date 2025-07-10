@@ -27,8 +27,7 @@ function announceToScreenReader(message) {
 // DOM elements - updated to match HTML structure
 const setupScreen = document.getElementById('setup-screen');
 const gameScreen = document.getElementById('game-screen');
-const startGameBtn = document.getElementById('start-game-button'); // Fixed ID
-const addPlayerBtn = document.getElementById('add-player-button'); // Added this
+const startGameBtn = document.getElementById('start-game-btn'); // Fixed ID
 const newGameBtn = document.getElementById('new-game-btn');
 const runEventBtn = document.getElementById('run-event-btn');
 const playerForm = document.getElementById('player-form');
@@ -55,10 +54,10 @@ const currentPlayerMandateDesc = document.getElementById('current-player-mandate
 
 // Event listeners - updated to match actual HTML structure
 if (startGameBtn) {
+    console.log('Start game button found, adding click listener');
     startGameBtn.addEventListener('click', startNewGame); // Fixed function name
-}
-if (addPlayerBtn) {
-    addPlayerBtn.addEventListener('click', addPlayerInput); // Added this
+} else {
+    console.error('Start game button not found');
 }
 if (newGameBtn) {
     newGameBtn.addEventListener('click', showSetupScreen);
@@ -67,10 +66,14 @@ if (runEventBtn) {
     runEventBtn.addEventListener('click', runEventPhase);
 }
 if (playerForm) {
+    console.log('Player form found, adding submit listener');
     playerForm.addEventListener('submit', function(e) {
+        console.log('Form submitted');
         e.preventDefault();
         startNewGame(); // Fixed function name
     });
+} else {
+    console.error('Player form not found');
 }
 if (clearLogBtn) {
     clearLogBtn.addEventListener('click', clearGameLog);
@@ -78,24 +81,10 @@ if (clearLogBtn) {
 
 // Initial setup when DOM is loaded
 document.addEventListener('DOMContentLoaded', () => {
-    // Initial setup with 2 players
-    const playerInputs = document.getElementById('player-inputs');
-    if (playerInputs) {
-        playerInputs.innerHTML = ''; // Clear existing
-        addPlayerInput();
-        addPlayerInput();
-    }
+    console.log('DOM loaded, game ready');
 });
 
-// Add player input function
-function addPlayerInput() {
-    const playerInputs = document.getElementById('player-inputs');
-    const newInput = document.createElement('input');
-    newInput.type = 'text';
-    newInput.placeholder = `Player ${playerInputs.children.length + 1} Name`;
-    newInput.className = 'player-name-input';
-    playerInputs.appendChild(newInput);
-}
+// Player input handling is done via the form structure
 
 // API functions
 async function apiCall(endpoint, method = 'GET', data = null) {
@@ -140,7 +129,7 @@ async function startNewGame() {
     console.log('startNewGame called');
     
     const playerNames = [];
-    const playerInputs = document.querySelectorAll('.player-name-input');
+    const playerInputs = document.querySelectorAll('input[name^="player"]');
     
     playerInputs.forEach(input => {
         if (input.value.trim()) {
@@ -242,11 +231,9 @@ function showSetupScreen() {
     gameId = null;
     gameState = null;
     // Clear form
-    const playerInputs = document.getElementById('player-inputs');
-    if (playerInputs) {
-        playerInputs.innerHTML = '';
-        addPlayerInput();
-        addPlayerInput();
+    const form = document.getElementById('player-form');
+    if (form) {
+        form.reset();
     }
 }
 
@@ -275,131 +262,67 @@ function updateUi() {
 }
 
 function renderIntelligenceBriefing() {
-    const briefingDiv = document.getElementById('intelligence-briefing');
-    if (!briefingDiv) {
-        console.error('Intelligence briefing div not found');
-        return;
+    // Update game meta information instead of intelligence briefing
+    if (roundInfo) {
+        roundInfo.textContent = `Round ${gameState.round_marker || 1}`;
     }
-    briefingDiv.innerHTML = ''; // Clear previous state
-
-    gameState.players.forEach(player => {
-        if (player.id !== gameState.players[gameState.current_player_index].id) {
-            const opponentSummary = document.createElement('div');
-            opponentSummary.className = 'opponent-summary';
-            opponentSummary.innerHTML = `
-                <h4>${player.name}</h4>
-                <p>PC: ${player.pc || 0}</p>
-                <p>Favors: ${player.favors && Array.isArray(player.favors) ? player.favors.length : 0}</p>
-                <p>Office: ${player.office || 'None'}</p>
-            `;
-            briefingDiv.appendChild(opponentSummary);
-        }
-    });
-
-    const gameStatusTicker = document.getElementById('game-status-ticker');
-    if (!gameStatusTicker) {
-        console.error('Game status ticker div not found');
-        return;
+    if (phaseInfo) {
+        phaseInfo.textContent = formatPhase(gameState.current_phase || 'Unknown');
     }
-    gameStatusTicker.innerHTML = `Round: ${gameState.round_marker || 1} | Phase: ${gameState.current_phase || 'Unknown'} | Public Mood: ${gameState.public_mood || 0}`;
+    if (moodInfo) {
+        moodInfo.textContent = `Public Mood: ${formatMood(gameState.public_mood || 0)}`;
+    }
 }
 
 function renderMainStage() {
-    const actionList = document.getElementById('action-list');
-    if (!actionList) {
-        console.error('Action list div not found');
-        return;
-    }
-    actionList.innerHTML = '';
-
-    const availableActions = getAvailableActions(gameState.current_phase);
-    availableActions.forEach(actionInfo => {
-        const button = document.createElement('button');
-        button.innerText = actionInfo.label;
-        button.className = 'action-button';
-        if (actionInfo.type === 'use_favor') {
-            button.onclick = showFavorMenu;
-        } else {
-            button.onclick = () => performAction(actionInfo.type, actionInfo.params);
-        }
-        // Simple disabling logic for now
-        const currentPlayer = gameState.players[gameState.current_player_index];
-        const apLeft = gameState.action_points ? gameState.action_points[currentPlayer.id] || 0 : 0;
-        if (apLeft < (actionInfo.ap_cost || 1)) {
-            button.disabled = true;
-        }
-        actionList.appendChild(button);
-    });
+    // Update action buttons
+    updateActionButtons();
     
-    // Add event phase button if in EVENT_PHASE or event_phase
-    if (gameState.current_phase === 'EVENT_PHASE' || gameState.current_phase === 'event_phase') {
-        const eventBtn = document.createElement('button');
-        eventBtn.innerText = 'Run Event Phase';
-        eventBtn.className = 'action-button event-phase-button';
-        eventBtn.onclick = runEventPhase;
-        actionList.appendChild(eventBtn);
-    }
-
-    // Render game log
-    const logDiv = document.getElementById('game-log');
-    if (!logDiv) {
-        console.error('Game log div not found');
-        return;
-    }
-    const logToShow = (gameState.turn_log && Array.isArray(gameState.turn_log) && gameState.turn_log.length > 0)
-        ? gameState.turn_log
-        : (gameState.log && Array.isArray(gameState.log) ? gameState.log : []);
-    if (logToShow.length > 0) {
-        logDiv.innerHTML = logToShow.map(entry => `<p>${entry}</p>`).join('');
-        logDiv.scrollTop = logDiv.scrollHeight;
-    } else {
-        logDiv.innerHTML = '<p>Game log will appear here...</p>';
+    // Update game log
+    if (logContent) {
+        const logToShow = (gameState.turn_log && Array.isArray(gameState.turn_log) && gameState.turn_log.length > 0)
+            ? gameState.turn_log
+            : (gameState.log && Array.isArray(gameState.log) ? gameState.log : []);
+        if (logToShow.length > 0) {
+            logContent.innerHTML = logToShow.map(entry => `<p>${entry}</p>`).join('');
+            logContent.scrollTop = logContent.scrollHeight;
+        } else {
+            logContent.innerHTML = '<p>Game log will appear here...</p>';
+        }
     }
 }
 
 function renderPlayerDashboard() {
-    const dashboardDiv = document.getElementById('player-dashboard');
-    if (!dashboardDiv) {
-        console.error('Player dashboard div not found');
-        return;
-    }
+    // Update current player information
+    updateCurrentPlayerInfo();
+    
+    // Update player identity cards
     const currentPlayer = gameState.players[gameState.current_player_index];
     
-    dashboardDiv.innerHTML = `
-        <div class="dashboard-section">
-            <h3>${currentPlayer.name} (${currentPlayer.archetype ? currentPlayer.archetype.title : 'Unknown'})</h3>
-            <p class="archetype-desc">${currentPlayer.archetype ? currentPlayer.archetype.description : ''}</p>
-            <p>${currentPlayer.mandate ? currentPlayer.mandate.title : 'Unknown'}: ${currentPlayer.mandate ? currentPlayer.mandate.description : 'No mandate'}</p>
-        </div>
-        <div class="dashboard-section">
-            <h3>PC: ${currentPlayer.pc || 0}</h3>
-        </div>
-        <div class="dashboard-section">
-            <h3>Action Points</h3>
-            <div id="ap-meter"></div>
-        </div>
-        <div class="dashboard-section">
-            <h3>Favors</h3>
-            <p>${currentPlayer.favors && Array.isArray(currentPlayer.favors) ? currentPlayer.favors.map(f => f.name).join(', ') : 'None'}</p>
-        </div>
-    `;
-
-    const apMeter = document.getElementById('ap-meter');
-    if (!apMeter) {
-        console.error('AP meter div not found');
-        return;
+    if (currentPlayerArchetypeTitle) {
+        currentPlayerArchetypeTitle.textContent = currentPlayer.archetype ? currentPlayer.archetype.title : 'Unknown';
     }
-    const totalAp = 3;
-    const spentAp = totalAp - (gameState.action_points ? gameState.action_points[currentPlayer.id] || 0 : 0);
-
-    for (let i = 0; i < totalAp; i++) {
-        const pip = document.createElement('div');
-        pip.className = 'ap-pip';
-        if (i < spentAp) {
-            pip.classList.add('spent');
+    if (currentPlayerArchetypeDesc) {
+        currentPlayerArchetypeDesc.textContent = currentPlayer.archetype ? currentPlayer.archetype.description : '';
+    }
+    if (currentPlayerMandateTitle) {
+        currentPlayerMandateTitle.textContent = currentPlayer.mandate ? currentPlayer.mandate.title : 'Unknown';
+    }
+    if (currentPlayerMandateDesc) {
+        currentPlayerMandateDesc.textContent = currentPlayer.mandate ? currentPlayer.mandate.description : 'No mandate';
+    }
+    
+    // Update action points display
+    if (actionPointsDisplay) {
+        const remainingAP = gameState.action_points ? gameState.action_points[currentPlayer.id] || 3 : 3;
+        const apText = actionPointsDisplay.querySelector('.ap-text');
+        if (apText) {
+            apText.textContent = `${remainingAP}/3 AP`;
         }
-        apMeter.appendChild(pip);
     }
+    
+    // Update player favors display
+    updatePlayerFavorsDisplay();
 }
 
 async function performAction(actionType, params = {}) {
@@ -606,16 +529,20 @@ function updatePlayerFavorsDisplay() {
     if (!favorsSection || !gameState) return;
     
     const currentPlayer = gameState.players[gameState.current_player_index];
-    const favors = currentPlayer.favors || [];
+    const allFavors = currentPlayer.favors || [];
     
-    if (favors.length > 0) {
+    // Filter out negative favors since they're applied immediately
+    const negativeFavorIds = ["POLITICAL_DEBT", "PUBLIC_GAFFE", "MEDIA_SCRUTINY", "COMPROMISING_POSITION", "POLITICAL_HOT_POTATO"];
+    const positiveFavors = allFavors.filter(favor => !negativeFavorIds.includes(favor.id));
+    
+    if (positiveFavors.length > 0) {
         favorsSection.classList.remove('hidden');
         favorsSection.innerHTML = `
             <div class="section-header">
                 <h3>Political Favors</h3>
             </div>
             <div class="favors-list">
-                ${favors.map(favor => `
+                ${positiveFavors.map(favor => `
                     <div class="favor-item">
                         <span class="favor-icon">🎁</span>
                         <span class="favor-text">${favor.description}</span>
@@ -977,6 +904,15 @@ function showFavorMenu() {
     
     const currentPlayer = gameState.players[gameState.current_player_index];
     
+    // Filter out negative favors since they're applied immediately
+    const negativeFavorIds = ["POLITICAL_DEBT", "PUBLIC_GAFFE", "MEDIA_SCRUTINY", "COMPROMISING_POSITION", "POLITICAL_HOT_POTATO"];
+    const positiveFavors = currentPlayer.favors.filter(favor => !negativeFavorIds.includes(favor.id));
+    
+    if (positiveFavors.length === 0) {
+        showMessage('You have no usable favors. Negative favors are applied immediately when drawn.', 'info');
+        return;
+    }
+    
     // Create modal overlay
     const overlay = document.createElement('div');
     overlay.className = 'modal-overlay';
@@ -987,21 +923,14 @@ function showFavorMenu() {
     
     modal.innerHTML = `
         <h3>Choose a Favor to Use</h3>
+        <p class="favor-menu-note">Note: Negative favors are applied immediately when drawn during Networking.</p>
         <div class="favor-options">
-            ${currentPlayer.favors.map(favor => {
-                const isNegative = favor.id.startsWith('POLITICAL_DEBT') || 
-                                  favor.id.startsWith('PUBLIC_GAFFE') || 
-                                  favor.id.startsWith('MEDIA_SCRUTINY') || 
-                                  favor.id.startsWith('COMPROMISING_POSITION') || 
-                                  favor.id.startsWith('POLITICAL_HOT_POTATO');
-                
+            ${positiveFavors.map(favor => {
                 return `
-                    <button class="favor-option ${isNegative ? 'negative-favor' : ''}" 
+                    <button class="favor-option" 
                             data-favor-id="${favor.id}" 
-                            data-favor-description="${favor.description}"
-                            data-is-negative="${isNegative}">
+                            data-favor-description="${favor.description}">
                         <div><strong>${favor.description}</strong></div>
-                        ${isNegative ? '<div class="negative-indicator">⚠️ Negative Effect</div>' : ''}
                     </button>
                 `;
             }).join('')}
@@ -1016,14 +945,10 @@ function showFavorMenu() {
         button.addEventListener('click', () => {
             const favorId = button.dataset.favorId;
             const favorDescription = button.dataset.favorDescription;
-            const isNegative = button.dataset.isNegative === 'true';
             
-            // Handle different types of favors
-            if (favorId === 'COMPROMISING_POSITION') {
-                showCompromisingPositionChoice(favorId, favorDescription, overlay);
-            } else if (favorDescription.includes('Target player') || 
-                      favorDescription.includes('Choose one player') ||
-                      favorDescription.includes('pass this card to another player')) {
+            // Handle different types of positive favors
+            if (favorDescription.includes('Target player') || 
+                favorDescription.includes('Choose one player')) {
                 showTargetPlayerSelection(favorId, favorDescription, overlay);
             } else {
                 // No target needed, use favor directly

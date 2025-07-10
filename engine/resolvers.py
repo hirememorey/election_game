@@ -90,8 +90,48 @@ def resolve_network(state: GameState, action: ActionNetwork) -> GameState:
     player.pc += 2
     if state.favor_supply:
         favor = state.favor_supply.pop(random.randrange(len(state.favor_supply)))
-        player.favors.append(favor)
-        state.add_log(f"{player.name} Networks, gaining 2 PC and a Political Favor: '{favor.description}'")
+        
+        # Check if this is a negative favor that should be applied immediately
+        negative_favor_ids = ["POLITICAL_DEBT", "PUBLIC_GAFFE", "MEDIA_SCRUTINY", "COMPROMISING_POSITION", "POLITICAL_HOT_POTATO"]
+        
+        if favor.id in negative_favor_ids:
+            # Apply negative favor effect immediately
+            if favor.id == "POLITICAL_DEBT":
+                # For political debt, randomly choose another player as creditor
+                other_players = [p for p in state.players if p.id != player.id]
+                if other_players:
+                    creditor = random.choice(other_players)
+                    state.political_debts[player.id] = creditor.id
+                    state.add_log(f"{player.name} Networks, gaining 2 PC but incurs a political debt to {creditor.name}.")
+                else:
+                    state.add_log(f"{player.name} Networks, gaining 2 PC but incurs a political debt (no other players available).")
+            
+            elif favor.id == "PUBLIC_GAFFE":
+                state.public_gaffe_players.add(player.id)
+                state.add_log(f"{player.name} Networks, gaining 2 PC but makes a public gaffe. Their next public action will cost +1 AP.")
+            
+            elif favor.id == "MEDIA_SCRUTINY":
+                state.media_scrutiny_players.add(player.id)
+                state.add_log(f"{player.name} Networks, gaining 2 PC but comes under media scrutiny. All PC gained from Fundraise actions this round will be halved.")
+            
+            elif favor.id == "COMPROMISING_POSITION":
+                # Automatically reveal archetype since player wouldn't choose this
+                state.compromised_players.add(player.id)
+                state.add_log(f"{player.name} Networks, gaining 2 PC but is caught in a compromising position. Their archetype is revealed to all players.")
+            
+            elif favor.id == "POLITICAL_HOT_POTATO":
+                # Pass to a random other player
+                other_players = [p for p in state.players if p.id != player.id]
+                if other_players:
+                    target = random.choice(other_players)
+                    state.hot_potato_holder = target.id
+                    state.add_log(f"{player.name} Networks, gaining 2 PC but receives a politically toxic dossier, which they pass to {target.name}.")
+                else:
+                    state.add_log(f"{player.name} Networks, gaining 2 PC but receives a politically toxic dossier (no other players available).")
+        else:
+            # Positive favor - add to player's hand for later use
+            player.favors.append(favor)
+            state.add_log(f"{player.name} Networks, gaining 2 PC and a Political Favor: '{favor.description}'")
     else:
         state.add_log(f"{player.name} Networks, gaining 2 PC, but the favor supply is empty.")
     return state
