@@ -205,6 +205,7 @@ python3 test_action_points_system.py
 - **Apple-Level Design**: Fully implemented and ready for user experience testing
 
 ### Recent Bug Fixes
+- **Legislation Display**: ✅ **RESOLVED** - Fixed critical bug where pending legislation was showing as "undefined" in the final round of the term. Legislation now displays properly with titles, descriptions, and sponsor information.
 - **Use Favor Action**: Fixed to work with selection menu
 - **PC Commitment**: Added custom PC amounts for legislation and candidacy
 - **Automatic Event Phases**: Events now draw automatically

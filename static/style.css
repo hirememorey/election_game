@@ -43,8 +43,8 @@
   --color-text-inverse-secondary: rgba(255, 255, 255, 0.9);
   --color-text-inverse-tertiary: rgba(255, 255, 255, 0.7);
   
-  /* Typography - SF Pro Display with enhanced weights and spacing */
-  --font-family: 'SF Pro Display', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  /* Typography - System font stack to avoid CORB issues */
+  --font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Helvetica Neue', Arial, sans-serif;
   --font-family-mono: 'SF Mono', Monaco, 'Cascadia Code', 'Roboto Mono', Consolas, 'Courier New', monospace;
   
   /* Font sizes - Enhanced granular scale with better proportions */

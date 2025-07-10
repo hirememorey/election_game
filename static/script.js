@@ -503,11 +503,28 @@ function updatePendingLegislationDisplay() {
                 ${gameState.term_legislation.map(legislation => {
                     const bill = gameState.legislation_options[legislation.legislation_id];
                     const sponsor = gameState.players.find(p => p.id === legislation.sponsor_id);
+                    
+                    // Safety check for undefined bill
+                    if (!bill) {
+                        console.error('Legislation not found:', legislation.legislation_id);
+                        return `
+                            <div class="legislation-item">
+                                <div class="legislation-header">
+                                    <h4>Unknown Legislation</h4>
+                                    <span class="sponsor">Sponsored by ${sponsor ? sponsor.name : 'Unknown'}</span>
+                                </div>
+                                <div class="legislation-details">
+                                    <span class="error">Error: Legislation data not found</span>
+                                </div>
+                            </div>
+                        `;
+                    }
+                    
                     return `
                         <div class="legislation-item">
                             <div class="legislation-header">
                                 <h4>${bill.title}</h4>
-                                <span class="sponsor">Sponsored by ${sponsor.name}</span>
+                                <span class="sponsor">Sponsored by ${sponsor ? sponsor.name : 'Unknown'}</span>
                             </div>
                             <div class="legislation-details">
                                 <span class="cost">Cost: ${bill.cost} PC</span>
@@ -663,19 +680,46 @@ function showVotingPhaseUI() {
     if (gameState.term_legislation && gameState.term_legislation.length > 0) {
         gameState.term_legislation.forEach(legislation => {
             if (!legislation.resolved) {
+                const bill = gameState.legislation_options[legislation.legislation_id];
+                const sponsor = gameState.players.find(p => p.id === legislation.sponsor_id);
+                
+                // Safety check for undefined bill
+                if (!bill) {
+                    console.error('Legislation not found:', legislation.legislation_id);
+                    const legislationCard = document.createElement('div');
+                    legislationCard.className = 'legislation-card error';
+                    legislationCard.innerHTML = `
+                        <div class="legislation-info">
+                            <h5>Unknown Legislation</h5>
+                            <p>Error: Legislation data not found</p>
+                            <p><strong>Sponsored by:</strong> ${sponsor ? sponsor.name : 'Unknown'}</p>
+                        </div>
+                        <div class="voting-actions">
+                            <button disabled class="vote-btn support-btn">
+                                Support
+                            </button>
+                            <button disabled class="vote-btn oppose-btn">
+                                Oppose
+                            </button>
+                        </div>
+                    `;
+                    actionList.appendChild(legislationCard);
+                    return;
+                }
+                
                 const legislationCard = document.createElement('div');
                 legislationCard.className = 'legislation-card';
                 legislationCard.innerHTML = `
                     <div class="legislation-info">
-                        <h5>${legislation.title}</h5>
-                        <p>${legislation.description}</p>
-                        <p><strong>Sponsored by:</strong> ${gameState.players[legislation.sponsor_id].name}</p>
+                        <h5>${bill.title}</h5>
+                        <p>${bill.description}</p>
+                        <p><strong>Sponsored by:</strong> ${sponsor ? sponsor.name : 'Unknown'}</p>
                     </div>
                     <div class="voting-actions">
-                        <button onclick="performAction('support_legislation', {legislation_id: '${legislation.id}', support_amount: 1})" class="vote-btn support-btn">
+                        <button onclick="performAction('support_legislation', {legislation_id: '${legislation.legislation_id}', support_amount: 1})" class="vote-btn support-btn">
                             Support
                         </button>
-                        <button onclick="performAction('oppose_legislation', {legislation_id: '${legislation.id}', oppose_amount: 1})" class="vote-btn oppose-btn">
+                        <button onclick="performAction('oppose_legislation', {legislation_id: '${legislation.legislation_id}', oppose_amount: 1})" class="vote-btn oppose-btn">
                             Oppose
                         </button>
                     </div>
@@ -1109,10 +1153,23 @@ function showLegislationSupportMenu() {
             ${availableLegislation.map(legislation => {
                 const bill = gameState.legislation_options[legislation.legislation_id];
                 const sponsor = gameState.players.find(p => p.id === legislation.sponsor_id);
+                
+                // Safety check for undefined bill
+                if (!bill) {
+                    console.error('Legislation not found:', legislation.legislation_id);
+                    return `
+                        <button class="legislation-option error" data-legislation-id="${legislation.legislation_id}" disabled>
+                            <div><strong>Unknown Legislation</strong></div>
+                            <div>Sponsored by: ${sponsor ? sponsor.name : 'Unknown'}</div>
+                            <div>Error: Legislation data not found</div>
+                        </button>
+                    `;
+                }
+                
                 return `
                     <button class="legislation-option" data-legislation-id="${legislation.legislation_id}">
                         <div><strong>${bill.title}</strong></div>
-                        <div>Sponsored by: ${sponsor.name}</div>
+                        <div>Sponsored by: ${sponsor ? sponsor.name : 'Unknown'}</div>
                         <div>Cost: ${bill.cost} PC | Success: ${bill.success_target} PC</div>
                     </button>
                 `;
@@ -1176,10 +1233,23 @@ function showLegislationOpposeMenu() {
             ${availableLegislation.map(legislation => {
                 const bill = gameState.legislation_options[legislation.legislation_id];
                 const sponsor = gameState.players.find(p => p.id === legislation.sponsor_id);
+                
+                // Safety check for undefined bill
+                if (!bill) {
+                    console.error('Legislation not found:', legislation.legislation_id);
+                    return `
+                        <button class="legislation-option error" data-legislation-id="${legislation.legislation_id}" disabled>
+                            <div><strong>Unknown Legislation</strong></div>
+                            <div>Sponsored by: ${sponsor ? sponsor.name : 'Unknown'}</div>
+                            <div>Error: Legislation data not found</div>
+                        </button>
+                    `;
+                }
+                
                 return `
                     <button class="legislation-option" data-legislation-id="${legislation.legislation_id}">
                         <div><strong>${bill.title}</strong></div>
-                        <div>Sponsored by: ${sponsor.name}</div>
+                        <div>Sponsored by: ${sponsor ? sponsor.name : 'Unknown'}</div>
                         <div>Cost: ${bill.cost} PC | Success: ${bill.success_target} PC</div>
                     </button>
                 `;
@@ -1325,7 +1395,14 @@ function showTradeProposalMenu() {
                 ${availableLegislation.map(legislation => {
                     const bill = gameState.legislation_options[legislation.legislation_id];
                     const sponsor = gameState.players.find(p => p.id === legislation.sponsor_id);
-                    return `<option value="${legislation.legislation_id}">${bill.title} (${sponsor.name})</option>`;
+                    
+                    // Safety check for undefined bill
+                    if (!bill) {
+                        console.error('Legislation not found:', legislation.legislation_id);
+                        return `<option value="${legislation.legislation_id}" disabled>Unknown Legislation (${sponsor ? sponsor.name : 'Unknown'})</option>`;
+                    }
+                    
+                    return `<option value="${legislation.legislation_id}">${bill.title} (${sponsor ? sponsor.name : 'Unknown'})</option>`;
                 }).join('')}
             </select>
         </div>

@@ -63,6 +63,13 @@
   - **Impact**: Eliminated player frustration from being stuck
 
 ### Recent Critical Bug Fixes (LATEST)
+- **Legislation Display Fix**: Fixed critical bug where pending legislation was showing as "undefined" in the final round of the term
+  - **Issue**: Frontend was trying to access `legislation.title` and `legislation.description` directly from `PendingLegislation` objects, but these properties don't exist
+  - **Root Cause**: `PendingLegislation` objects only contain `legislation_id`, `sponsor_id`, etc. The actual legislation data is in `gameState.legislation_options`
+  - **Files Modified**: `static/script.js` - Fixed `updatePendingLegislationDisplay()`, `showVotingPhaseUI()`, `showLegislationSupportMenu()`, `showLegislationOpposeMenu()`, and `showTradeProposalMenu()`
+  - **Impact**: Legislation now displays properly with titles, descriptions, and sponsor information instead of showing "undefined"
+  - **Status**: Fixed and deployed
+
 - **Trading Action Visibility Fix**: Fixed critical bug where trading actions weren't showing during legislation sessions
   - **Issue**: Frontend was checking for `'legislation_session'` but backend uses `'LEGISLATION_PHASE'`
   - **Files Modified**: `static/script.js` - Updated phase name checks in action buttons, phase icons, and pending legislation display
