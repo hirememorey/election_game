@@ -298,7 +298,7 @@
 1. **Action Points System**: Players get 3 AP per turn with variable costs for different actions
 2. **Political Favors System**: Players can now use favors gained from networking with proper UI
 3. **Trading Mechanic**: Players can negotiate deals during legislation sessions for votes
-4. **Candidacy Timing**: Only one candidacy per round, prevents clutter
+4. **Candidacy Timing**: Multiple players can now declare candidacy for the same or different offices in the same round, enabling head-to-head matchups and more dynamic elections.
 5. **Legislation Support/Opposition**: Players can support/oppose others' legislation with custom PC amounts
 6. **Automatic Event Phases**: Smooth game flow with automatic event card drawing
 7. **PC Commitment System**: Strategic depth through custom PC investment in actions

@@ -66,7 +66,7 @@ A Python-based political strategy board game with a Flask backend and mobile-fri
 - **Fundraise** (1 AP): Gain Political Capital (PC)
 - **Network** (1 AP): Gain PC and political favors (note: negative favors are applied immediately)
 - **Sponsor Legislation** (2 AP): Create legislation for votes/mood
-- **Declare Candidacy** (2 AP): Run for office (Round 4 only)
+- **Declare Candidacy** (2 AP): Run for office (Round 4 only; multiple players can declare candidacy for the same or different offices in the same round)
 - **Use Favor** (0 AP): Strategic advantage actions with selection menu
 - **Support/Oppose Legislation** (1 AP): Interactive legislation system with custom PC commitment
 - **Campaign** (2 AP): Place influence for future elections
@@ -156,6 +156,9 @@ python3 test_action_points_system.py
 - Campaign action for placing influence
 - Automatic turn advancement when AP exhausted
 - **Status**: Backend fully implemented, frontend enhanced with Apple-level design
+
+### Candidacy Mechanic Update
+- Multiple players can now declare candidacy for the same or different offices in the same round, enabling head-to-head matchups and more dynamic elections.
 
 ### Trading Mechanic
 - Players can trade PC and favors during legislation sessions
