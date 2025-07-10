@@ -74,8 +74,13 @@ def resolve_fundraise(state: GameState, action: ActionFundraise) -> GameState:
 
     # Add bonuses after halving
     if player.archetype.id == "FUNDRAISER":
-        pc_gain += 2
-        state.add_log(f"Archetype bonus: +2 PC for The Fundraiser.")
+        # Check if this is the first Fundraise action of the term
+        if player.id not in state.fundraiser_first_fundraise_used:
+            pc_gain += 2
+            state.fundraiser_first_fundraise_used.add(player.id)
+            state.add_log(f"Archetype bonus: +2 PC for The Fundraiser (first Fundraise action this term).")
+        else:
+            state.add_log(f"The Fundraiser has already used their first Fundraise action this term.")
     if any(ally.id == "HEDGE_FUND_BRO" for ally in player.allies):
         pc_gain += 10
         state.add_log(f"Ally bonus: +10 PC from Steve McRoberts.")

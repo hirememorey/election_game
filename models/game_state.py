@@ -81,6 +81,9 @@ class GameState:
     media_scrutiny_players: Set[int] = field(default_factory=set)  # players with media scrutiny effect
     compromised_players: Set[int] = field(default_factory=set)  # players who revealed their archetype
     
+    # Archetype-specific tracking
+    fundraiser_first_fundraise_used: Set[int] = field(default_factory=set)  # players who have used their first Fundraise action this term
+    
     # History for checking mandates/events
     last_sponsor_result: Dict = field(default_factory=dict) # {'player_id': int, 'passed': bool}
     legislation_history: List[Dict] = field(default_factory=list) # [{'sponsor_id': int, 'leg_id': str, 'outcome': str}]

@@ -255,6 +255,9 @@ class GameEngine:
         for effect in list(new_state.active_effects):
             if effect in ["WAR_BREAKS_OUT", "VOTER_APATHY"]: # Add other term-long effects here
                 new_state.active_effects.remove(effect)
+        
+        # Reset archetype-specific tracking for new term
+        new_state.fundraiser_first_fundraise_used.clear()  # Reset Fundraiser first Fundraise tracking
         new_state.add_log("\nA new term begins!")
         # Automatically run the event phase for the new term
         new_state.add_log("\n--- EVENT PHASE ---")
