@@ -314,10 +314,10 @@ function renderPlayerDashboard() {
     
     // Update action points display
     if (actionPointsDisplay) {
-        const remainingAP = gameState.action_points ? gameState.action_points[currentPlayer.id] || 3 : 3;
+        const remainingAP = gameState.action_points ? gameState.action_points[currentPlayer.id] || 2 : 2;
         const apText = actionPointsDisplay.querySelector('.ap-text');
         if (apText) {
-            apText.textContent = `${remainingAP}/3 AP`;
+            apText.textContent = `${remainingAP}/2 AP`;
         }
     }
     
@@ -372,7 +372,7 @@ function updateTurnStatus() {
     if (!turnStatus || !gameState) return;
     
     const currentPlayer = gameState.players[gameState.current_player_index];
-    const remainingAP = gameState.action_points?.[currentPlayer.id] || 3;
+    const remainingAP = gameState.action_points?.[currentPlayer.id] || 2;
     const phase = gameState.current_phase;
     const round = gameState.round_marker;
     
@@ -416,7 +416,7 @@ function updateTurnStatus() {
             
             <div class="ap-display">
                 <span class="ap-icon" aria-hidden="true">⚡</span>
-                <span class="ap-text">${remainingAP}/3 Action Points</span>
+                <span class="ap-text">${remainingAP}/2 Action Points</span>
             </div>
             
             <div class="round-info">
@@ -746,7 +746,7 @@ function showRegularActionUI(remainingAP) {
     apDisplay.innerHTML = `
         <div class="ap-info">
             <span class="ap-icon">⚡</span>
-            <span class="ap-text">${remainingAP}/3 Action Points</span>
+            <span class="ap-text">${remainingAP}/2 Action Points</span>
         </div>
     `;
     actionList.appendChild(apDisplay);
@@ -757,7 +757,7 @@ function showRegularActionUI(remainingAP) {
         'network': 1,
         'sponsor_legislation': 2,
         'declare_candidacy': 2,
-        'use_favor': 0,
+        'use_favor': 1,
         'support_legislation': 1,
         'oppose_legislation': 1,
         'campaign': 2,

@@ -217,6 +217,10 @@ python3 test_action_points_system.py
 - **Multiple Legislation Sponsorship**: ✅ **RESOLVED** - Fixed a bug that prevented players from sponsoring multiple pieces of legislation in the same term.
 - **Skip Trading**: Fixed: Skip Trading button in legislation session now works correctly and advances to the voting phase (previously logged 'Unknown action type: complete_trading').
 
+### Gameplay Balance Changes (Latest)
+- **Action Points Reduced**: Changed from 3 AP per round to 2 AP per round for more strategic gameplay
+- **Use Favor Cost**: Changed from 0 AP to 1 AP to prevent unlimited favor usage
+
 ## 🎯 Next Steps
 
 ### High Priority

@@ -82,6 +82,17 @@
   - **Impact**: Players can now sponsor multiple pieces of legislation in a single term, queuing them up for the end-of-term session as intended.
   - **Status**: Fixed and deployed
 
+### Gameplay Balance Changes (LATEST)
+- **Action Points Reduction**: Changed from 3 AP per round to 2 AP per round for more strategic gameplay
+  - **Files Modified**: `engine/engine.py` (action_point_costs, start_new_game, _advance_turn, run_election_phase), `engine/resolvers.py` (resolve_upkeep), `static/script.js` (UI displays and action costs)
+  - **Impact**: More strategic gameplay with tighter resource management
+  - **Status**: Implemented and deployed
+
+- **Use Favor Cost Increase**: Changed from 0 AP to 1 AP to prevent unlimited favor usage
+  - **Files Modified**: `engine/engine.py` (action_point_costs), `static/script.js` (actionCosts object)
+  - **Impact**: Prevents unlimited favor usage, adds strategic cost to favor actions
+  - **Status**: Implemented and deployed
+
 ### Negative Favors System (LATEST)
 - **Immediate Application:** Negative favors (Political Debt, Public Gaffe, Media Scrutiny, Compromising Position, Political Hot Potato) are now applied immediately when drawn from Networking and are never kept in hand. Players cannot choose to use them; the effect is automatic.
 - **Backend:** `resolve_network()` in `engine/resolvers.py` applies negative favor effects instantly.

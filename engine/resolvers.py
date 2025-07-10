@@ -423,7 +423,7 @@ def resolve_upkeep(state: GameState) -> GameState:
     
     # Reset action points for all players for the new round
     for p in state.players:
-        state.action_points[p.id] = 3
+        state.action_points[p.id] = 2
     
     mood = state.public_mood
     income_multiplier = 2 if "UNEXPECTED_SURPLUS" in state.active_effects else 1

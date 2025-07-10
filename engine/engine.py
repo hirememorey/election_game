@@ -14,7 +14,7 @@ class GameEngine:
             "ActionNetwork": 1,
             "ActionSponsorLegislation": 2,
             "ActionDeclareCandidacy": 2,
-            "ActionUseFavor": 0,  # Free action
+            "ActionUseFavor": 1,  # Now costs 1 AP
             "ActionSupportLegislation": 1,
             "ActionOpposeLegislation": 1,
             "ActionProposeTrade": 0,  # Free during trading phase
@@ -78,7 +78,7 @@ class GameEngine:
         
         # Initialize action points for all players
         for p in state.players:
-            state.action_points[p.id] = 3
+            state.action_points[p.id] = 2
         
         return state
 
@@ -123,7 +123,7 @@ class GameEngine:
         
         # Initialize action points if not set
         if current_player.id not in state.action_points:
-            state.action_points[current_player.id] = 3
+            state.action_points[current_player.id] = 2
         
         # If player has action points remaining, stay on their turn
         if state.action_points[current_player.id] > 0:
@@ -179,7 +179,7 @@ class GameEngine:
         
         # Reset action points for new player (only if we haven't advanced to upkeep)
         new_player = state.get_current_player()
-        state.action_points[new_player.id] = 3
+        state.action_points[new_player.id] = 2
         
         # If the turn advances normally, set to next player's action phase
         state.current_phase = "ACTION_PHASE"
@@ -241,9 +241,9 @@ class GameEngine:
         """Triggers the election resolutions and resets for the new term."""
         state.current_phase = "ELECTION_PHASE"
         state.add_log("\n--- ELECTION PHASE ---")
-        # Grant 3 AP to each player at the start of the election phase
+        # Grant 2 AP to each player at the start of the election phase
         for player in state.players:
-            state.action_points[player.id] = 3
+            state.action_points[player.id] = 2
         new_state = resolvers.resolve_elections(state)
         # Reset for the new term
         new_state.round_marker = 1
