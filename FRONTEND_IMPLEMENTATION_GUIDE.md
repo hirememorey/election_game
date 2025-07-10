@@ -1,96 +1,421 @@
-# Frontend Implementation Guide: Three-Zone Strategic Layout
+# Frontend Implementation Guide: Apple-Level Design System
 
 ## 🎯 Overview
 
-This guide provides information about the new three-zone strategic layout that has been implemented in the political board game. The new design prioritizes clarity, maintainability, and strategic decision-making. This guide covers the structure, how to modify it, and how to test it.
+This guide provides information about the Apple-level design system that has been implemented in the political board game. The design system is fully functional and deployed - this guide covers testing, refinement, and potential enhancements.
 
 ## 📋 Current Status
 
-**Three-Zone Strategic Layout**: ✅ **COMPLETED AND DEPLOYED**
+**Apple-Level Design System**: ✅ **COMPLETED AND DEPLOYED**
 
 ### What's Been Implemented
-- **Complete UI Refactor**: The previous complex layout has been replaced with a clean, three-zone structure using CSS Grid.
-- **Modular JavaScript**: The frontend logic has been refactored into zone-specific rendering functions (`renderIntelligenceBriefing`, `renderMainStage`, `renderPlayerDashboard`).
-- **Simplified CSS**: The stylesheet has been completely rewritten to be simpler and more maintainable.
-- **New Test Case**: A new smoke test (`test_new_ui_layout.py`) ensures the core functionality remains intact.
+- **Complete UI Redesign**: Apple-inspired design with SF Pro Display typography
+- **Modern Color Palette**: Semantic color system with Apple-inspired colors
+- **Consistent Spacing**: CSS custom properties for consistent spacing throughout
+- **Card-Based Layout**: Modern card design with subtle shadows and hover effects
+- **Enhanced Typography**: Proper font hierarchy with Apple's design principles
+- **Mobile Optimization**: Touch-friendly interactions with proper button sizes
+- **Accessibility**: Better contrast ratios and focus states
+- **Smooth Animations**: Apple-style transitions and micro-interactions
 
-## 🏗️ Frontend Structure
+## 🏗️ Current Frontend Structure
 
 ### Key Files
-- `static/index.html`: Defines the fundamental three-zone HTML structure (`intelligence-briefing`, `main-stage`, `player-dashboard`).
-- `static/script.js`: Contains all frontend logic. Key functions are `updateUi` and the `render...` helpers.
-- `static/style.css`: Contains the CSS Grid layout and styling for all three zones and their components.
+- `static/index.html`: Main game interface with Apple-level design
+- `static/script.js`: Game logic and API communication
+- `static/style.css`: Apple-inspired design system with SF Pro Display typography
 
-### The Three Zones
-1.  **Zone 1: Player Dashboard (Footer)**
-    *   **Purpose**: To give the current player a constant, clear view of their personal status.
-    *   **Content**: Player Name, Archetype, Mandate, current PC, a visual AP meter, and a list of held Favors.
-    *   **Controlled by**: `renderPlayerDashboard()` in `script.js`.
+### Design System Features
+- **Typography**: SF Pro Display font with proper font weights and sizes
+- **Color Palette**: Apple-inspired semantic colors (primary: #007AFF, etc.)
+- **Spacing**: CSS custom properties for consistent spacing (--spacing-xs to --spacing-3xl)
+- **Border Radius**: Apple-style rounded corners with consistent radius system
+- **Shadows**: Subtle shadow system matching Apple's design language
+- **Transitions**: Smooth animations (150ms, 250ms, 350ms) for all interactions
+- **Mobile**: Touch-friendly interactions with proper button sizes (44px minimum)
+- **Accessibility**: Better contrast ratios and focus states
 
-2.  **Zone 2: The Main Stage (Center)**
-    *   **Purpose**: The primary interactive area of the game.
-    *   **Content**: This area is dynamic. It shows available action buttons during the Action Phase, Event Cards, Legislation voting, etc. It also contains the Game Log.
-    *   **Controlled by**: `renderMainStage()` in `script.js`.
+## 🎨 Testing and Refinement Tasks
 
-3.  **Zone 3: The Intelligence Briefing (Header)**
-    *   **Purpose**: To provide at-a-glance information about the game state and opponents.
-    *   **Content**: A global Game Status Ticker (Round, Phase, Mood) and a summary card for each opponent (showing their public PC, favor count, and office).
-    *   **Controlled by**: `renderIntelligenceBriefing()` in `script.js`.
+### Task 1: Design System Testing
 
-## 🎨 How to Modify the UI
+**Goal**: Test the Apple-level design system across different devices and scenarios
 
-The new structure is designed to be easy to modify.
+**Testing Areas**:
+- **Mobile Responsiveness**: Test on various mobile devices and screen sizes
+- **Touch Interactions**: Verify all buttons are properly sized for touch (44px minimum)
+- **Accessibility**: Test with screen readers and keyboard navigation
+- **Performance**: Ensure smooth animations and transitions
+- **Cross-Browser**: Test on Chrome, Firefox, Safari, Edge
 
-### Changing What's Displayed (The Data)
-- To change the content of a zone, edit the corresponding `render...()` function in `static/script.js`.
-- For example, to add a player's held allies to the dashboard, you would add that logic inside the `renderPlayerDashboard()` function.
+**Implementation**:
+```javascript
+// Test design system responsiveness
+function testDesignSystem() {
+    // Test mobile viewport
+    const viewport = window.innerWidth;
+    console.log(`Viewport width: ${viewport}px`);
+    
+    // Test touch targets
+    const buttons = document.querySelectorAll('button');
+    buttons.forEach(button => {
+        const rect = button.getBoundingClientRect();
+        if (rect.height < 44 || rect.width < 44) {
+            console.warn('Button too small for touch:', button);
+        }
+    });
+}
+```
 
-### Changing The Layout and Appearance (The Style)
-- All layout and styling is controlled in `static/style.css`.
-- The main layout is a simple CSS Grid defined in the `.container` class.
-- Each zone and component has its own clear class name (e.g., `.player-dashboard`, `.opponent-summary`). Modify these classes to change colors, fonts, spacing, etc.
+### Task 2: User Experience Testing
 
-## 🧪 Testing the UI
+**Goal**: Gather user feedback on the Apple-level design system
 
-- A new test file, `test_new_ui_layout.py`, has been added. This is a basic smoke test that ensures the game can be started and an action can be taken without errors.
-- To run all tests, including the new UI test, use the following command from the project root:
-  ```bash
-  python3 -m unittest discover -p "test_*.py"
-  ```
-- For manual testing, simply run the server (`./start_server.sh`) and play the game in your browser. The new layout is fully functional.
+**Testing Areas**:
+- **Visual Hierarchy**: Is the information hierarchy clear and intuitive?
+- **Color Usage**: Are the Apple-inspired colors working well for the game context?
+- **Typography**: Is the SF Pro Display font readable and appropriate?
+- **Spacing**: Is the consistent spacing system creating a clean, organized layout?
+- **Animations**: Are the transitions smooth and enhancing the experience?
+
+**Implementation**:
+```javascript
+// User experience feedback collection
+function collectUXFeedback() {
+    const feedback = {
+        visualHierarchy: prompt('Rate the visual hierarchy (1-5):'),
+        colorUsage: prompt('Rate the color usage (1-5):'),
+        typography: prompt('Rate the typography (1-5):'),
+        spacing: prompt('Rate the spacing and layout (1-5):'),
+        animations: prompt('Rate the animations and transitions (1-5):'),
+        overall: prompt('Rate the overall design (1-5):')
+    };
+    
+    console.log('UX Feedback:', feedback);
+    return feedback;
+}
+```
+
+### Task 3: Performance Optimization
+
+**Goal**: Ensure the Apple-level design system performs well across all devices
+
+**Testing Areas**:
+- **Animation Performance**: Test smoothness of transitions and animations
+- **Rendering Performance**: Ensure no layout thrashing or repaints
+- **Memory Usage**: Monitor for memory leaks in long gaming sessions
+- **Load Times**: Verify fast initial load and smooth interactions
+
+**Implementation**:
+```javascript
+// Performance monitoring
+function monitorPerformance() {
+    // Monitor frame rate during animations
+    let frameCount = 0;
+    let lastTime = performance.now();
+    
+    function countFrames() {
+        frameCount++;
+        const currentTime = performance.now();
+        
+        if (currentTime - lastTime >= 1000) {
+            const fps = Math.round((frameCount * 1000) / (currentTime - lastTime));
+            console.log(`FPS: ${fps}`);
+            frameCount = 0;
+            lastTime = currentTime;
+        }
+        
+        requestAnimationFrame(countFrames);
+    }
+    
+    countFrames();
+}
+
+// Monitor memory usage
+function checkMemoryUsage() {
+    if (performance.memory) {
+        console.log('Memory usage:', {
+            used: Math.round(performance.memory.usedJSHeapSize / 1048576) + ' MB',
+            total: Math.round(performance.memory.totalJSHeapSize / 1048576) + ' MB'
+        });
+    }
+}
+```
+            
+            <div class="form-group">
+                <label for="campaign-pc">PC to Commit:</label>
+                <input type="number" id="campaign-pc" min="1" max="50" required 
+                       placeholder="Enter PC amount">
+            </div>
+            
+            <div class="modal-buttons">
+                <button onclick="handleCampaignAction()" class="btn-primary">Campaign</button>
+                <button onclick="closeModal()" class="btn-secondary">Cancel</button>
+            </div>
+        </div>
+    `;
+    
+    document.body.appendChild(modal);
+}
+
+// Campaign action handler
+function handleCampaignAction() {
+    const officeSelect = document.getElementById('campaign-office');
+    const pcInput = document.getElementById('campaign-pc');
+    
+    const officeId = officeSelect.value;
+    const influenceAmount = parseInt(pcInput.value);
+    
+    // Validation
+    if (!officeId) {
+        alert('Please select an office');
+        return;
+    }
+    
+    if (!influenceAmount || influenceAmount <= 0) {
+        alert('Please enter a valid PC amount');
+        return;
+    }
+    
+    const currentPlayer = gameState.players[gameState.current_player_index];
+    if (influenceAmount > currentPlayer.pc) {
+        alert(`You only have ${currentPlayer.pc} PC available`);
+        return;
+    }
+    
+    // Call API
+    performAction('campaign', {
+        office_id: officeId,
+        influence_amount: influenceAmount
+    });
+    
+    closeModal();
+}
+
+// Modal utilities
+function closeModal() {
+    const modal = document.querySelector('.modal-overlay');
+    if (modal) {
+        modal.remove();
+    }
+}
+```
+
+**CSS Addition**:
+```css
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+
+.campaign-modal {
+    background: white;
+    padding: 30px;
+    border-radius: 15px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+    max-width: 400px;
+    width: 90%;
+}
+
+.form-group {
+    margin: 20px 0;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: bold;
+    color: #333;
+}
+
+.form-group select,
+.form-group input {
+    width: 100%;
+    padding: 10px;
+    border: 2px solid #ddd;
+    border-radius: 5px;
+    font-size: 16px;
+}
+
+.form-group select:focus,
+.form-group input:focus {
+    border-color: #667eea;
+    outline: none;
+}
+
+.modal-buttons {
+    display: flex;
+    gap: 10px;
+    justify-content: flex-end;
+    margin-top: 20px;
+}
+
+.btn-primary {
+    background: #667eea;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+.btn-secondary {
+    background: #6c757d;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 5px;
+    cursor: pointer;
+}
+```
+
+### Task 4: Turn Status Enhancement
+
+**Goal**: Improve turn status display with AP information
+
+**Implementation**:
+```javascript
+// Update the existing turn status display
+function updateTurnStatus() {
+    const turnStatus = document.getElementById('turn-status');
+    if (!turnStatus) return;
+    
+    const currentPlayer = gameState.players[gameState.current_player_index];
+    const remainingAP = gameState.action_points[currentPlayer.id] || 3;
+    
+    turnStatus.innerHTML = `
+        <div class="enhanced-turn-status">
+            <div class="player-turn">
+                <strong>${currentPlayer.name}'s Turn</strong>
+            </div>
+            <div class="ap-status">
+                <span class="ap-icon">⚡</span>
+                <span class="ap-text">${remainingAP}/3 Action Points</span>
+            </div>
+            <div class="phase-info">
+                Phase: ${gameState.current_phase.replace('_', ' ')}
+            </div>
+        </div>
+    `;
+}
+```
+
+**CSS Addition**:
+```css
+.enhanced-turn-status {
+    background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+    color: white;
+    padding: 20px;
+    border-radius: 12px;
+    text-align: center;
+    margin: 15px 0;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+}
+
+.player-turn {
+    font-size: 1.3em;
+    font-weight: bold;
+    margin-bottom: 10px;
+}
+
+.ap-status {
+    font-size: 1.1em;
+    margin-bottom: 8px;
+}
+
+.ap-icon {
+    margin-right: 8px;
+    font-size: 1.2em;
+}
+
+.phase-info {
+    font-size: 0.9em;
+    opacity: 0.9;
+}
+```
+
+## 🧪 Testing Checklist
+
+### Design System Testing
+1. **Mobile Responsiveness**: Test on various mobile devices and screen sizes
+2. **Touch Interactions**: Verify all buttons are properly sized for touch (44px minimum)
+3. **Accessibility**: Test with screen readers and keyboard navigation
+4. **Cross-Browser**: Test on Chrome, Firefox, Safari, Edge
+5. **Performance**: Monitor frame rates and memory usage during gameplay
+6. **User Experience**: Gather feedback on visual hierarchy, colors, typography
+
+### Performance Testing
+```javascript
+// Test design system performance
+function testDesignPerformance() {
+    // Monitor frame rate
+    monitorPerformance();
+    
+    // Check memory usage
+    setInterval(checkMemoryUsage, 5000);
+    
+    // Test animation smoothness
+    const buttons = document.querySelectorAll('button');
+    buttons.forEach(button => {
+        button.addEventListener('click', () => {
+            console.log('Button click performance:', performance.now());
+        });
+    });
+}
+```
 
 ## 🐛 Common Issues & Solutions
 
-### Issue 1: My data isn't showing up in the right place.
-**Solution**: Check the correct `render...()` function in `script.js`. Make sure you are appending your new HTML to the correct element within that zone.
+### Issue 1: AP not updating after actions
+**Solution**: Ensure `updateActionButtons()` is called after each action in `performAction()`
 
-### Issue 2: The layout looks broken.
-**Solution**: Check `static/style.css`. The most likely cause is an issue with the CSS Grid properties in the `.container` class or the specific classes for the zones.
+### Issue 2: Campaign modal not closing
+**Solution**: Add `closeModal()` call after successful API response
 
-### Issue 3: An action button isn't working.
-**Solution**: The logic for creating action buttons is in `renderMainStage()`. The `performAction()` function handles the API call. Check these two functions for errors.
+### Issue 3: Mobile layout issues
+**Solution**: Test CSS media queries and ensure buttons are touch-friendly
 
-### Issue 4: The setup screen or game screen doesn't appear/disappear correctly.
-**Solution**: The UI now uses a `.hidden` CSS class to toggle visibility between the setup and game screens. The JavaScript functions `showSetupScreen()` and `showGameScreen()` add or remove this class as needed. If the screens are not transitioning, check that `.hidden` is defined in `style.css` and that the correct class is being toggled in `script.js`.
+### Issue 4: AP validation not working
+**Solution**: Check that `actionCosts` object includes all action types
+
+## 📱 Mobile Considerations
+
+- Ensure buttons are at least 44px tall for touch targets
+- Use larger fonts on mobile devices
+- Test modal dialogs on small screens
+- Ensure form inputs are properly sized for mobile keyboards
 
 ## ✅ Success Criteria
 
-- [x] The UI is clearly divided into the three logical zones.
-- [x] All critical information (AP, PC, opponent stats) is visible and easy to parse.
-- [x] The frontend code is modular and easier to maintain.
-- [x] Core game functionality is verified by the new smoke test.
+- [ ] Apple-level design system works across all target devices
+- [ ] Touch interactions are smooth and responsive
+- [ ] Accessibility features work properly
+- [ ] Performance is optimal (60fps animations)
+- [ ] User feedback is positive
+- [ ] No console errors during gameplay
+- [ ] All existing functionality still works
+
+## 🚀 Next Steps After Testing
+
+1. **Gather user feedback** on the design system
+2. **Optimize performance** based on testing results
+3. **Refine design elements** based on feedback
+4. **Add additional animations** if needed
+5. **Consider accessibility improvements** based on testing
+
+## Negative Favors UI (2024-07-07)
+- The favor menu now visually distinguishes negative favors (red border, warning icon).
+- Special UI is provided for favors that require a choice (e.g., Compromising Position).
+- Target selection and confirmation dialogs are updated to support new negative favor mechanics.
 
 ---
 
-**The new frontend architecture is complete and functional. Future work should focus on polishing the visual design (adding animations, better typography, etc.) within this new, solid structure.** 
-
-## 🛡️ Frontend Error Handling & Defensive Coding
-
-- The frontend JavaScript now includes robust null/undefined checks for all critical data (such as players, action points, favors, and log arrays) to prevent UI crashes and improve user experience.
-- Defensive coding patterns are used throughout the UI rendering functions to ensure that missing or malformed backend data does not break the interface.
-- If a required DOM element is missing, a clear error is logged to the console and rendering is skipped for that section.
-- The script `test_frontend_fix.py` is provided to automatically verify that the game can be started and the UI will not crash due to missing or undefined data. Run it with:
-  ```bash
-  python3 test_frontend_fix.py
-  ```
-- This approach ensures that future backend or data model changes are less likely to cause frontend errors, and makes the codebase more maintainable and robust. 
+**The Apple-level design system is fully implemented and deployed. Focus on testing, gathering user feedback, and optimizing the user experience.** 

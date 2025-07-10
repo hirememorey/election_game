@@ -8,7 +8,7 @@ A political board game now playable in your web browser! This is a mobile-friend
 ✅ **WORKING**: All API endpoints tested and functional  
 ✅ **READY**: Game is playable in browser on any device  
 ✅ **MOBILE**: Responsive design for iPhone and other mobile devices  
-✅ **VINTAGE POLITICAL POSTER DESIGN**: Authentic political campaign interface with bold typography and patriotic colors  
+✅ **APPLE-LEVEL DESIGN**: Professional, modern interface with Apple-inspired design system  
 
 ## 🚀 Quick Start
 
@@ -65,13 +65,13 @@ The game is fully optimized for mobile devices:
 - **API Communication**: REST API calls to Flask backend
 - **State Management**: Client-side game state management
 - **Mobile**: Responsive CSS with mobile-first design
-- **Design System**: Vintage political poster design with Impact and Georgia typography and patriotic UI
+- **Design System**: Apple-level design with SF Pro Display typography and modern UI
 
 ### Key Files
 - `server.py` - Flask backend with API endpoints
-- `static/index.html` - Main game interface with vintage political poster design
+- `static/index.html` - Main game interface with Apple-level design
 - `static/script.js` - Game logic and API communication
-- `static/style.css` - Vintage political poster design system with Impact and Georgia typography
+- `static/style.css` - Apple-inspired design system with SF Pro Display typography
 - `engine/` - Core game logic (reused from CLI version)
 - `models/` - Game data models
 

@@ -2,15 +2,15 @@
 
 ## 🎯 Project Status Summary
 
-**Current State**: The Election game is a fully functional political strategy board game with a Flask backend and vintage political poster web frontend. All major systems are implemented and tested, with all critical bugs fixed.
+**Current State**: The Election game is a fully functional political strategy board game with a Flask backend and Apple-level web frontend. All major systems are implemented and tested, with all critical bugs fixed.
 
-**Key Achievement**: Successfully transformed from a basic CLI game to a sophisticated web-based game with rich mechanics, comprehensive testing, excellent code quality, and vintage political poster design system.
+**Key Achievement**: Successfully transformed from a basic CLI game to a sophisticated web-based game with rich mechanics, comprehensive testing, excellent code quality, and Apple-level design system.
 
 ## ✅ What's Complete and Working
 
 ### Core Game Systems
 - **Complete Game Engine**: All game logic, turn management, and state management
-- **Vintage Political Poster Web Interface**: Authentic political campaign frontend with bold typography and patriotic colors
+- **Apple-Level Web Interface**: Professional, modern frontend with Apple-inspired design system
 - **API Communication**: REST API with JSON payloads, ~5-10ms response times
 - **Static File Serving**: Fixed from 404 issues, properly configured
 - **Comprehensive Testing**: 10+ test files covering all major functionality
@@ -18,15 +18,15 @@
 - **Recent Bug Fixes**: Trading action visibility fixed (frontend/backend phase name alignment), Media Scrutiny favor logic fixed
 
 ### Major Features Implemented
-1. **Vintage Political Poster Design System** (COMPLETED - Just Deployed)
-   - **Complete UI Redesign**: Vintage political poster design with Impact and Georgia typography
-   - **Patriotic Color Palette**: Bold color system with red, blue, and gold patriotic colors
-   - **Dramatic Spacing**: CSS custom properties for bold political poster spacing
-   - **Political Card Layout**: Bold card design with dramatic shadows and patriotic effects
-   - **Bold Typography**: Impact font hierarchy with political campaign principles
+1. **Apple-Level Design System** (COMPLETED - Just Deployed)
+   - **Complete UI Redesign**: Apple-inspired design with SF Pro Display typography
+   - **Modern Color Palette**: Semantic color system with Apple-inspired colors
+   - **Consistent Spacing**: CSS custom properties for consistent spacing throughout
+   - **Card-Based Layout**: Modern card design with subtle shadows and hover effects
+   - **Enhanced Typography**: Proper font hierarchy with Apple's design principles
    - **Mobile Optimization**: Touch-friendly interactions with proper button sizes
-   - **High Contrast**: Maximum contrast design for political impact
-   - **Dramatic Animations**: Bold political poster transitions and micro-interactions
+   - **Accessibility**: Better contrast ratios and focus states
+   - **Smooth Animations**: Apple-style transitions and micro-interactions
    - **Status**: Fully implemented and deployed to GitHub
 
 2. **Action Points System** (Backend Complete, Frontend Enhanced)
@@ -34,8 +34,8 @@
    - Multiple actions per turn until AP exhausted
    - Campaign action for future election influence
    - Automatic turn advancement
-   - **Status**: Backend fully tested, frontend enhanced with vintage political poster UI
-   - **NEW**: Enhanced AP display with patriotic styling and prominent cost indicators
+   - **Status**: Backend fully tested, frontend enhanced with Apple-level UI
+   - **NEW**: Enhanced AP display with gradient styling and prominent cost indicators
 
 3. **Incumbent/Outsider Public Mood System** (NEW - Latest)
    - **Incumbents** (office-holders) benefit from positive mood changes, suffer from negative
@@ -113,7 +113,7 @@
 - PC commitment amounts (are they strategic?)
 - Incumbent/outsider public mood effects (is the tension engaging?)
 - Overall game flow and pacing
-- Vintage political poster design system user experience
+- Apple-level design system user experience
 - **NEW**: Test the improved legislation session flow (no more round 5 confusion)
 - **NEW**: Test Pass Turn functionality and action point handling
 
@@ -165,20 +165,20 @@ election/
 ### Frontend Structure
 ```
 static/
-├── index.html            # Main game interface (vintage political poster design)
+├── index.html            # Main game interface (Apple-level design)
 ├── script.js             # Game logic and API communication (with dynamic URLs)
-└── style.css             # Vintage political poster design system with Impact and Georgia typography
+└── style.css             # Apple-inspired design system with SF Pro Display
 ```
 
 ### Design System
-- **Typography**: Impact font for headers, Georgia serif for body text with bold political messaging
-- **Color Palette**: Patriotic colors (red: #CC0000, blue: #003366, gold: #FFD700)
-- **Spacing**: CSS custom properties for dramatic political poster spacing
-- **Border Radius**: Bold, dramatic corners with political poster aesthetic
-- **Shadows**: Dramatic shadow system matching vintage political poster design
-- **Transitions**: Bold, dramatic timing (200ms, 300ms, 400ms) for political impact
+- **Typography**: SF Pro Display font with proper font weights and sizes
+- **Color Palette**: Apple-inspired semantic colors (primary: #007AFF, etc.)
+- **Spacing**: CSS custom properties for consistent spacing (--spacing-xs to --spacing-3xl)
+- **Border Radius**: Apple-style rounded corners with consistent radius system
+- **Shadows**: Subtle shadow system matching Apple's design language
+- **Transitions**: Smooth animations (150ms, 250ms, 350ms) for all interactions
 - **Mobile**: Touch-friendly interactions with proper button sizes (44px minimum)
-- **Accessibility**: High contrast design for maximum political impact
+- **Accessibility**: Better contrast ratios and focus states
 
 ### Key API Endpoints
 - `POST /api/game`: Create new game
