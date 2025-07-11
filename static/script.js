@@ -603,7 +603,8 @@ function updatePendingLegislationDisplay() {
         pendingSection.classList.remove('hidden');
         pendingSection.innerHTML = `
             <div class="section-header">
-                <h3>Pending Legislation</h3>
+                <h3>🗳️ Pending Legislation (PC Gambling System)</h3>
+                <p class="system-explanation">Commit PC to support or oppose legislation. Bigger commitments = bigger rewards!</p>
             </div>
             <div class="legislation-list">
                 ${gameState.term_legislation.map(legislation => {
@@ -626,16 +627,58 @@ function updatePendingLegislationDisplay() {
                         `;
                     }
                     
+                    // Calculate current support and opposition
+                    const totalSupport = Object.values(legislation.support_players).reduce((sum, amount) => sum + amount, 0);
+                    const totalOpposition = Object.values(legislation.oppose_players).reduce((sum, amount) => sum + amount, 0);
+                    const netInfluence = totalSupport - totalOpposition;
+                    
+                    // Show current commitments
+                    const supportDetails = Object.entries(legislation.support_players).map(([playerId, amount]) => {
+                        const player = gameState.players.find(p => p.id === parseInt(playerId));
+                        return player ? `${player.name} (${amount} PC)` : `Player ${playerId} (${amount} PC)`;
+                    }).join(', ');
+                    
+                    const opposeDetails = Object.entries(legislation.oppose_players).map(([playerId, amount]) => {
+                        const player = gameState.players.find(p => p.id === parseInt(playerId));
+                        return player ? `${player.name} (${amount} PC)` : `Player ${playerId} (${amount} PC)`;
+                    }).join(', ');
+                    
                     return `
-                        <div class="legislation-item">
+                        <div class="legislation-item gambling-legislation">
                             <div class="legislation-header">
                                 <h4>${bill.title}</h4>
                                 <span class="sponsor">Sponsored by ${sponsor ? sponsor.name : 'Unknown'}</span>
                             </div>
                             <div class="legislation-details">
-                                <span class="cost">Cost: ${bill.cost} PC</span>
-                                <span class="target">Success Target: ${bill.success_target}</span>
-                                <span class="crit-target">Crit Target: ${bill.crit_target}</span>
+                                <div class="target-info">
+                                    <span class="cost">Cost: ${bill.cost} PC</span>
+                                    <span class="target">Success Target: ${bill.success_target} PC</span>
+                                    <span class="crit-target">Crit Target: ${bill.crit_target} PC</span>
+                                </div>
+                                <div class="current-status">
+                                    <div class="influence-tracker">
+                                        <span class="support">Support: ${totalSupport} PC</span>
+                                        <span class="opposition">Opposition: ${totalOpposition} PC</span>
+                                        <span class="net-influence">Net: ${netInfluence} PC</span>
+                                    </div>
+                                    <div class="commitment-details">
+                                        ${supportDetails ? `<div class="supporters">Supporters: ${supportDetails}</div>` : ''}
+                                        ${opposeDetails ? `<div class="opponents">Opponents: ${opposeDetails}</div>` : ''}
+                                    </div>
+                                </div>
+                                <div class="reward-info">
+                                    <div class="sponsor-bonus">
+                                        <strong>🎯 Sponsor Bonus:</strong> 50% bonus on success, 50% penalty on failure
+                                    </div>
+                                    <div class="commitment-rewards">
+                                        <strong>💰 Commitment Rewards:</strong>
+                                        <ul>
+                                            <li>Small bet (1-4 PC): 1x reward</li>
+                                            <li>Medium bet (5-9 PC): 1.5x reward</li>
+                                            <li>Big bet (10+ PC): 2x reward</li>
+                                        </ul>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     `;
@@ -937,6 +980,21 @@ function showRegularActionUI(remainingAP) {
     // Only show declare candidacy in round 4
     if (gameState.round_marker === 4) {
         actions.push({ type: 'declare_candidacy', label: 'Declare Candidacy', description: 'Run for office' });
+    }
+    
+    // Add legislation support/oppose actions if there's pending legislation
+    if (gameState.term_legislation && gameState.term_legislation.length > 0) {
+        const currentPlayer = gameState.players[gameState.current_player_index];
+        const votableLegislation = gameState.term_legislation.filter(legislation => 
+            legislation.sponsor_id !== currentPlayer.id && !legislation.resolved
+        );
+        
+        if (votableLegislation.length > 0) {
+            actions.push(
+                { type: 'support_legislation', label: 'Support Legislation', description: 'Commit PC to support bills (gambling rewards!)' },
+                { type: 'oppose_legislation', label: 'Oppose Legislation', description: 'Commit PC to oppose bills (gambling rewards!)' }
+            );
+        }
     }
     
     actions.forEach(action => {
@@ -1317,14 +1375,29 @@ function showLegislationSupportMenu() {
     overlay.className = 'modal-overlay';
     
     const modal = document.createElement('div');
-    modal.className = 'legislation-menu';
+    modal.className = 'legislation-menu gambling-menu';
     
     modal.innerHTML = `
-        <h3>Support Legislation</h3>
+        <h3>🎯 Support Legislation (PC Gambling)</h3>
+        <div class="gambling-info">
+            <p><strong>💰 Commitment Rewards:</strong></p>
+            <ul>
+                <li>Small bet (1-4 PC): 1x reward</li>
+                <li>Medium bet (5-9 PC): 1.5x reward</li>
+                <li>Big bet (10+ PC): 2x reward</li>
+            </ul>
+            <p><em>Rewards are paid if the legislation passes!</em></p>
+        </div>
         <div class="legislation-options">
             ${availableLegislation.map(legislation => {
                 const bill = gameState.legislation_options[legislation.legislation_id];
                 const sponsor = gameState.players.find(p => p.id === legislation.sponsor_id);
+                
+                // Calculate current support and opposition
+                const totalSupport = Object.values(legislation.support_players).reduce((sum, amount) => sum + amount, 0);
+                const totalOpposition = Object.values(legislation.oppose_players).reduce((sum, amount) => sum + amount, 0);
+                const netInfluence = totalSupport - totalOpposition;
+                const currentCommitment = legislation.support_players[currentPlayer.id] || 0;
                 
                 // Safety check for undefined bill
                 if (!bill) {
@@ -1339,10 +1412,23 @@ function showLegislationSupportMenu() {
                 }
                 
                 return `
-                    <button class="legislation-option" data-legislation-id="${legislation.legislation_id}">
-                        <div><strong>${bill.title}</strong></div>
-                        <div>Sponsored by: ${sponsor ? sponsor.name : 'Unknown'}</div>
-                        <div>Cost: ${bill.cost} PC | Success: ${bill.success_target} PC</div>
+                    <button class="legislation-option gambling-option" data-legislation-id="${legislation.legislation_id}">
+                        <div class="legislation-header">
+                            <div><strong>${bill.title}</strong></div>
+                            <div class="sponsor">Sponsored by: ${sponsor ? sponsor.name : 'Unknown'}</div>
+                        </div>
+                        <div class="legislation-details">
+                            <div class="targets">
+                                <span>Success: ${bill.success_target} PC</span>
+                                <span>Crit: ${bill.crit_target} PC</span>
+                            </div>
+                            <div class="current-status">
+                                <span class="support">Support: ${totalSupport} PC</span>
+                                <span class="opposition">Opposition: ${totalOpposition} PC</span>
+                                <span class="net">Net: ${netInfluence} PC</span>
+                            </div>
+                            ${currentCommitment > 0 ? `<div class="your-commitment">Your commitment: ${currentCommitment} PC</div>` : ''}
+                        </div>
                     </button>
                 `;
             }).join('')}
@@ -1357,7 +1443,19 @@ function showLegislationSupportMenu() {
         button.addEventListener('click', () => {
             const legislationId = button.dataset.legislationId;
             const maxPC = currentPlayer.pc;
-            const amount = prompt(`How much PC do you want to commit to support? (You have ${maxPC} PC)`, '1');
+            const currentCommitment = gameState.term_legislation.find(l => l.legislation_id === legislationId)?.support_players[currentPlayer.id] || 0;
+            
+            const amount = prompt(
+                `How much PC do you want to commit to support?\n\n` +
+                `You have: ${maxPC} PC\n` +
+                `Current commitment: ${currentCommitment} PC\n\n` +
+                `Rewards if legislation passes:\n` +
+                `• 1-4 PC: 1x reward\n` +
+                `• 5-9 PC: 1.5x reward\n` +
+                `• 10+ PC: 2x reward\n\n` +
+                `Enter amount:`, 
+                '1'
+            );
             
             if (amount && !isNaN(amount) && parseInt(amount) > 0 && parseInt(amount) <= maxPC) {
                 performAction('support_legislation', { 
@@ -1397,14 +1495,29 @@ function showLegislationOpposeMenu() {
     overlay.className = 'modal-overlay';
     
     const modal = document.createElement('div');
-    modal.className = 'legislation-menu';
+    modal.className = 'legislation-menu gambling-menu';
     
     modal.innerHTML = `
-        <h3>Oppose Legislation</h3>
+        <h3>🎯 Oppose Legislation (PC Gambling)</h3>
+        <div class="gambling-info">
+            <p><strong>💰 Commitment Rewards:</strong></p>
+            <ul>
+                <li>Small bet (1-4 PC): 1x reward</li>
+                <li>Medium bet (5-9 PC): 1.5x reward</li>
+                <li>Big bet (10+ PC): 2x reward</li>
+            </ul>
+            <p><em>Rewards are paid if the legislation fails!</em></p>
+        </div>
         <div class="legislation-options">
             ${availableLegislation.map(legislation => {
                 const bill = gameState.legislation_options[legislation.legislation_id];
                 const sponsor = gameState.players.find(p => p.id === legislation.sponsor_id);
+                
+                // Calculate current support and opposition
+                const totalSupport = Object.values(legislation.support_players).reduce((sum, amount) => sum + amount, 0);
+                const totalOpposition = Object.values(legislation.oppose_players).reduce((sum, amount) => sum + amount, 0);
+                const netInfluence = totalSupport - totalOpposition;
+                const currentCommitment = legislation.oppose_players[currentPlayer.id] || 0;
                 
                 // Safety check for undefined bill
                 if (!bill) {
@@ -1419,10 +1532,23 @@ function showLegislationOpposeMenu() {
                 }
                 
                 return `
-                    <button class="legislation-option" data-legislation-id="${legislation.legislation_id}">
-                        <div><strong>${bill.title}</strong></div>
-                        <div>Sponsored by: ${sponsor ? sponsor.name : 'Unknown'}</div>
-                        <div>Cost: ${bill.cost} PC | Success: ${bill.success_target} PC</div>
+                    <button class="legislation-option gambling-option" data-legislation-id="${legislation.legislation_id}">
+                        <div class="legislation-header">
+                            <div><strong>${bill.title}</strong></div>
+                            <div class="sponsor">Sponsored by: ${sponsor ? sponsor.name : 'Unknown'}</div>
+                        </div>
+                        <div class="legislation-details">
+                            <div class="targets">
+                                <span>Success: ${bill.success_target} PC</span>
+                                <span>Crit: ${bill.crit_target} PC</span>
+                            </div>
+                            <div class="current-status">
+                                <span class="support">Support: ${totalSupport} PC</span>
+                                <span class="opposition">Opposition: ${totalOpposition} PC</span>
+                                <span class="net">Net: ${netInfluence} PC</span>
+                            </div>
+                            ${currentCommitment > 0 ? `<div class="your-commitment">Your commitment: ${currentCommitment} PC</div>` : ''}
+                        </div>
                     </button>
                 `;
             }).join('')}
@@ -1437,7 +1563,19 @@ function showLegislationOpposeMenu() {
         button.addEventListener('click', () => {
             const legislationId = button.dataset.legislationId;
             const maxPC = currentPlayer.pc;
-            const amount = prompt(`How much PC do you want to commit to oppose? (You have ${maxPC} PC)`, '1');
+            const currentCommitment = gameState.term_legislation.find(l => l.legislation_id === legislationId)?.oppose_players[currentPlayer.id] || 0;
+            
+            const amount = prompt(
+                `How much PC do you want to commit to oppose?\n\n` +
+                `You have: ${maxPC} PC\n` +
+                `Current commitment: ${currentCommitment} PC\n\n` +
+                `Rewards if legislation fails:\n` +
+                `• 1-4 PC: 1x reward\n` +
+                `• 5-9 PC: 1.5x reward\n` +
+                `• 10+ PC: 2x reward\n\n` +
+                `Enter amount:`, 
+                '1'
+            );
             
             if (amount && !isNaN(amount) && parseInt(amount) > 0 && parseInt(amount) <= maxPC) {
                 performAction('oppose_legislation', { 

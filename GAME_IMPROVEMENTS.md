@@ -195,7 +195,29 @@ This document tracks the major improvements and features that have been implemen
 **Testing**: `test_pc_commitment_and_term_transition.py` now passes all tests
 **Impact**: Resolves AP validation errors and ensures smooth gameplay flow
 
-### 11. **Round 5 Confusion Fix** - COMPLETED
+### 11. **🎰 Gambling-Style Legislation System** - COMPLETED
+**Status**: Fully implemented and tested
+
+**What it does**:
+- Players can commit PC to support/oppose legislation during any turn, not just legislation session
+- Risk/reward mechanics: bigger commitments yield bigger rewards
+- Tiered reward system: small bet (1-4 PC) = 1x, medium bet (5-9 PC) = 1.5x, big bet (10+ PC) = 2x
+- Sponsor bonus: 50% bonus on success, 50% penalty on failure
+- Gambling rewards: supporters get paid if legislation passes, opponents get paid if it fails
+- Turn advancement fix: pass turn action now properly advances turns
+
+**Technical Implementation**:
+- `engine/resolvers.py`: Updated `resolve_support_legislation()` and `resolve_oppose_legislation()` to allow actions during any turn
+- `engine/resolvers.py`: Updated `resolve_pending_legislation()` to apply sponsor bonuses and gambling rewards
+- `engine/resolvers.py`: Fixed `resolve_pass_turn()` to set AP to 0 for proper turn advancement
+- `static/script.js`: Added gambling-style UI with PC commitment modals and reward explanations
+- `static/style.css`: Added gambling-themed styling and detailed reward displays
+- `test_legislation_gambling_system.py`: Comprehensive test coverage
+
+**Testing**: Full test coverage including sponsor bonuses and failure scenarios
+**Impact**: Adds meaningful agency and strategic depth to legislation system
+
+### 12. **Round 5 Confusion Fix** - COMPLETED
 **Status**: Fully implemented and tested
 
 **What it does**:

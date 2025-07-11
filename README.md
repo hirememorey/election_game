@@ -61,6 +61,7 @@ A Python-based political strategy board game with a Flask backend and mobile-fri
 - **Automatic Event Phases**: Events draw automatically for smooth gameplay
 - **Term Transition Fixes**: Proper state cleanup between terms
 - **Legislation Voting Fixes**: Players cannot vote on their own legislation, with proper "Pass Turn" option when no valid votes exist
+- **🎰 Gambling-Style Legislation System**: Players can commit PC to support/oppose legislation during any turn with risk/reward mechanics
 
 ### 🎮 Core Game Mechanics
 
@@ -70,7 +71,7 @@ A Python-based political strategy board game with a Flask backend and mobile-fri
 - **Sponsor Legislation** (2 AP): Create legislation for votes/mood
 - **Declare Candidacy** (2 AP): Run for office (Round 4 only; multiple players can declare candidacy for the same or different offices in the same round)
 - **Use Favor** (1 AP): Strategic advantage actions with selection menu
-- **Support/Oppose Legislation** (1 AP): Interactive legislation system with custom PC commitment
+- **Support/Oppose Legislation** (1 AP): **🎰 Gambling-style system** - commit PC during any turn with risk/reward mechanics
 - **Campaign** (2 AP): Place influence for future elections
 - **Trading** (0 AP): Propose trades of PC/favors for votes during legislation sessions
 - **Pass Turn** (0 AP): Skip turn when no valid actions available
@@ -142,6 +143,7 @@ See `DEPLOYMENT.md` for step-by-step instructions for Render, Netlify, Heroku, R
 - **`test_api.py`**: API endpoints and favor system
 - **`test_legislation_timing.py`**: Legislation session timing
 - **`test_legislation_voting_fix.py`**: Legislation voting fixes and pass turn functionality
+- **`test_legislation_gambling_system.py`**: **🎰 Gambling-style legislation system** with PC commitment and sponsor bonuses
 - **`test_mood_system.py`**: Mood system functionality
 - **`test_war_mood_lock.py`**: War event mood lock functionality
 - **`performance_test.py`**: Performance benchmarking
@@ -165,12 +167,14 @@ python3 test_action_points_system.py
 
 ## 🎯 Recent Major Improvements
 
-### Legislation Voting Fixes (Latest)
-- **Voting Restrictions**: Players cannot vote on their own sponsored legislation
-- **Pass Turn Option**: When a player has no valid legislation to vote on, they can use "Pass Turn" to advance
-- **Backend Bug Fix**: Fixed critical issue where player index wasn't reset after voting, causing invalid player indices
-- **Frontend UI**: Added proper handling for cases where no votable legislation exists
-- **Manual Resolution**: Legislation sessions can be manually resolved when all players have voted
+### 🎰 Gambling-Style Legislation System (Latest)
+- **PC Commitment During Any Turn**: Players can commit PC to support/oppose legislation throughout the term, not just during legislation session
+- **Risk/Reward Mechanics**: Bigger commitments yield bigger rewards with tiered system (small/medium/big bets)
+- **Sponsor Bonus**: Legislation sponsors get 50% bonus on success, 50% penalty on failure
+- **Gambling Rewards**: Supporters get rewards if legislation passes, opponents get rewards if it fails
+- **Turn Advancement Fix**: Fixed pass turn action to properly advance turns by setting AP to 0
+- **Frontend Integration**: Complete UI support with modals for PC commitment and detailed reward explanations
+- **Comprehensive Testing**: Full test coverage including sponsor bonuses and failure scenarios
 
 ### Manual Phase Resolution System
 - **Manual Legislation Resolution**: After the term ends, players can manually trigger legislation resolution with a "Resolve Legislation" button

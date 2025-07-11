@@ -1831,3 +1831,315 @@ body {
         padding: var(--spacing-3) var(--spacing-4);
     }
 } 
+
+/* ===== GAMBLING-STYLE LEGISLATION SYSTEM ===== */
+
+.gambling-legislation {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border: 2px solid var(--color-primary);
+  box-shadow: var(--shadow-lg);
+  position: relative;
+  overflow: hidden;
+}
+
+.gambling-legislation::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, #FFD700, #FFA500, #FF6347);
+  animation: shimmer 2s ease-in-out infinite;
+}
+
+.system-explanation {
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-sm);
+  margin-bottom: var(--spacing-4);
+  font-style: italic;
+}
+
+.target-info {
+  display: flex;
+  gap: var(--spacing-3);
+  margin-bottom: var(--spacing-3);
+  flex-wrap: wrap;
+}
+
+.target-info span {
+  background: var(--color-surface-secondary);
+  padding: var(--spacing-1) var(--spacing-2);
+  border-radius: var(--radius-md);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+}
+
+.current-status {
+  margin-bottom: var(--spacing-3);
+}
+
+.influence-tracker {
+  display: flex;
+  gap: var(--spacing-2);
+  margin-bottom: var(--spacing-2);
+  flex-wrap: wrap;
+}
+
+.influence-tracker span {
+  padding: var(--spacing-1) var(--spacing-2);
+  border-radius: var(--radius-md);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+}
+
+.support {
+  background: var(--color-success-light);
+  color: var(--color-success-dark);
+  border: 1px solid var(--color-success);
+}
+
+.opposition {
+  background: var(--color-danger-light);
+  color: var(--color-danger-dark);
+  border: 1px solid var(--color-danger);
+}
+
+.net {
+  background: var(--color-info-light);
+  color: var(--color-info-dark);
+  border: 1px solid var(--color-info);
+  font-weight: var(--font-weight-bold);
+}
+
+.commitment-details {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+}
+
+.supporters {
+  color: var(--color-success-dark);
+  margin-bottom: var(--spacing-1);
+}
+
+.opponents {
+  color: var(--color-danger-dark);
+  margin-bottom: var(--spacing-1);
+}
+
+.your-commitment {
+  background: var(--color-primary-light);
+  color: var(--color-primary-dark);
+  padding: var(--spacing-1) var(--spacing-2);
+  border-radius: var(--radius-md);
+  font-weight: var(--font-weight-bold);
+  margin-top: var(--spacing-2);
+  text-align: center;
+}
+
+.reward-info {
+  background: var(--color-surface-secondary);
+  padding: var(--spacing-3);
+  border-radius: var(--radius-lg);
+  margin-top: var(--spacing-3);
+  border-left: 4px solid var(--color-warning);
+}
+
+.sponsor-bonus {
+  margin-bottom: var(--spacing-2);
+  color: var(--color-warning-dark);
+  font-weight: var(--font-weight-medium);
+}
+
+.commitment-rewards {
+  color: var(--color-text-secondary);
+}
+
+.commitment-rewards ul {
+  margin-top: var(--spacing-1);
+  padding-left: var(--spacing-4);
+}
+
+.commitment-rewards li {
+  margin-bottom: var(--spacing-1);
+  font-size: var(--font-size-sm);
+}
+
+/* Gambling Menu Styles */
+.gambling-menu {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border: 2px solid var(--color-primary);
+  box-shadow: var(--shadow-xl);
+}
+
+.gambling-menu h3 {
+  color: var(--color-text-inverse);
+  text-align: center;
+  margin-bottom: var(--spacing-4);
+  font-size: var(--font-size-xl);
+  font-weight: var(--font-weight-bold);
+}
+
+.gambling-info {
+  background: rgba(255, 255, 255, 0.1);
+  padding: var(--spacing-3);
+  border-radius: var(--radius-lg);
+  margin-bottom: var(--spacing-4);
+  backdrop-filter: blur(10px);
+}
+
+.gambling-info p {
+  color: var(--color-text-inverse);
+  margin-bottom: var(--spacing-2);
+  font-weight: var(--font-weight-medium);
+}
+
+.gambling-info ul {
+  color: var(--color-text-inverse);
+  margin-left: var(--spacing-4);
+  margin-bottom: var(--spacing-2);
+}
+
+.gambling-info li {
+  margin-bottom: var(--spacing-1);
+  font-size: var(--font-size-sm);
+}
+
+.gambling-info em {
+  color: var(--color-warning-light);
+  font-style: italic;
+}
+
+.gambling-option {
+  background: var(--color-surface);
+  border: 2px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: var(--spacing-4);
+  margin-bottom: var(--spacing-3);
+  transition: all var(--transition-normal);
+  cursor: pointer;
+  text-align: left;
+  width: 100%;
+}
+
+.gambling-option:hover {
+  border-color: var(--color-primary);
+  box-shadow: var(--shadow-lg);
+  transform: translateY(-2px);
+}
+
+.gambling-option .legislation-header {
+  margin-bottom: var(--spacing-3);
+}
+
+.gambling-option .legislation-header div:first-child {
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-text-primary);
+  margin-bottom: var(--spacing-1);
+}
+
+.gambling-option .sponsor {
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-sm);
+}
+
+.gambling-option .legislation-details {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-2);
+}
+
+.gambling-option .targets {
+  display: flex;
+  gap: var(--spacing-2);
+  flex-wrap: wrap;
+}
+
+.gambling-option .targets span {
+  background: var(--color-surface-secondary);
+  padding: var(--spacing-1) var(--spacing-2);
+  border-radius: var(--radius-md);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+}
+
+.gambling-option .current-status {
+  display: flex;
+  gap: var(--spacing-2);
+  flex-wrap: wrap;
+}
+
+.gambling-option .current-status span {
+  padding: var(--spacing-1) var(--spacing-2);
+  border-radius: var(--radius-md);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+}
+
+.gambling-option .your-commitment {
+  background: var(--color-primary-light);
+  color: var(--color-primary-dark);
+  padding: var(--spacing-1) var(--spacing-2);
+  border-radius: var(--radius-md);
+  font-weight: var(--font-weight-bold);
+  text-align: center;
+  margin-top: var(--spacing-2);
+}
+
+/* Enhanced legislation display for gambling system */
+.legislation-item.gambling-legislation .legislation-header {
+  background: rgba(255, 255, 255, 0.1);
+  padding: var(--spacing-3);
+  border-radius: var(--radius-lg);
+  margin-bottom: var(--spacing-3);
+  backdrop-filter: blur(10px);
+}
+
+.legislation-item.gambling-legislation .legislation-header h4 {
+  color: var(--color-text-inverse);
+  margin-bottom: var(--spacing-1);
+}
+
+.legislation-item.gambling-legislation .sponsor {
+  color: var(--color-text-inverse-secondary);
+  font-size: var(--font-size-sm);
+}
+
+.legislation-item.gambling-legislation .legislation-details {
+  color: var(--color-text-inverse);
+}
+
+/* Mobile responsiveness for gambling system */
+@media (max-width: 768px) {
+  .gambling-option .legislation-details {
+    gap: var(--spacing-1);
+  }
+  
+  .gambling-option .targets,
+  .gambling-option .current-status {
+    flex-direction: column;
+  }
+  
+  .gambling-info {
+    padding: var(--spacing-2);
+  }
+  
+  .reward-info {
+    padding: var(--spacing-2);
+  }
+}
+
+@media (max-width: 480px) {
+  .gambling-menu h3 {
+    font-size: var(--font-size-lg);
+  }
+  
+  .gambling-option {
+    padding: var(--spacing-3);
+  }
+  
+  .gambling-option .legislation-header {
+    padding: var(--spacing-2);
+  }
+} 

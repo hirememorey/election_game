@@ -292,10 +292,8 @@ def resolve_support_legislation(state: GameState, action: ActionSupportLegislati
     player = state.get_player_by_id(action.player_id)
     if not player: return state
     
-    # Only allow support during legislation session
-    if not state.legislation_session_active:
-        state.add_log(f"Legislation voting is only allowed during the legislation session at the end of the term.")
-        return state
+    # Allow support during any turn, not just legislation session
+    # This creates a "long-form auction" feel where players can commit PC throughout the term
     
     # Find the legislation to support in term_legislation
     target_legislation = None
@@ -328,10 +326,8 @@ def resolve_oppose_legislation(state: GameState, action: ActionOpposeLegislation
     player = state.get_player_by_id(action.player_id)
     if not player: return state
     
-    # Only allow opposition during legislation session
-    if not state.legislation_session_active:
-        state.add_log(f"Legislation voting is only allowed during the legislation session at the end of the term.")
-        return state
+    # Allow opposition during any turn, not just legislation session
+    # This creates a "long-form auction" feel where players can commit PC throughout the term
     
     # Find the legislation to oppose in term_legislation
     target_legislation = None
@@ -498,7 +494,7 @@ def resolve_upkeep(state: GameState) -> GameState:
     return state
 
 def resolve_pending_legislation(state: GameState) -> GameState:
-    """Resolves pending legislation using influence system instead of dice."""
+    """Resolves pending legislation using enhanced PC commitment gambling system."""
     if not state.pending_legislation or state.pending_legislation.resolved:
         return state
     
@@ -510,7 +506,7 @@ def resolve_pending_legislation(state: GameState) -> GameState:
         state.add_log("Error: Sponsor not found for pending legislation.")
         return state
     
-    state.add_log(f"\n--- Resolving {bill.title} (Influence System) ---")
+    state.add_log(f"\n--- Resolving {bill.title} (Enhanced PC Gambling System) ---")
     
     # Calculate total influence committed
     total_support = sum(pending.support_players.values())
@@ -545,32 +541,80 @@ def resolve_pending_legislation(state: GameState) -> GameState:
     
     # Determine outcome based on influence vs targets
     outcome = "Failure"
+    sponsor_bonus_multiplier = 1.5  # Sponsor gets 50% bonus on success
+    sponsor_penalty_multiplier = 1.5  # Sponsor gets 50% penalty on failure
+    
     if net_influence >= bill.crit_target:
         outcome = "Critical Success"
-        sponsor.pc += bill.crit_reward
+        # Sponsor gets enhanced reward with bonus multiplier
+        base_reward = bill.crit_reward
+        sponsor_reward = int(base_reward * sponsor_bonus_multiplier)
+        sponsor.pc += sponsor_reward
         if bill.mood_change > 0:
             apply_public_mood_effect(state, mood_change=bill.mood_change, pc_bonus=2)
-        state.add_log(f"Critical Success! {sponsor.name} gains {bill.crit_reward} PC.")
+        state.add_log(f"Critical Success! {sponsor.name} gains {sponsor_reward} PC (base {base_reward} + {sponsor_bonus_multiplier}x bonus).")
     elif net_influence >= bill.success_target:
         outcome = "Success"
-        sponsor.pc += bill.success_reward
+        # Sponsor gets enhanced reward with bonus multiplier
+        base_reward = bill.success_reward
+        sponsor_reward = int(base_reward * sponsor_bonus_multiplier)
+        sponsor.pc += sponsor_reward
         if bill.mood_change > 0:
             apply_public_mood_effect(state, mood_change=bill.mood_change, pc_bonus=2)
-        state.add_log(f"Success! {sponsor.name} gains {bill.success_reward} PC.")
+        state.add_log(f"Success! {sponsor.name} gains {sponsor_reward} PC (base {base_reward} + {sponsor_bonus_multiplier}x bonus).")
     else:
-        sponsor.pc -= bill.failure_penalty
-        state.add_log(f"Failure! The bill fails. {sponsor.name} loses {bill.failure_penalty} PC.")
+        # Sponsor gets enhanced penalty
+        base_penalty = bill.failure_penalty
+        sponsor_penalty = int(base_penalty * sponsor_penalty_multiplier)
+        sponsor.pc -= sponsor_penalty
+        state.add_log(f"Failure! The bill fails. {sponsor.name} loses {sponsor_penalty} PC (base {base_penalty} + {sponsor_penalty_multiplier}x penalty).")
     
-    # Reward supporters if legislation passed
+    # Enhanced reward system for supporters/opponents based on commitment size
     passed = outcome in ["Success", "Critical Success"]
+    
+    # Reward supporters if legislation passed (gambling-style rewards)
     if passed and pending.support_players:
-        reward_per_pc = 1  # Supporters get 1 PC back for each PC they spent
+        state.add_log("--- Supporters Rewards ---")
         for player_id, amount in pending.support_players.items():
             player = state.get_player_by_id(player_id)
             if player:
-                reward = min(amount, reward_per_pc * amount)
+                # Bigger commitments get bigger rewards (gambling mechanic)
+                if amount >= 10:
+                    reward_multiplier = 2.0  # 2x reward for big commitments (10+ PC)
+                    reward = int(amount * reward_multiplier)
+                    state.add_log(f"{player.name} committed {amount} PC - BIG BET! Gets {reward} PC (2x multiplier).")
+                elif amount >= 5:
+                    reward_multiplier = 1.5  # 1.5x reward for medium commitments (5-9 PC)
+                    reward = int(amount * reward_multiplier)
+                    state.add_log(f"{player.name} committed {amount} PC - Medium bet! Gets {reward} PC (1.5x multiplier).")
+                else:
+                    reward_multiplier = 1.0  # 1x reward for small commitments (1-4 PC)
+                    reward = int(amount * reward_multiplier)
+                    state.add_log(f"{player.name} committed {amount} PC - Small bet. Gets {reward} PC (1x multiplier).")
+                
                 player.pc += reward
-                state.add_log(f"{player.name} receives {reward} PC for supporting successful legislation.")
+    
+    # Reward opponents if legislation failed (gambling-style rewards)
+    if not passed and pending.oppose_players:
+        state.add_log("--- Opponents Rewards ---")
+        for player_id, amount in pending.oppose_players.items():
+            player = state.get_player_by_id(player_id)
+            if player:
+                # Bigger commitments get bigger rewards (gambling mechanic)
+                if amount >= 10:
+                    reward_multiplier = 2.0  # 2x reward for big commitments (10+ PC)
+                    reward = int(amount * reward_multiplier)
+                    state.add_log(f"{player.name} committed {amount} PC - BIG BET! Gets {reward} PC (2x multiplier).")
+                elif amount >= 5:
+                    reward_multiplier = 1.5  # 1.5x reward for medium commitments (5-9 PC)
+                    reward = int(amount * reward_multiplier)
+                    state.add_log(f"{player.name} committed {amount} PC - Medium bet! Gets {reward} PC (1.5x multiplier).")
+                else:
+                    reward_multiplier = 1.0  # 1x reward for small commitments (1-4 PC)
+                    reward = int(amount * reward_multiplier)
+                    state.add_log(f"{player.name} committed {amount} PC - Small bet. Gets {reward} PC (1x multiplier).")
+                
+                player.pc += reward
     
     # Record result
     state.last_sponsor_result = {'player_id': sponsor.id, 'passed': passed}
@@ -1136,4 +1180,6 @@ def resolve_pass_turn(state: GameState, action: ActionPassTurn) -> GameState:
         return state
     
     state.add_log(f"{player.name} passes their turn.")
+    # Force turn advancement by setting action points to 0
+    state.action_points[player.id] = 0
     return state

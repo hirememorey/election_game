@@ -309,7 +309,7 @@
 - **Sponsor Legislation** (2 AP): Create legislation for votes/mood (cost varies by legislation type)
 - **Declare Candidacy** (2 AP): Run for office (Round 4 only, cost varies by office + optional PC commitment)
 - **Use Favor** (0 AP): Strategic advantage actions (requires having political favors, now with selection menu)
-- **Support/Oppose Legislation** (1 AP): Interactive legislation system with custom PC commitment (restricted to legislation session only)
+- **Support/Oppose Legislation** (1 AP): **🎰 Gambling-style system** - commit PC during any turn with risk/reward mechanics
 - **Campaign** (2 AP): Place influence for future office elections (NEW)
 - **Trading** (0 AP): Propose trades of PC/favors for votes during legislation sessions
 
@@ -391,6 +391,7 @@
 - **`test_api.py`**: API endpoints and PEEK_EVENT favor
 - **`test_form_alliance_removal.py`**: Verifies Form Alliance removal
 - **`test_legislation_timing.py`**: Legislation session timing
+- **`test_legislation_gambling_system.py`**: **🎰 Gambling-style legislation system** with PC commitment and sponsor bonuses
 - **`test_mood_system.py`**: Mood system functionality
 - **`performance_test.py`**: Performance benchmarking
 
