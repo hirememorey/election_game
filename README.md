@@ -150,6 +150,16 @@ python3 test_action_points_system.py
 
 ## 🎯 Recent Major Improvements
 
+### Manual Phase Resolution System
+- **Manual Legislation Resolution**: After the term ends, players can manually trigger legislation resolution with a "Resolve Legislation" button
+- **Manual Election Resolution**: After legislation is resolved, players can manually trigger election resolution with a "Resolve Elections" button  
+- **Enhanced Game Flow**: Players can review the game state before seeing phase results
+- **New API Endpoints**: 
+  - `POST /api/game/<id>/resolve_legislation`: Manually resolve all pending legislation
+  - `POST /api/game/<id>/resolve_elections`: Manually resolve elections and start new term
+- **State Flags**: `awaiting_legislation_resolution` and `awaiting_election_resolution` flags control when resolution buttons appear
+- **Improved Logging**: Legislation results are properly logged to the game log with detailed breakdowns
+
 ### Action Points System (Phase 2)
 - Players get 3 Action Points per turn instead of 1 action
 - Multiple actions per turn until AP are exhausted

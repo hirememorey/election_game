@@ -87,6 +87,10 @@ class GameState:
     last_sponsor_result: Dict = field(default_factory=dict) # {'player_id': int, 'passed': bool}
     legislation_history: List[Dict] = field(default_factory=list) # [{'sponsor_id': int, 'leg_id': str, 'outcome': str}]
 
+    # --- NEW: Manual phase resolution flags ---
+    awaiting_legislation_resolution: bool = False
+    awaiting_election_resolution: bool = False
+
     def get_current_player(self) -> Player:
         """Returns the player whose turn it is."""
         return self.players[self.current_player_index]

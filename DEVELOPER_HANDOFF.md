@@ -80,6 +80,22 @@
    - Legislation cleanup and player index reset
    - **Status**: Fully implemented and tested
 
+10. **Manual Phase Resolution System** (NEW - Just Completed)
+    - **Manual Legislation Resolution**: After the term ends, players can manually trigger legislation resolution with a "Resolve Legislation" button
+    - **Manual Election Resolution**: After legislation is resolved, players can manually trigger election resolution with a "Resolve Elections" button
+    - **Enhanced Game Flow**: Players can review the game state before seeing phase results
+    - **New API Endpoints**: 
+      - `POST /api/game/<id>/resolve_legislation`: Manually resolve all pending legislation
+      - `POST /api/game/<id>/resolve_elections`: Manually resolve elections and start new term
+    - **State Flags**: `awaiting_legislation_resolution` and `awaiting_election_resolution` flags control when resolution buttons appear
+    - **Improved Logging**: Legislation results are properly logged with detailed breakdowns
+    - **Files Modified**: 
+      - `models/game_state.py`: Added resolution flags
+      - `engine/engine.py`: Added resolution methods
+      - `server.py`: Added resolution endpoints
+    - **Backend Testing**: Comprehensive testing confirms system works correctly
+    - **Status**: Backend fully implemented and tested, frontend implementation needed
+
 ### Available Actions
 - **Fundraise** (1 AP): Gain Political Capital
 - **Network** (1 AP): Gain PC and political favors
@@ -103,7 +119,20 @@
 
 ## 🎯 Immediate Next Steps (Priority Order)
 
-### 1. **Extensive Playtesting** (HIGH PRIORITY)
+### 1. **Frontend Manual Resolution Implementation** (HIGH PRIORITY)
+**What**: Implement the frontend UI for the manual phase resolution system
+**Why**: Complete the manual resolution feature for better user experience
+**How**: Add resolve buttons to the frontend when `awaiting_legislation_resolution` or `awaiting_election_resolution` flags are true
+**Files to Modify**: `static/script.js`, `static/style.css`
+**Focus Areas**:
+- Show "Resolve Legislation" button when `awaiting_legislation_resolution` is true
+- Show "Resolve Elections" button when `awaiting_election_resolution` is true
+- Call the appropriate API endpoints when buttons are clicked
+- Display the resolution results in the game log
+- Handle the state transitions properly
+**Estimated Effort**: 1-2 days
+
+### 2. **Extensive Playtesting** (HIGH PRIORITY)
 **What**: Test all systems thoroughly, especially the Action Points system and trading systems
 **Why**: Ensure new mechanics enhance rather than detract from gameplay
 **How**: Play multiple games with different strategies
@@ -116,8 +145,9 @@
 - Apple-level design system user experience
 - **NEW**: Test the improved legislation session flow (no more round 5 confusion)
 - **NEW**: Test Pass Turn functionality and action point handling
+- **NEW**: Test manual phase resolution system
 
-### 2. **Balance Adjustments** (MEDIUM PRIORITY)
+### 3. **Balance Adjustments** (MEDIUM PRIORITY)
 **What**: Fine-tune AP costs and PC commitment amounts based on playtesting
 **Why**: Ensure optimal gameplay experience
 **How**: Adjust values in `engine/engine.py` and `engine/resolvers.py`
@@ -128,14 +158,14 @@
 - Campaign influence effectiveness
 - Public mood effect magnitudes
 
-### 3. **Database Integration** (MEDIUM PRIORITY)
+### 4. **Database Integration** (MEDIUM PRIORITY)
 **What**: Replace in-memory storage with persistent database
 **Why**: Production readiness and game state persistence
 **How**: Add PostgreSQL/MongoDB integration
 **Files to Modify**: `server.py`, add database models
 **Estimated Effort**: 1-2 days
 
-### 4. **Network Action Design** (LOW PRIORITY)
+### 5. **Network Action Design** (LOW PRIORITY)
 **What**: Implement merged Network/Alliance system from `NETWORK_ACTION_DESIGN.md`
 **Why**: Add strategic depth if Form Alliance is missed
 **How**: Follow design document specifications
@@ -184,6 +214,8 @@ static/
 - `POST /api/game`: Create new game
 - `GET /api/game/<id>`: Get game state
 - `POST /api/game/<id>/action`: Process player action
+- `POST /api/game/<id>/resolve_legislation`: Manually resolve all pending legislation
+- `POST /api/game/<id>/resolve_elections`: Manually resolve elections and start new term
 - `DELETE /api/game/<id>`: Delete game
 - `GET /api/test`: Test endpoint for deployment verification
 

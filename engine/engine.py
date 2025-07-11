@@ -154,18 +154,11 @@ class GameEngine:
             else:
                 # Voting phase - advance to next player
                 if state.current_player_index >= len(state.players):
-                    # All players have voted, resolve all legislation and move to elections
-                    state.add_log("\n--- LEGISLATION SESSION: Resolving All Bills ---")
-                    for legislation in state.term_legislation:
-                        if not legislation.resolved:
-                            state.pending_legislation = legislation
-                            state = resolvers.resolve_pending_legislation(state)
-                    
-                    # Clear term legislation and move to elections
-                    state.term_legislation.clear()
-                    state.legislation_session_active = False
-                    state.current_player_index = 0  # Reset for new term
-                    return self.run_election_phase(state)
+                    # All players have voted, STOP and set awaiting_legislation_resolution
+                    state.add_log("\n--- LEGISLATION SESSION: Ready to Resolve All Bills ---")
+                    state.awaiting_legislation_resolution = True
+                    # Do not resolve or advance further until manual trigger
+                    return state
                 else:
                     # Continue to next player's voting turn
                     state.current_phase = "LEGISLATION_PHASE"
@@ -280,3 +273,51 @@ class GameEngine:
                 state.add_log(f"\n{p.name.upper()} HAS BEEN ELECTED PRESIDENT!")
                 return True
         return False
+
+    def resolve_legislation_session(self, state: GameState) -> GameState:
+        """Manually resolve all pending legislation at the end of the term."""
+        if not state.awaiting_legislation_resolution:
+            state.add_log("No legislation session to resolve.")
+            return state
+        state.add_log("\n--- LEGISLATION SESSION: Resolving All Bills ---")
+        for legislation in state.term_legislation:
+            if not legislation.resolved:
+                state.pending_legislation = legislation
+                state = resolvers.resolve_pending_legislation(state)
+        # Clear term legislation and move to elections
+        state.term_legislation.clear()
+        state.legislation_session_active = False
+        state.current_player_index = 0  # Reset for new term
+        state.awaiting_legislation_resolution = False
+        state.awaiting_election_resolution = True
+        return state
+
+    def resolve_elections_session(self, state: GameState) -> GameState:
+        """Manually resolve all elections after legislation session."""
+        if not state.awaiting_election_resolution:
+            state.add_log("No election session to resolve.")
+            return state
+        state.current_phase = "ELECTION_PHASE"
+        state.add_log("\n--- ELECTION PHASE ---")
+        # Grant 2 AP to each player at the start of the election phase
+        for player in state.players:
+            state.action_points[player.id] = 2
+        new_state = resolvers.resolve_elections(state)
+        # Reset for the new term
+        new_state.round_marker = 1
+        new_state.current_player_index = 0  # Reset player index for new term
+        new_state.secret_candidacies.clear()
+        new_state.term_legislation.clear()  # Clear term legislation for new term
+        new_state.pending_legislation = None  # Clear any pending legislation for new term
+        # Reset any term-based abilities or effects
+        for effect in list(new_state.active_effects):
+            if effect in ["WAR_BREAKS_OUT", "VOTER_APATHY"]: # Add other term-long effects here
+                new_state.active_effects.remove(effect)
+        # Reset archetype-specific tracking for new term
+        new_state.fundraiser_first_fundraise_used.clear()  # Reset Fundraiser first Fundraise tracking
+        new_state.add_log("\nA new term begins!")
+        # Automatically run the event phase for the new term
+        new_state.add_log("\n--- EVENT PHASE ---")
+        new_state = self.run_event_phase(new_state)
+        new_state.awaiting_election_resolution = False
+        return new_state

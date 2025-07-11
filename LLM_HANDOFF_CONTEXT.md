@@ -82,6 +82,32 @@
   - **Impact**: Players can now sponsor multiple pieces of legislation in a single term, queuing them up for the end-of-term session as intended.
   - **Status**: Fixed and deployed
 
+### Manual Phase Resolution System (LATEST - Just Completed)
+- **Manual Legislation Resolution**: After the term ends, players can manually trigger legislation resolution with a "Resolve Legislation" button
+  - **Enhanced Game Flow**: Players can review the game state before seeing legislation results
+  - **New API Endpoint**: `POST /api/game/<id>/resolve_legislation` - Manually resolve all pending legislation
+  - **State Flag**: `awaiting_legislation_resolution` controls when the resolve button appears
+  - **Improved Logging**: Legislation results are properly logged with detailed breakdowns (support/opposition, net influence, outcome, rewards)
+  - **Files Modified**: 
+    - `models/game_state.py`: Added `awaiting_legislation_resolution` and `awaiting_election_resolution` flags
+    - `engine/engine.py`: Added `resolve_legislation_session()` and `resolve_elections_session()` methods
+    - `server.py`: Added `/resolve_legislation` and `/resolve_elections` endpoints
+  - **Impact**: Better user experience with manual control over phase resolution
+
+- **Manual Election Resolution**: After legislation is resolved, players can manually trigger election resolution with a "Resolve Elections" button
+  - **Sequential Flow**: Legislation resolution → Election resolution → New term
+  - **New API Endpoint**: `POST /api/game/<id>/resolve_elections` - Manually resolve elections and start new term
+  - **State Flag**: `awaiting_election_resolution` controls when the resolve button appears
+  - **Term Transition**: Properly advances to new term with event phase
+  - **Files Modified**: Same as above
+  - **Impact**: Complete manual control over the end-of-term sequence
+
+- **Backend Testing**: Comprehensive testing confirms the system works correctly
+  - **Test File**: `test_manual_resolution_direct.py` - Direct backend testing
+  - **Test File**: `test_manual_resolution_api.py` - API endpoint testing
+  - **Status**: Backend fully implemented and tested
+  - **Next Steps**: Frontend implementation needed to show resolve buttons
+
 ### Gameplay Balance Changes (LATEST)
 - **Action Points Reduction**: Changed from 3 AP per round to 2 AP per round for more strategic gameplay
   - **Files Modified**: `engine/engine.py` (action_point_costs, start_new_game, _advance_turn, run_election_phase), `engine/resolvers.py` (resolve_upkeep), `static/script.js` (UI displays and action costs)

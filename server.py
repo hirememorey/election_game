@@ -151,7 +151,10 @@ def serialize_game_state(state):
         'hot_potato_holder': state.hot_potato_holder,
         'public_gaffe_players': list(state.public_gaffe_players),
         'media_scrutiny_players': list(state.media_scrutiny_players),
-        'compromised_players': list(state.compromised_players)
+        'compromised_players': list(state.compromised_players),
+        # --- NEW: Manual phase resolution flags ---
+        'awaiting_legislation_resolution': state.awaiting_legislation_resolution,
+        'awaiting_election_resolution': state.awaiting_election_resolution,
     }
 
 @app.route('/api/game', methods=['POST'])
@@ -300,6 +303,32 @@ def run_event_phase(game_id):
         })
     except Exception as e:
         return jsonify({'error': str(e)}), 400
+
+@app.route('/api/game/<game_id>/resolve_legislation', methods=['POST'])
+def resolve_legislation(game_id):
+    """Manually resolve all pending legislation at the end of the term."""
+    if game_id not in active_games:
+        return jsonify({'error': 'Game not found'}), 404
+    state = active_games[game_id]
+    new_state = engine.resolve_legislation_session(state)
+    active_games[game_id] = new_state
+    return jsonify({
+        'game_id': game_id,
+        'state': serialize_game_state(new_state)
+    })
+
+@app.route('/api/game/<game_id>/resolve_elections', methods=['POST'])
+def resolve_elections(game_id):
+    """Manually resolve all elections after legislation session."""
+    if game_id not in active_games:
+        return jsonify({'error': 'Game not found'}), 404
+    state = active_games[game_id]
+    new_state = engine.resolve_elections_session(state)
+    active_games[game_id] = new_state
+    return jsonify({
+        'game_id': game_id,
+        'state': serialize_game_state(new_state)
+    })
 
 @app.route('/api/game/<game_id>', methods=['DELETE'])
 def delete_game(game_id):
