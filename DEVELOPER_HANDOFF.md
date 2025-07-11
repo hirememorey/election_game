@@ -350,6 +350,7 @@ PORT=5001 python3 server.py
 - **Public Mood Balance**: Incumbent/outsider effect magnitudes may need adjustment
 
 ### Recent Bug Fixes
+- **War Mood Lock**: ✅ **RESOLVED** - Fixed bug where "War Breaks Out" event didn't properly lock public mood. Other events could still change public mood during war, violating the intended game mechanic. Now public mood is properly locked for the rest of the term when war is active.
 - **Trading action visibility fixed** (frontend/backend phase name alignment)
 - **Media Scrutiny favor logic fixed**
 - **Action Points System Fixes** (NEW - Latest)

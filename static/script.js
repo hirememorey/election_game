@@ -185,6 +185,13 @@ async function getGameState() {
 async function performAction(actionType, additionalData = {}) {
     if (!gameId) return;
     
+    // Check if gameState is available
+    if (!gameState || !gameState.players) {
+        console.error('Game state not available for action');
+        showMessage('Game state not available. Please refresh the page.', 'error');
+        return;
+    }
+    
     try {
         const data = {
             action_type: actionType,
@@ -325,29 +332,7 @@ function renderPlayerDashboard() {
     updatePlayerFavorsDisplay();
 }
 
-async function performAction(actionType, params = {}) {
-    try {
-        const response = await fetch(`/api/game/${gameId}/action`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                action_type: actionType,
-                player_id: gameState.players[gameState.current_player_index].id,
-                ...params,
-            }),
-        });
-        const data = await response.json();
-        gameId = data.game_id; // Corrected from data.id to data.game_id
-        gameState = data.state;
-        if (data.error) {
-            alert(data.error);
-            return;
-        }
-        updateUi();
-    } catch (error) {
-        console.error('Error performing action:', error);
-    }
-}
+// Remove this duplicate function - it's overriding the correct one above
 
 function getAvailableActions(phase) {
     // This function will be expanded to be more context-aware
@@ -890,6 +875,13 @@ function formatMood(mood) {
 }
 
 function showLegislationMenu() {
+    // Check if gameState is available
+    if (!gameState || !gameState.players) {
+        console.error('Game state not available for legislation menu');
+        showMessage('Game state not available. Please refresh the page.', 'error');
+        return;
+    }
+    
     // Remove existing legislation menu
     const existingMenu = document.getElementById('legislation-menu');
     if (existingMenu) {
@@ -940,6 +932,13 @@ function showLegislationMenu() {
 }
 
 function showFavorMenu() {
+    // Check if gameState is available
+    if (!gameState || !gameState.players) {
+        console.error('Game state not available for favor menu');
+        showMessage('Game state not available. Please refresh the page.', 'error');
+        return;
+    }
+    
     // Remove existing favor menu
     const existingMenu = document.getElementById('favor-menu');
     if (existingMenu) {
@@ -1288,6 +1287,13 @@ function showLegislationOpposeMenu() {
 }
 
 function showCampaignDialog() {
+    // Check if gameState is available
+    if (!gameState || !gameState.players) {
+        console.error('Game state not available for campaign dialog');
+        showMessage('Game state not available. Please refresh the page.', 'error');
+        return;
+    }
+    
     const currentPlayer = gameState.players[gameState.current_player_index];
     
     // Create modal overlay

@@ -60,7 +60,6 @@ class GameState:
     
     # New: Track pending legislation and candidacy timing
     pending_legislation: Optional[PendingLegislation] = None
-    candidacy_declared_this_round: bool = False
     
     # End-of-term legislation session
     term_legislation: List[PendingLegislation] = field(default_factory=list)  # All legislation sponsored this term

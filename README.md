@@ -128,6 +128,7 @@ See `DEPLOYMENT.md` for step-by-step instructions for Render, Netlify, Heroku, R
 - **`test_api.py`**: API endpoints and favor system
 - **`test_legislation_timing.py`**: Legislation session timing
 - **`test_mood_system.py`**: Mood system functionality
+- **`test_war_mood_lock.py`**: War event mood lock functionality
 - **`performance_test.py`**: Performance benchmarking
 
 ### Run Tests
@@ -208,6 +209,7 @@ python3 test_action_points_system.py
 - **Apple-Level Design**: Fully implemented and ready for user experience testing
 
 ### Recent Bug Fixes
+- **War Mood Lock**: ✅ **RESOLVED** - Fixed bug where "War Breaks Out" event didn't properly lock public mood. Other events could still change public mood during war, violating the intended game mechanic. Now public mood is properly locked for the rest of the term when war is active.
 - **Legislation Display**: ✅ **RESOLVED** - Fixed critical bug where pending legislation was showing as "undefined" in the final round of the term. Legislation now displays properly with titles, descriptions, and sponsor information.
 - **Use Favor Action**: Fixed to work with selection menu
 - **PC Commitment**: Added custom PC amounts for legislation and candidacy

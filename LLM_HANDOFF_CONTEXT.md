@@ -621,6 +621,7 @@ PORT=5001 python3 server.py
 - **PC Commitment UX**: Prompt dialogs may need refinement
 
 ### Recent Bug Fixes
+- **War Mood Lock**: ✅ **RESOLVED** - Fixed bug where "War Breaks Out" event didn't properly lock public mood. Other events could still change public mood during war, violating the intended game mechanic. Now public mood is properly locked for the rest of the term when war is active.
 - **Action Points System**: Backend fully implemented and tested
 - **Use Favor Action**: Fixed to properly work with selection menu
 - **PC Commitment**: Added custom PC amounts for legislation and candidacy

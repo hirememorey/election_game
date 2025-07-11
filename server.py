@@ -165,6 +165,8 @@ def create_game():
     
     # Create new game
     game_state = engine.start_new_game(player_names)
+    # Run the first event phase immediately
+    game_state = engine.run_event_phase(game_state)
     game_id = str(uuid.uuid4())
     active_games[game_id] = game_state
     

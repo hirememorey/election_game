@@ -26,6 +26,11 @@ def apply_public_mood_effect(state: GameState, mood_change: int, pc_bonus: int =
         mood_change: How much to change public mood (+ or -)
         pc_bonus: Base PC amount for the effect (default 5)
     """
+    # Prevent public mood changes if war is active
+    if "WAR_BREAKS_OUT" in state.active_effects:
+        state.add_log("Public Mood is locked due to War. No change occurs.")
+        mood_change = 0
+    
     # Apply mood change
     if mood_change > 0:
         state.public_mood = min(3, state.public_mood + mood_change)
@@ -361,9 +366,10 @@ def resolve_declare_candidacy(state: GameState, action: ActionDeclareCandidacy) 
     if not player: return state
     
     # Check if candidacy has already been declared this round
-    if state.candidacy_declared_this_round:
-        state.add_log(f"A candidacy has already been declared this round. {player.name} must wait until next round.")
-        return state
+    # (Removed: allow multiple candidacies per round)
+    # if state.candidacy_declared_this_round:
+    #     state.add_log(f"A candidacy has already been declared this round. {player.name} must wait until next round.")
+    #     return state
     
     office = state.offices[action.office_id]
     cost = office.candidacy_cost
@@ -374,7 +380,7 @@ def resolve_declare_candidacy(state: GameState, action: ActionDeclareCandidacy) 
     player.pc -= (cost + action.committed_pc)
     candidacy = Candidacy(player_id=player.id, office_id=action.office_id, committed_pc=action.committed_pc)
     state.secret_candidacies.append(candidacy)
-    state.candidacy_declared_this_round = True
+    # state.candidacy_declared_this_round = True # This line is removed
     
     state.add_log(f"{player.name} pays {cost} PC to run for {office.title} and secretly commits additional funds.")
     return state
@@ -419,7 +425,7 @@ def resolve_upkeep(state: GameState) -> GameState:
         state.pending_legislation = None
     
     # Reset candidacy flag for new round
-    state.candidacy_declared_this_round = False
+    # state.candidacy_declared_this_round = False # This line is removed
     
     # Reset action points for all players for the new round
     for p in state.players:
