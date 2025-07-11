@@ -1,60 +1,122 @@
 #!/usr/bin/env python3
 """
-Debug script to trace exactly when legislation is being resolved.
+Debug script to check legislation IDs in the current game.
 """
 
-import sys
-import os
-sys.path.append(os.path.dirname(os.path.abspath(__file__)))
+import requests
+import json
 
-from engine.engine import GameEngine
-from game_data import load_game_data
-from engine.actions import ActionSponsorLegislation, ActionFundraise
+BASE_URL = 'http://localhost:5001/api/game'
 
-def debug_legislation_resolution():
-    """Debug exactly when legislation is being resolved."""
+def debug_legislation():
+    """Debug the legislation IDs in the current game."""
     
-    # Load game data and create engine
-    game_data = load_game_data()
-    engine = GameEngine(game_data)
+    print("🔍 Debugging Legislation IDs")
+    print("=" * 50)
     
-    # Start a new game
-    state = engine.start_new_game(["Tara", "Harris"])
+    # Create a new game
+    print("1. Creating new game...")
+    resp = requests.post(BASE_URL, json={'player_names': ['Alice', 'Bob', 'Charlie']})
+    if resp.status_code != 200:
+        print(f"❌ Failed to create game: {resp.status_code}")
+        return
     
-    print("=== Starting Legislation Debug ===")
-    print(f"Initial phase: {state.current_phase}")
-    print(f"Round: {state.round_marker}")
+    data = resp.json()
+    game_id = data['game_id']
+    state = data['state']
     
-    # Round 1: Tara sponsors legislation
-    print("\n--- ROUND 1 ---")
-    print("Tara sponsors Infrastructure Bill")
-    action = ActionSponsorLegislation(player_id=0, legislation_id="INFRASTRUCTURE")
-    state = engine.process_action(state, action)
-    print(f"Phase: {state.current_phase}, Round: {state.round_marker}")
-    print(f"Pending legislation: {state.pending_legislation is not None}")
-    if state.pending_legislation:
-        print(f"  - Legislation ID: {state.pending_legislation.legislation_id}")
-        print(f"  - Resolved: {state.pending_legislation.resolved}")
-    print(f"Term legislation count: {len(state.term_legislation)}")
+    print(f"✅ Game created: {game_id}")
+    print(f"Current player: {state.get('current_player_index', 'Unknown')}")
+    print(f"Phase: {state.get('current_phase', 'Unknown')}")
+    print(f"Legislation session active: {state.get('legislation_session_active', False)}")
     
-    # Harris fundraises
-    print("Harris fundraises")
-    action = ActionFundraise(player_id=1)
-    state = engine.process_action(state, action)
-    print(f"Phase: {state.current_phase}, Round: {state.round_marker}")
-    print(f"Pending legislation: {state.pending_legislation is not None}")
-    if state.pending_legislation:
-        print(f"  - Legislation ID: {state.pending_legislation.legislation_id}")
-        print(f"  - Resolved: {state.pending_legislation.resolved}")
-    print(f"Term legislation count: {len(state.term_legislation)}")
-    for i, leg in enumerate(state.term_legislation):
-        print(f"  Term legislation {i}: {leg.legislation_id}, resolved: {leg.resolved}")
+    # Check legislation options
+    print("\n📋 Legislation Options:")
+    legislation_options = state.get('legislation_options', {})
+    for leg_id, leg_data in legislation_options.items():
+        print(f"  {leg_id}: {leg_data.get('title', 'Unknown')}")
     
-    print("\n=== Game Log ===")
-    for log_entry in state.turn_log:
-        print(log_entry)
+    # Alice sponsors Healthcare legislation
+    print("\n2. Alice sponsors Healthcare legislation...")
+    action_data = {
+        'action_type': 'sponsor_legislation',
+        'player_id': 0,
+        'legislation_id': 'HEALTHCARE'
+    }
     
-    return state
+    resp = requests.post(f"{BASE_URL}/{game_id}/action", json=action_data)
+    if resp.status_code == 200:
+        state = resp.json()['state']
+        print("✅ Alice successfully sponsored Healthcare legislation")
+        
+        # Check pending legislation
+        print("\n📋 Pending Legislation:")
+        pending_legislation = state.get('pending_legislation')
+        if pending_legislation:
+            print(f"  ID={pending_legislation.get('legislation_id', 'Unknown')}, Sponsor={pending_legislation.get('sponsor_id', 'Unknown')}, Resolved={pending_legislation.get('resolved', False)}")
+        else:
+            print("  None")
+    else:
+        print(f"❌ Failed to sponsor legislation: {resp.status_code} - {resp.text}")
+        return
+    
+    # Bob sponsors Military legislation
+    print("\n3. Bob sponsors Military legislation...")
+    action_data = {
+        'action_type': 'sponsor_legislation',
+        'player_id': 1,
+        'legislation_id': 'MILITARY'
+    }
+    
+    resp = requests.post(f"{BASE_URL}/{game_id}/action", json=action_data)
+    if resp.status_code == 200:
+        state = resp.json()['state']
+        print("✅ Bob successfully sponsored Military legislation")
+        
+        # Check pending legislation
+        print("\n📋 Pending Legislation:")
+        pending_legislation = state.get('pending_legislation')
+        if pending_legislation:
+            print(f"  ID={pending_legislation.get('legislation_id', 'Unknown')}, Sponsor={pending_legislation.get('sponsor_id', 'Unknown')}, Resolved={pending_legislation.get('resolved', False)}")
+        else:
+            print("  None")
+    else:
+        print(f"❌ Failed to sponsor legislation: {resp.status_code} - {resp.text}")
+        return
+    
+    # Trigger legislation session
+    print("\n4. Triggering legislation session...")
+    resp = requests.post(f"{BASE_URL}/{game_id}/resolve_legislation")
+    if resp.status_code == 200:
+        state = resp.json()['state']
+        print("✅ Legislation session triggered")
+        
+        # Check term legislation
+        print("\n📋 Term Legislation:")
+        term_legislation = state.get('term_legislation', [])
+        for i, leg in enumerate(term_legislation):
+            print(f"  {i}: ID={leg.get('legislation_id', 'Unknown')}, Sponsor={leg.get('sponsor_id', 'Unknown')}, Resolved={leg.get('resolved', False)}")
+        
+        print("\n🎯 Analysis:")
+        if term_legislation:
+            for leg in term_legislation:
+                leg_id = leg.get('legislation_id', 'Unknown')
+                if leg_id in legislation_options:
+                    title = legislation_options[leg_id].get('title', 'Unknown')
+                    print(f"  ✅ {leg_id} -> {title}")
+                else:
+                    print(f"  ❌ {leg_id} -> NOT FOUND in legislation_options")
+        else:
+            print("  No term legislation found")
+    else:
+        print(f"❌ Failed to trigger legislation session: {resp.status_code} - {resp.text}")
+        return
+    
+    # Check players
+    print("\n👥 Players:")
+    players = state.get('players', [])
+    for i, player in enumerate(players):
+        print(f"  {i}: {player.get('name', 'Unknown')} (ID: {player.get('id', 'Unknown')})")
 
 if __name__ == "__main__":
-    debug_legislation_resolution() 
+    debug_legislation() 

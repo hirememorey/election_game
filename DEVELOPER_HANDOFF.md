@@ -2,7 +2,7 @@
 
 ## 🎯 Project Status Summary
 
-**Current State**: The Election game is a fully functional political strategy board game with a Flask backend and Apple-level web frontend. All major systems are implemented and tested, with all critical bugs fixed.
+**Current State**: The Election game is a fully functional political strategy board game with a Flask backend and Apple-level web frontend. All major systems are implemented and tested, with all critical bugs fixed including the recent legislation voting fixes.
 
 **Key Achievement**: Successfully transformed from a basic CLI game to a sophisticated web-based game with rich mechanics, comprehensive testing, excellent code quality, and Apple-level design system.
 
@@ -15,7 +15,7 @@
 - **Static File Serving**: Fixed from 404 issues, properly configured
 - **Comprehensive Testing**: 10+ test files covering all major functionality
 - **Production Deployment**: Successfully deployed to Render at https://election-game.onrender.com
-- **Recent Bug Fixes**: Trading action visibility fixed (frontend/backend phase name alignment), Media Scrutiny favor logic fixed
+- **Recent Bug Fixes**: Trading action visibility fixed (frontend/backend phase name alignment), Media Scrutiny favor logic fixed, **Legislation voting fixes** (players cannot vote on own legislation, proper pass turn functionality)
 
 ### Major Features Implemented
 1. **Apple-Level Design System** (COMPLETED - Just Deployed)
@@ -30,14 +30,22 @@
    - **Status**: Fully implemented and deployed to GitHub
 
 2. **Action Points System** (Backend Complete, Frontend Enhanced)
-   - Players get 3 AP per turn with variable costs (1-2 AP)
+   - Players get 2 AP per turn with variable costs (1-2 AP)
    - Multiple actions per turn until AP exhausted
    - Campaign action for future election influence
    - Automatic turn advancement
    - **Status**: Backend fully tested, frontend enhanced with Apple-level UI
    - **NEW**: Enhanced AP display with gradient styling and prominent cost indicators
 
-3. **Incumbent/Outsider Public Mood System** (NEW - Latest)
+3. **Legislation Voting Fixes** (NEW - Latest)
+   - **Voting Restrictions**: Players cannot vote on their own sponsored legislation
+   - **Pass Turn Option**: When a player has no valid legislation to vote on, they can use "Pass Turn" to advance
+   - **Backend Bug Fix**: Fixed critical issue where player index wasn't reset after voting, causing invalid player indices
+   - **Frontend UI**: Added proper handling for cases where no votable legislation exists
+   - **Manual Resolution**: Legislation sessions can be manually resolved when all players have voted
+   - **Status**: Fully implemented and tested
+
+4. **Incumbent/Outsider Public Mood System** (NEW - Latest)
    - **Incumbents** (office-holders) benefit from positive mood changes, suffer from negative
    - **Outsiders** (non-office-holders) benefit from negative mood changes, suffer from positive
    - **Strategic Tension**: Creates natural opposition between office-holders and challengers
@@ -45,42 +53,42 @@
    - **Events Affected**: Economic Boom, Recession Hits, Unexpected Surplus, Last Bill Hit/Dud, Tech Leap, Natural Disaster, Midterm Fury, Stock Crash, MEDIA_SPIN favor, successful legislation
    - **Status**: Fully implemented and tested
 
-4. **Enhanced Turn Status Display** (NEW)
+5. **Enhanced Turn Status Display** (NEW)
    - Phase-specific styling with different colors for each game phase
    - Clear player information with player number
    - Prominent Action Points counter with visual indicators
    - Enhanced animations and visual feedback
    - **Status**: Fully implemented and tested
 
-5. **Trading Mechanic** (Complete)
+6. **Trading Mechanic** (Complete)
    - Players trade PC/favors for votes during legislation sessions
    - Propose, accept, decline trade offers
    - Strategic negotiation system
    - **Status**: Fully implemented and tested
 
-6. **Political Favors System** (Complete)
+7. **Political Favors System** (Complete)
    - Use favors gained from networking
    - Selection menu for different favor types
    - PEEK_EVENT favor reveals top event card
    - **Status**: Fully implemented and tested
 
-7. **PC Commitment System** (Complete)
+8. **PC Commitment System** (Complete)
    - Custom PC amounts for legislation support/opposition
    - Additional PC commitment for candidacy declarations
    - Strategic resource investment
    - **Status**: Fully implemented and tested
 
-8. **Automatic Event Phases** (Complete)
+9. **Automatic Event Phases** (Complete)
    - Events draw automatically at start of each round/term
    - No manual intervention required
    - **Status**: Fully implemented and tested
 
-9. **Term Transition Fixes** (Complete)
-   - Proper state cleanup between terms
-   - Legislation cleanup and player index reset
-   - **Status**: Fully implemented and tested
+10. **Term Transition Fixes** (Complete)
+    - Proper state cleanup between terms
+    - Legislation cleanup and player index reset
+    - **Status**: Fully implemented and tested
 
-10. **Manual Phase Resolution System** (NEW - Just Completed)
+11. **Manual Phase Resolution System** (NEW - Just Completed)
     - **Manual Legislation Resolution**: After the term ends, players can manually trigger legislation resolution with a "Resolve Legislation" button
     - **Manual Election Resolution**: After legislation is resolved, players can manually trigger election resolution with a "Resolve Elections" button
     - **Enhanced Game Flow**: Players can review the game state before seeing phase results
@@ -101,10 +109,11 @@
 - **Network** (1 AP): Gain PC and political favors
 - **Sponsor Legislation** (2 AP): Create legislation for votes/mood
 - **Declare Candidacy** (2 AP): Run for office (Round 4 only)
-- **Use Favor** (0 AP): Strategic advantage actions with selection menu
+- **Use Favor** (1 AP): Strategic advantage actions with selection menu
 - **Support/Oppose Legislation** (1 AP): Interactive legislation with custom PC commitment
 - **Campaign** (2 AP): Place influence for future elections
 - **Trading** (0 AP): Propose trades during legislation sessions
+- **Pass Turn** (0 AP): Skip turn when no valid actions available
 
 ## 🚨 Current Limitations
 
@@ -146,6 +155,7 @@
 - **NEW**: Test the improved legislation session flow (no more round 5 confusion)
 - **NEW**: Test Pass Turn functionality and action point handling
 - **NEW**: Test manual phase resolution system
+- **NEW**: Test legislation voting restrictions and pass turn functionality
 
 ### 3. **Balance Adjustments** (MEDIUM PRIORITY)
 **What**: Fine-tune AP costs and PC commitment amounts based on playtesting

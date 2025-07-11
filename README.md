@@ -11,9 +11,10 @@
 - **Deployment:** Local server works on custom port (e.g., 5001). Deployment instructions are in `DEPLOYMENT.md`.
 
 ## Recent Issues & Next Steps
-- **Static files 404:** When accessing `/`, the server returns 404 for `/script.js` and `/style.css`. Likely cause: Flask static file serving config.
-- **Testing:** No automated tests for API or frontend yet. Manual testing is possible via browser.
-- **API URL:** In `static/script.js`, `API_BASE_URL` is set to `http://localhost:5000/api` (should match backend port and deployment URL).
+- **Legislation Voting Fix:** Fixed critical backend bug where players couldn't vote on their own legislation, causing the game to get stuck. Backend now properly resets player index after voting completes.
+- **Frontend Voting UI:** Added "Pass Turn" button when players have no valid voting options during legislation sessions.
+- **Testing:** Comprehensive test suite covers all major game mechanics. Manual testing is possible via browser.
+- **API URL:** In `static/script.js`, `API_BASE_URL` is set to `http://localhost:5001/api` (matches backend port).
 
 ## Key Files
 - `server.py`: Flask app, API endpoints, static file serving.
@@ -22,7 +23,7 @@
 - `DEPLOYMENT.md`: Deployment instructions for Render, Netlify, Heroku, Railway, and local testing.
 
 ## Immediate To-Dos
-- **Fix static file serving:** Ensure `/script.js` and `/style.css` are served correctly (Flask's `static_folder` config or explicit routes).
+- **Test legislation voting:** Verify the recent fixes work correctly in gameplay.
 - **Test API endpoints:** Use Postman/curl or browser to verify `/api/game`, `/api/game/<id>`, etc.
 - **Test frontend:** Play through a game in browser, check for bugs, and improve UX.
 - **Automated tests:** (Optional) Add unit tests for API and game logic.
@@ -53,12 +54,13 @@ A Python-based political strategy board game with a Flask backend and mobile-fri
 - API communication between frontend/backend
 - Static file serving (fixed from 404 issues)
 - Performance tested (~5-10ms response times)
-- **Action Points System**: Players get 3 AP per turn with variable costs
+- **Action Points System**: Players get 2 AP per turn with variable costs
 - **Trading Mechanic**: Players can trade PC/favors for votes during legislation sessions
 - **Political Favors System**: Players can use favors with selection menu
 - **PC Commitment System**: Custom PC amounts for legislation and candidacy
 - **Automatic Event Phases**: Events draw automatically for smooth gameplay
 - **Term Transition Fixes**: Proper state cleanup between terms
+- **Legislation Voting Fixes**: Players cannot vote on their own legislation, with proper "Pass Turn" option when no valid votes exist
 
 ### 🎮 Core Game Mechanics
 
@@ -67,10 +69,20 @@ A Python-based political strategy board game with a Flask backend and mobile-fri
 - **Network** (1 AP): Gain PC and political favors (note: negative favors are applied immediately)
 - **Sponsor Legislation** (2 AP): Create legislation for votes/mood
 - **Declare Candidacy** (2 AP): Run for office (Round 4 only; multiple players can declare candidacy for the same or different offices in the same round)
-- **Use Favor** (0 AP): Strategic advantage actions with selection menu
+- **Use Favor** (1 AP): Strategic advantage actions with selection menu
 - **Support/Oppose Legislation** (1 AP): Interactive legislation system with custom PC commitment
 - **Campaign** (2 AP): Place influence for future elections
 - **Trading** (0 AP): Propose trades of PC/favors for votes during legislation sessions
+- **Pass Turn** (0 AP): Skip turn when no valid actions available
+
+**Action Point Costs:**
+- Players receive 2 Action Points per round
+- Fundraise/Network: 1 AP each
+- Sponsor Legislation/Declare Candidacy/Campaign: 2 AP each
+- Use Favor: 1 AP
+- Support/Oppose Legislation: 1 AP each
+- Trading actions: 0 AP (free during trading phase)
+- Pass Turn: 0 AP (free action)
 
 ## 🚀 Quick Start
 
@@ -116,6 +128,8 @@ See `DEPLOYMENT.md` for step-by-step instructions for Render, Netlify, Heroku, R
 - `GET /api/game/<id>`: Get game state
 - `POST /api/game/<id>/action`: Process player action
 - `POST /api/game/<id>/event`: Run event phase (automatic)
+- `POST /api/game/<id>/resolve_legislation`: Manually resolve legislation session
+- `POST /api/game/<id>/resolve_elections`: Manually resolve elections
 - `DELETE /api/game/<id>`: Delete game
 
 ## 🧪 Testing
@@ -127,6 +141,7 @@ See `DEPLOYMENT.md` for step-by-step instructions for Render, Netlify, Heroku, R
 - **`test_automatic_event_phase.py`**: Automatic event phase functionality
 - **`test_api.py`**: API endpoints and favor system
 - **`test_legislation_timing.py`**: Legislation session timing
+- **`test_legislation_voting_fix.py`**: Legislation voting fixes and pass turn functionality
 - **`test_mood_system.py`**: Mood system functionality
 - **`test_war_mood_lock.py`**: War event mood lock functionality
 - **`performance_test.py`**: Performance benchmarking
@@ -150,6 +165,13 @@ python3 test_action_points_system.py
 
 ## 🎯 Recent Major Improvements
 
+### Legislation Voting Fixes (Latest)
+- **Voting Restrictions**: Players cannot vote on their own sponsored legislation
+- **Pass Turn Option**: When a player has no valid legislation to vote on, they can use "Pass Turn" to advance
+- **Backend Bug Fix**: Fixed critical issue where player index wasn't reset after voting, causing invalid player indices
+- **Frontend UI**: Added proper handling for cases where no votable legislation exists
+- **Manual Resolution**: Legislation sessions can be manually resolved when all players have voted
+
 ### Manual Phase Resolution System
 - **Manual Legislation Resolution**: After the term ends, players can manually trigger legislation resolution with a "Resolve Legislation" button
 - **Manual Election Resolution**: After legislation is resolved, players can manually trigger election resolution with a "Resolve Elections" button  
@@ -161,7 +183,7 @@ python3 test_action_points_system.py
 - **Improved Logging**: Legislation results are properly logged to the game log with detailed breakdowns
 
 ### Action Points System (Phase 2)
-- Players get 3 Action Points per turn instead of 1 action
+- Players get 2 Action Points per turn instead of 1 action
 - Multiple actions per turn until AP are exhausted
 - Variable AP costs for different actions (1-2 AP)
 - Campaign action for placing influence

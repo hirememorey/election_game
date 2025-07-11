@@ -157,6 +157,7 @@ class GameEngine:
                     # All players have voted, STOP and set awaiting_legislation_resolution
                     state.add_log("\n--- LEGISLATION SESSION: Ready to Resolve All Bills ---")
                     state.awaiting_legislation_resolution = True
+                    state.current_player_index = 0  # Reset to prevent invalid index
                     # Do not resolve or advance further until manual trigger
                     return state
                 else:

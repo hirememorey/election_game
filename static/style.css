@@ -1699,6 +1699,24 @@ body {
     color: var(--color-text-secondary);
 }
 
+.sponsor-note {
+    color: var(--color-warning);
+    font-style: italic;
+    font-size: 0.85rem;
+    margin-top: var(--spacing-xs);
+}
+
+.pass-turn-btn {
+    background: var(--color-secondary);
+    color: white;
+}
+
+.pass-turn-btn:hover {
+    background: var(--color-secondary-dark);
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-sm);
+}
+
 /* Enhanced Action Points Display */
 .action-points-display {
     background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
@@ -1753,4 +1771,63 @@ body {
     color: white;
     transform: translateY(-2px);
     box-shadow: var(--shadow-md);
+}
+
+/* ===== MANUAL RESOLUTION BUTTONS ===== */
+.manual-resolution {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: var(--spacing-6);
+    background: var(--color-surface);
+    border-top: 1px solid var(--color-border-light);
+    box-shadow: var(--shadow-sm);
+}
+
+.resolution-buttons {
+    display: flex;
+    gap: var(--spacing-4);
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: center;
+}
+
+.resolution-buttons .btn-primary {
+    min-width: 200px;
+    justify-content: center;
+    transition: all var(--transition-normal);
+}
+
+.resolution-buttons .btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-lg);
+}
+
+.resolution-buttons .btn-primary:active {
+    transform: translateY(0);
+    box-shadow: var(--shadow-md);
+}
+
+/* Responsive design for resolution buttons */
+@media (max-width: 768px) {
+    .resolution-buttons {
+        flex-direction: column;
+        gap: var(--spacing-3);
+    }
+    
+    .resolution-buttons .btn-primary {
+        min-width: 100%;
+        width: 100%;
+    }
+}
+
+@media (max-width: 480px) {
+    .manual-resolution {
+        padding: var(--spacing-4);
+    }
+    
+    .resolution-buttons .btn-primary {
+        font-size: var(--font-size-sm);
+        padding: var(--spacing-3) var(--spacing-4);
+    }
 } 

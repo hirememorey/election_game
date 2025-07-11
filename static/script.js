@@ -32,6 +32,11 @@ const newGameBtn = document.getElementById('new-game-btn');
 const runEventBtn = document.getElementById('run-event-btn');
 const playerForm = document.getElementById('player-form');
 
+// Manual resolution elements
+const manualResolutionSection = document.getElementById('manual-resolution-section');
+const resolveLegislationBtn = document.getElementById('resolve-legislation-btn');
+const resolveElectionsBtn = document.getElementById('resolve-elections-btn');
+
 // Game state elements
 const roundInfo = document.getElementById('round-info');
 const phaseInfo = document.getElementById('phase-info');
@@ -77,6 +82,14 @@ if (playerForm) {
 }
 if (clearLogBtn) {
     clearLogBtn.addEventListener('click', clearGameLog);
+}
+
+// Manual resolution event listeners
+if (resolveLegislationBtn) {
+    resolveLegislationBtn.addEventListener('click', resolveLegislation);
+}
+if (resolveElectionsBtn) {
+    resolveElectionsBtn.addEventListener('click', resolveElections);
 }
 
 // Initial setup when DOM is loaded
@@ -231,6 +244,63 @@ async function runEventPhase() {
     }
 }
 
+// Manual resolution functions
+async function resolveLegislation() {
+    if (!gameId) return;
+    
+    try {
+        if (resolveLegislationBtn) {
+            resolveLegislationBtn.disabled = true;
+            const btnText = resolveLegislationBtn.querySelector('.btn-text');
+            if (btnText) btnText.textContent = 'Resolving...';
+        }
+        
+        console.log('Resolving legislation...');
+        const result = await apiCall(`/game/${gameId}/resolve_legislation`, 'POST');
+        gameState = result.state;
+        updateUi();
+        
+        showMessage('Legislation resolved successfully!', 'success');
+    } catch (error) {
+        console.error('Failed to resolve legislation:', error);
+        showMessage(`Failed to resolve legislation: ${error.message}`, 'error');
+    } finally {
+        if (resolveLegislationBtn) {
+            resolveLegislationBtn.disabled = false;
+            const btnText = resolveLegislationBtn.querySelector('.btn-text');
+            if (btnText) btnText.textContent = 'Resolve Legislation';
+        }
+    }
+}
+
+async function resolveElections() {
+    if (!gameId) return;
+    
+    try {
+        if (resolveElectionsBtn) {
+            resolveElectionsBtn.disabled = true;
+            const btnText = resolveElectionsBtn.querySelector('.btn-text');
+            if (btnText) btnText.textContent = 'Resolving...';
+        }
+        
+        console.log('Resolving elections...');
+        const result = await apiCall(`/game/${gameId}/resolve_elections`, 'POST');
+        gameState = result.state;
+        updateUi();
+        
+        showMessage('Elections resolved successfully!', 'success');
+    } catch (error) {
+        console.error('Failed to resolve elections:', error);
+        showMessage(`Failed to resolve elections: ${error.message}`, 'error');
+    } finally {
+        if (resolveElectionsBtn) {
+            resolveElectionsBtn.disabled = false;
+            const btnText = resolveElectionsBtn.querySelector('.btn-text');
+            if (btnText) btnText.textContent = 'Resolve Elections';
+        }
+    }
+}
+
 // UI functions
 function showSetupScreen() {
     if (setupScreen) setupScreen.classList.remove('hidden');
@@ -266,6 +336,57 @@ function updateUi() {
     renderIntelligenceBriefing();
     renderMainStage();
     renderPlayerDashboard();
+    
+    // Update manual resolution buttons visibility
+    updateManualResolutionButtons();
+}
+
+function updateManualResolutionButtons() {
+    if (!gameState || !manualResolutionSection) return;
+    
+    // Check if we should show the manual resolution section
+    const shouldShowLegislation = gameState.awaiting_legislation_resolution === true;
+    const shouldShowElections = gameState.awaiting_election_resolution === true;
+    
+    console.log('Manual resolution flags:', {
+        awaiting_legislation_resolution: gameState.awaiting_legislation_resolution,
+        awaiting_election_resolution: gameState.awaiting_election_resolution
+    });
+    
+    if (shouldShowLegislation || shouldShowElections) {
+        // Show the manual resolution section
+        manualResolutionSection.classList.remove('hidden');
+        
+        // Show/hide individual buttons based on flags
+        if (resolveLegislationBtn) {
+            if (shouldShowLegislation) {
+                resolveLegislationBtn.classList.remove('hidden');
+                resolveLegislationBtn.disabled = false;
+            } else {
+                resolveLegislationBtn.classList.add('hidden');
+            }
+        }
+        
+        if (resolveElectionsBtn) {
+            if (shouldShowElections) {
+                resolveElectionsBtn.classList.remove('hidden');
+                resolveElectionsBtn.disabled = false;
+            } else {
+                resolveElectionsBtn.classList.add('hidden');
+            }
+        }
+        
+        // Hide the event phase button when manual resolution is active
+        if (eventPhaseSection) {
+            eventPhaseSection.classList.add('hidden');
+        }
+    } else {
+        // Hide the manual resolution section
+        manualResolutionSection.classList.add('hidden');
+        
+        // Show the event phase button when manual resolution is not active
+        updateEventPhaseButton();
+    }
 }
 
 function renderIntelligenceBriefing() {
@@ -650,6 +771,14 @@ function showTradingPhaseUI() {
 
 function showVotingPhaseUI() {
     const actionList = document.getElementById('action-list');
+    const currentPlayer = gameState.players[gameState.current_player_index];
+    
+    // DEBUG: Print out legislation IDs and options
+    if (window && window.console) {
+        console.log('DEBUG: term_legislation:', gameState.term_legislation.map(l => l.legislation_id));
+        console.log('DEBUG: legislation_options keys:', Object.keys(gameState.legislation_options));
+        console.log('DEBUG: legislation_options:', gameState.legislation_options);
+    }
     
     const votingHeader = document.createElement('div');
     votingHeader.className = 'voting-phase-header';
@@ -663,10 +792,13 @@ function showVotingPhaseUI() {
     
     // Show legislation to vote on
     if (gameState.term_legislation && gameState.term_legislation.length > 0) {
+        let hasVotableLegislation = false;
+        
         gameState.term_legislation.forEach(legislation => {
             if (!legislation.resolved) {
                 const bill = gameState.legislation_options[legislation.legislation_id];
                 const sponsor = gameState.players.find(p => p.id === legislation.sponsor_id);
+                const isCurrentPlayerSponsor = legislation.sponsor_id === currentPlayer.id;
                 
                 // Safety check for undefined bill
                 if (!bill) {
@@ -694,24 +826,65 @@ function showVotingPhaseUI() {
                 
                 const legislationCard = document.createElement('div');
                 legislationCard.className = 'legislation-card';
-                legislationCard.innerHTML = `
-                    <div class="legislation-info">
-                        <h5>${bill.title}</h5>
-                        <p>${bill.description}</p>
-                        <p><strong>Sponsored by:</strong> ${sponsor ? sponsor.name : 'Unknown'}</p>
-                    </div>
-                    <div class="voting-actions">
-                        <button onclick="performAction('support_legislation', {legislation_id: '${legislation.legislation_id}', support_amount: 1})" class="vote-btn support-btn">
-                            Support
-                        </button>
-                        <button onclick="performAction('oppose_legislation', {legislation_id: '${legislation.legislation_id}', oppose_amount: 1})" class="vote-btn oppose-btn">
-                            Oppose
-                        </button>
-                    </div>
-                `;
+                
+                if (isCurrentPlayerSponsor) {
+                    // Current player is the sponsor - show disabled buttons with explanation
+                    legislationCard.innerHTML = `
+                        <div class="legislation-info">
+                            <h5>${bill.title}</h5>
+                            <p>${bill.description}</p>
+                            <p><strong>Sponsored by:</strong> ${sponsor ? sponsor.name : 'Unknown'} (You)</p>
+                            <p class="sponsor-note">You cannot vote on your own legislation</p>
+                        </div>
+                        <div class="voting-actions">
+                            <button disabled class="vote-btn support-btn">
+                                Support
+                            </button>
+                            <button disabled class="vote-btn oppose-btn">
+                                Oppose
+                            </button>
+                        </div>
+                    `;
+                } else {
+                    // Current player can vote on this legislation
+                    hasVotableLegislation = true;
+                    legislationCard.innerHTML = `
+                        <div class="legislation-info">
+                            <h5>${bill.title}</h5>
+                            <p>${bill.description}</p>
+                            <p><strong>Sponsored by:</strong> ${sponsor ? sponsor.name : 'Unknown'}</p>
+                        </div>
+                        <div class="voting-actions">
+                            <button onclick="performAction('support_legislation', {legislation_id: '${legislation.legislation_id}', support_amount: 1})" class="vote-btn support-btn">
+                                Support
+                            </button>
+                            <button onclick="performAction('oppose_legislation', {legislation_id: '${legislation.legislation_id}', oppose_amount: 1})" class="vote-btn oppose-btn">
+                                Oppose
+                            </button>
+                        </div>
+                    `;
+                }
                 actionList.appendChild(legislationCard);
             }
         });
+        
+        // If current player can't vote on any legislation, show pass turn option
+        if (!hasVotableLegislation) {
+            const passTurnCard = document.createElement('div');
+            passTurnCard.className = 'legislation-card';
+            passTurnCard.innerHTML = `
+                <div class="legislation-info">
+                    <h5>No Legislation to Vote On</h5>
+                    <p>You cannot vote on your own legislation. All available legislation was sponsored by you.</p>
+                </div>
+                <div class="voting-actions">
+                    <button onclick="performAction('pass_turn', {})" class="vote-btn pass-turn-btn">
+                        Pass Turn
+                    </button>
+                </div>
+            `;
+            actionList.appendChild(passTurnCard);
+        }
     } else {
         const noLegislation = document.createElement('div');
         noLegislation.className = 'no-legislation';
