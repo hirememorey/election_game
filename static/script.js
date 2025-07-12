@@ -33,7 +33,6 @@ const phaseIndicator = document.getElementById('phase-indicator');
 const actionContent = document.getElementById('action-content');
 const primaryActions = document.getElementById('primary-actions');
 const quickAccessPanel = document.getElementById('quick-access-panel');
-const swipeHint = document.getElementById('swipe-hint');
 
 // Event listeners
 if (startGameBtn) {
@@ -77,15 +76,11 @@ function handleSwipe() {
 
 function showQuickAccess() {
     quickAccessPanel.classList.add('show');
-    swipeHint.classList.add('hidden');
     updateQuickAccessContent();
 }
 
 function hideQuickAccess() {
     quickAccessPanel.classList.remove('show');
-    setTimeout(() => {
-        swipeHint.classList.remove('hidden');
-    }, 300);
 }
 
 function updateGameLog() {
@@ -576,6 +571,43 @@ function getAvailableActions(currentPlayer) {
             cost: 1,
             disabled: currentPlayer.favors.length === 0
         });
+        
+        // Add support/oppose legislation actions if there's pending legislation
+        const pendingLegislation = gameState.pending_legislation;
+        const termLegislation = gameState.term_legislation || [];
+        
+        if (pendingLegislation || termLegislation.length > 0) {
+            // Check if there's legislation the current player can support/oppose
+            const availableLegislation = [];
+            
+            if (pendingLegislation && pendingLegislation.sponsor_id !== currentPlayer.id) {
+                availableLegislation.push(pendingLegislation);
+            }
+            
+            termLegislation.forEach(leg => {
+                if (leg.sponsor_id !== currentPlayer.id) {
+                    availableLegislation.push(leg);
+                }
+            });
+            
+            if (availableLegislation.length > 0) {
+                actions.push({
+                    type: 'support_legislation',
+                    label: 'Support Legislation',
+                    icon: '✅',
+                    cost: 1,
+                    disabled: false
+                });
+                
+                actions.push({
+                    type: 'oppose_legislation',
+                    label: 'Oppose Legislation',
+                    icon: '❌',
+                    cost: 1,
+                    disabled: false
+                });
+            }
+        }
     }
     
     if (ap >= 2) {
@@ -640,6 +672,12 @@ function handleActionClick(actionType) {
             break;
         case 'sponsor_legislation':
             showLegislationMenu();
+            break;
+        case 'support_legislation':
+            showLegislationSupportMenu();
+            break;
+        case 'oppose_legislation':
+            showLegislationOpposeMenu();
             break;
         case 'campaign':
             showCampaignDialog();
@@ -726,6 +764,18 @@ function showLegislationMenu() {
             <div class="action-icon">📜</div>
             <div class="action-label">${legislation.title}</div>
             <div class="action-cost">2 AP</div>
+            <div class="legislation-details">
+                <div class="legislation-cost">Cost: ${legislation.cost} PC</div>
+                <div class="legislation-thresholds">
+                    <div>Success: ${legislation.success_target}+ PC</div>
+                    <div>Critical: ${legislation.crit_target}+ PC</div>
+                </div>
+                <div class="legislation-rewards">
+                    <div>Success: +${legislation.success_reward} PC</div>
+                    <div>Critical: +${legislation.crit_reward} PC</div>
+                    ${legislation.failure_penalty > 0 ? `<div>Failure: -${legislation.failure_penalty} PC</div>` : ''}
+                </div>
+            </div>
         </button>
     `).join('');
     
@@ -740,16 +790,19 @@ function showLegislationMenu() {
 }
 
 function showCampaignDialog() {
-    const offices = ['President', 'Vice President', 'Senator', 'Representative'];
+    // Get office data from game state
+    const offices = gameState.offices || {};
+    const officeEntries = Object.entries(offices);
     
-    const officeOptions = offices.map(office => `
-        <option value="${office}">${office}</option>
+    const officeOptions = officeEntries.map(([id, office]) => `
+        <option value="${id}">${office.title} (Candidacy Cost: ${office.candidacy_cost} PC)</option>
     `).join('');
     
     showModal('Campaign', `
         <div class="form-group">
             <label for="campaign-office">Office:</label>
             <select id="campaign-office">
+                <option value="">Select an office...</option>
                 ${officeOptions}
             </select>
         </div>
@@ -765,16 +818,19 @@ function showCampaignDialog() {
 }
 
 function showCandidacyMenu() {
-    const offices = ['President', 'Vice President', 'Senator', 'Representative'];
+    // Get office data from game state
+    const offices = gameState.offices || {};
+    const officeEntries = Object.entries(offices);
     
-    const officeOptions = offices.map(office => `
-        <option value="${office}">${office}</option>
+    const officeOptions = officeEntries.map(([id, office]) => `
+        <option value="${id}">${office.title} (Cost: ${office.candidacy_cost} PC)</option>
     `).join('');
     
     showModal('Declare Candidacy', `
         <div class="form-group">
             <label for="candidacy-office">Office:</label>
             <select id="candidacy-office">
+                <option value="">Select an office...</option>
                 ${officeOptions}
             </select>
         </div>
@@ -789,27 +845,113 @@ function showCandidacyMenu() {
     `);
 }
 
-function showLegislationSupportMenu(legislationId) {
+function showLegislationSupportMenu() {
+    const currentPlayer = gameState.players[gameState.current_player_index];
+    const pendingLegislation = gameState.pending_legislation;
+    const termLegislation = gameState.term_legislation || [];
+    
+    // Find legislation the current player can support
+    const availableLegislation = [];
+    
+    if (pendingLegislation && pendingLegislation.sponsor_id !== currentPlayer.id) {
+        const legislationData = gameState.legislation_options[pendingLegislation.legislation_id];
+        availableLegislation.push({
+            id: pendingLegislation.legislation_id,
+            title: legislationData ? legislationData.title : pendingLegislation.legislation_id,
+            sponsor: getPlayerName(pendingLegislation.sponsor_id)
+        });
+    }
+    
+    termLegislation.forEach(leg => {
+        if (leg.sponsor_id !== currentPlayer.id) {
+            const legislationData = gameState.legislation_options[leg.legislation_id];
+            availableLegislation.push({
+                id: leg.legislation_id,
+                title: legislationData ? legislationData.title : leg.legislation_id,
+                sponsor: getPlayerName(leg.sponsor_id)
+            });
+        }
+    });
+    
+    if (availableLegislation.length === 0) {
+        showMessage('No legislation available to support', 'info');
+        return;
+    }
+    
+    const legislationOptions = availableLegislation.map(leg => `
+        <option value="${leg.id}">${leg.title} (sponsored by ${leg.sponsor})</option>
+    `).join('');
+    
     showModal('Support Legislation', `
+        <div class="form-group">
+            <label for="support-legislation">Choose Legislation:</label>
+            <select id="support-legislation">
+                <option value="">Select legislation...</option>
+                ${legislationOptions}
+            </select>
+        </div>
         <div class="form-group">
             <label for="support-pc">PC to Commit:</label>
             <input type="number" id="support-pc" min="1" max="50" required placeholder="Enter PC amount">
         </div>
         <div class="modal-actions">
-            <button class="btn-primary" onclick="handleSupportAction('${legislationId}')">Support</button>
+            <button class="btn-primary" onclick="handleSupportAction()">Support</button>
             <button class="btn-secondary" onclick="closeModal()">Cancel</button>
         </div>
     `);
 }
 
-function showLegislationOpposeMenu(legislationId) {
+function showLegislationOpposeMenu() {
+    const currentPlayer = gameState.players[gameState.current_player_index];
+    const pendingLegislation = gameState.pending_legislation;
+    const termLegislation = gameState.term_legislation || [];
+    
+    // Find legislation the current player can oppose
+    const availableLegislation = [];
+    
+    if (pendingLegislation && pendingLegislation.sponsor_id !== currentPlayer.id) {
+        const legislationData = gameState.legislation_options[pendingLegislation.legislation_id];
+        availableLegislation.push({
+            id: pendingLegislation.legislation_id,
+            title: legislationData ? legislationData.title : pendingLegislation.legislation_id,
+            sponsor: getPlayerName(pendingLegislation.sponsor_id)
+        });
+    }
+    
+    termLegislation.forEach(leg => {
+        if (leg.sponsor_id !== currentPlayer.id) {
+            const legislationData = gameState.legislation_options[leg.legislation_id];
+            availableLegislation.push({
+                id: leg.legislation_id,
+                title: legislationData ? legislationData.title : leg.legislation_id,
+                sponsor: getPlayerName(leg.sponsor_id)
+            });
+        }
+    });
+    
+    if (availableLegislation.length === 0) {
+        showMessage('No legislation available to oppose', 'info');
+        return;
+    }
+    
+    const legislationOptions = availableLegislation.map(leg => `
+        <option value="${leg.id}">${leg.title} (sponsored by ${leg.sponsor})</option>
+    `).join('');
+    
     showModal('Oppose Legislation', `
+        <div class="form-group">
+            <label for="oppose-legislation">Choose Legislation:</label>
+            <select id="oppose-legislation">
+                <option value="">Select legislation...</option>
+                ${legislationOptions}
+            </select>
+        </div>
         <div class="form-group">
             <label for="oppose-pc">PC to Commit:</label>
             <input type="number" id="oppose-pc" min="1" max="50" required placeholder="Enter PC amount">
         </div>
         <div class="modal-actions">
-            <button class="btn-primary" onclick="handleOpposeAction('${legislationId}')">Oppose</button>
+            <button class="btn-primary" onclick="handleOpposeAction()">Oppose</button>
             <button class="btn-secondary" onclick="closeModal()">Cancel</button>
         </div>
     `);
@@ -891,9 +1033,17 @@ async function handleCandidacyAction() {
     });
 }
 
-async function handleSupportAction(legislationId) {
+async function handleSupportAction() {
+    const legislationSelect = document.getElementById('support-legislation');
     const pcInput = document.getElementById('support-pc');
+    
+    const legislationId = legislationSelect.value;
     const pcAmount = parseInt(pcInput.value);
+    
+    if (!legislationId) {
+        showMessage('Please select legislation to support', 'error');
+        return;
+    }
     
     if (!pcAmount || pcAmount <= 0) {
         showMessage('Please enter a valid PC amount', 'error');
@@ -903,13 +1053,21 @@ async function handleSupportAction(legislationId) {
     closeModal();
     await performAction('support_legislation', {
         legislation_id: legislationId,
-        pc_amount: pcAmount
+        support_amount: pcAmount
     });
 }
 
-async function handleOpposeAction(legislationId) {
+async function handleOpposeAction() {
+    const legislationSelect = document.getElementById('oppose-legislation');
     const pcInput = document.getElementById('oppose-pc');
+    
+    const legislationId = legislationSelect.value;
     const pcAmount = parseInt(pcInput.value);
+    
+    if (!legislationId) {
+        showMessage('Please select legislation to oppose', 'error');
+        return;
+    }
     
     if (!pcAmount || pcAmount <= 0) {
         showMessage('Please enter a valid PC amount', 'error');
@@ -919,7 +1077,7 @@ async function handleOpposeAction(legislationId) {
     closeModal();
     await performAction('oppose_legislation', {
         legislation_id: legislationId,
-        pc_amount: pcAmount
+        oppose_amount: pcAmount
     });
 }
 

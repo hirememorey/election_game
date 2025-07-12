@@ -274,11 +274,13 @@
   - `pending_legislation` is only for the current round, and is moved to `term_legislation` at upkeep.
   - See `test_legislation_timing.py` for a test that verifies this flow.
 
-- **Support/Oppose Legislation Restrictions:**  
-  Support and oppose legislation actions are now restricted to only the legislation session phase (end of term). Players cannot support or oppose legislation during rounds 1-3. This prevents premature legislation resolution and ensures all players have a chance to vote on bills during the dedicated session.
+- **Support/Oppose Legislation Timing Update:**
+  Support and oppose legislation actions can now be performed at any time during the term, not just during the legislation session. This enables a "long-form auction" mechanic where players can commit PC to support or oppose any unresolved legislation throughout the term. The backend checks both `pending_legislation` and unresolved `term_legislation` for valid targets.
+  - Error messages for invalid support/oppose actions are now more descriptive, listing what legislation is available and what was being targeted.
+  - The frontend displays support/oppose options for all unresolved legislation not sponsored by the current player, regardless of phase.
 
-- **Frontend/Backend Sync:**  
-  The UI and backend are now fully aligned on the legislation session mechanic. The frontend only displays voting options for unresolved legislation during the session, not after each round. Between rounds, queued legislation is not shown unless in the session.
+- **Frontend/Backend Sync:**
+  The UI and backend are now fully aligned on the new mechanic. Players can interact with legislation throughout the term, and the system provides clear feedback if an action is invalid or if no valid targets exist.
 
 ## 🏗️ Technical Architecture
 

@@ -295,15 +295,33 @@ def resolve_support_legislation(state: GameState, action: ActionSupportLegislati
     # Allow support during any turn, not just legislation session
     # This creates a "long-form auction" feel where players can commit PC throughout the term
     
-    # Find the legislation to support in term_legislation
+    # Find the legislation to support in pending_legislation or term_legislation
     target_legislation = None
-    for legislation in state.term_legislation:
-        if legislation.legislation_id == action.legislation_id and not legislation.resolved:
-            target_legislation = legislation
-            break
+    
+    # Check pending legislation first
+    if state.pending_legislation and state.pending_legislation.legislation_id == action.legislation_id:
+        target_legislation = state.pending_legislation
+    
+    # If not found in pending, check term legislation
+    if not target_legislation:
+        for legislation in state.term_legislation:
+            if legislation.legislation_id == action.legislation_id and not legislation.resolved:
+                target_legislation = legislation
+                break
     
     if not target_legislation:
-        state.add_log(f"There's no pending legislation to support.")
+        # Provide more detailed error message
+        available_legislation = []
+        if state.pending_legislation:
+            available_legislation.append(f"pending: {state.pending_legislation.legislation_id}")
+        for leg in state.term_legislation:
+            if not leg.resolved:
+                available_legislation.append(f"term: {leg.legislation_id}")
+        
+        error_msg = f"There's no legislation to support. Looking for: {action.legislation_id}"
+        if available_legislation:
+            error_msg += f". Available: {', '.join(available_legislation)}"
+        state.add_log(error_msg)
         return state
     
     if player.id == target_legislation.sponsor_id:
@@ -329,15 +347,33 @@ def resolve_oppose_legislation(state: GameState, action: ActionOpposeLegislation
     # Allow opposition during any turn, not just legislation session
     # This creates a "long-form auction" feel where players can commit PC throughout the term
     
-    # Find the legislation to oppose in term_legislation
+    # Find the legislation to oppose in pending_legislation or term_legislation
     target_legislation = None
-    for legislation in state.term_legislation:
-        if legislation.legislation_id == action.legislation_id and not legislation.resolved:
-            target_legislation = legislation
-            break
+    
+    # Check pending legislation first
+    if state.pending_legislation and state.pending_legislation.legislation_id == action.legislation_id:
+        target_legislation = state.pending_legislation
+    
+    # If not found in pending, check term legislation
+    if not target_legislation:
+        for legislation in state.term_legislation:
+            if legislation.legislation_id == action.legislation_id and not legislation.resolved:
+                target_legislation = legislation
+                break
     
     if not target_legislation:
-        state.add_log(f"There's no pending legislation to oppose.")
+        # Provide more detailed error message
+        available_legislation = []
+        if state.pending_legislation:
+            available_legislation.append(f"pending: {state.pending_legislation.legislation_id}")
+        for leg in state.term_legislation:
+            if not leg.resolved:
+                available_legislation.append(f"term: {leg.legislation_id}")
+        
+        error_msg = f"There's no legislation to oppose. Looking for: {action.legislation_id}"
+        if available_legislation:
+            error_msg += f". Available: {', '.join(available_legislation)}"
+        state.add_log(error_msg)
         return state
     
     if player.id == target_legislation.sponsor_id:
