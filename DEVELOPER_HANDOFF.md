@@ -43,6 +43,8 @@
    - **Backend Bug Fix**: Fixed critical issue where player index wasn't reset after voting, causing invalid player indices
    - **Frontend UI**: Added proper handling for cases where no votable legislation exists
    - **Manual Resolution**: Legislation sessions can be manually resolved when all players have voted
+   - **Frontend Voting UI Fix**: Removed old binary "Support" and "Oppose" buttons, replaced with "Support (Commit PC)" and "Oppose (Commit PC)" buttons that open PC commitment modals
+   - **Consistent Gambling System**: Voting now exclusively uses the PC commitment gambling system with risk/reward mechanics
    - **Status**: Fully implemented and tested
 
 4. **Incumbent/Outsider Public Mood System** (NEW - Latest)

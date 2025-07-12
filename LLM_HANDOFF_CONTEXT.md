@@ -10,6 +10,25 @@
 
 ## 📝 Recent Gameplay/Codebase Changes (Latest Updates)
 
+### Frontend Voting UI Fix (LATEST - Just Completed)
+- **Removed Old Binary Voting Buttons**: Eliminated the old "Support" and "Oppose" buttons that used fixed 1 PC amounts from the legislation voting phase
+  - **Issue**: The voting phase was showing both the old binary buttons and the new PC commitment system, causing confusion
+  - **Solution**: Completely removed the old binary buttons from `showVotingPhaseUI()` function
+  - **Files Modified**: `static/script.js` - Updated `showVotingPhaseUI()` to remove old voting buttons
+  - **Impact**: Clean, consistent UI that only uses the PC commitment gambling system
+
+- **Enhanced PC Commitment Voting**: Replaced old buttons with "Support (Commit PC)" and "Oppose (Commit PC)" buttons that open the respective modals
+  - **New Button Behavior**: Buttons now call `showLegislationSupportMenu()` and `showLegislationOpposeMenu()` respectively
+  - **Modal System**: Players can now only vote through the PC commitment modals with gambling rewards
+  - **Sponsor Handling**: Sponsors still see the "You cannot vote on your own legislation" message, but without any voting buttons
+  - **Files Modified**: `static/script.js` - Updated voting phase UI to use modal system exclusively
+  - **Impact**: Consistent gambling-style voting experience with proper risk/reward mechanics
+
+- **Testing Verification**: All backend tests pass, confirming the change doesn't break any game logic
+  - **Test Results**: `test_api.py` and `test_legislation_gambling_system.py` both pass
+  - **Status**: Frontend UI now matches the intended PC gambling system design
+  - **Next Steps**: Ready for user testing of the improved voting experience
+
 ### Apple-Level Design System Overhaul (LATEST - Just Completed)
 - **Complete UI Redesign**: Implemented Apple-inspired design system with SF Pro Display typography
   - **Typography**: Apple's signature SF Pro Display font with proper font weights and sizes

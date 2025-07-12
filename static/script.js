@@ -886,7 +886,7 @@ function showVotingPhaseUI() {
     votingHeader.innerHTML = `
         <div class="phase-info">
             <h4>🗳️ Voting Phase</h4>
-            <p>Vote on legislation</p>
+            <p>Vote on legislation by committing PC to support or oppose. Bigger commitments = bigger rewards!</p>
         </div>
     `;
     actionList.appendChild(votingHeader);
@@ -912,14 +912,6 @@ function showVotingPhaseUI() {
                             <p>Error: Legislation data not found</p>
                             <p><strong>Sponsored by:</strong> ${sponsor ? sponsor.name : 'Unknown'}</p>
                         </div>
-                        <div class="voting-actions">
-                            <button disabled class="vote-btn support-btn">
-                                Support
-                            </button>
-                            <button disabled class="vote-btn oppose-btn">
-                                Oppose
-                            </button>
-                        </div>
                     `;
                     actionList.appendChild(legislationCard);
                     return;
@@ -929,21 +921,13 @@ function showVotingPhaseUI() {
                 legislationCard.className = 'legislation-card';
                 
                 if (isCurrentPlayerSponsor) {
-                    // Current player is the sponsor - show disabled buttons with explanation
+                    // Current player is the sponsor - show disabled message only
                     legislationCard.innerHTML = `
                         <div class="legislation-info">
                             <h5>${bill.title}</h5>
                             <p>${bill.description}</p>
                             <p><strong>Sponsored by:</strong> ${sponsor ? sponsor.name : 'Unknown'} (You)</p>
                             <p class="sponsor-note">You cannot vote on your own legislation</p>
-                        </div>
-                        <div class="voting-actions">
-                            <button disabled class="vote-btn support-btn">
-                                Support
-                            </button>
-                            <button disabled class="vote-btn oppose-btn">
-                                Oppose
-                            </button>
                         </div>
                     `;
                 } else {
@@ -956,12 +940,8 @@ function showVotingPhaseUI() {
                             <p><strong>Sponsored by:</strong> ${sponsor ? sponsor.name : 'Unknown'}</p>
                         </div>
                         <div class="voting-actions">
-                            <button onclick="performAction('support_legislation', {legislation_id: '${legislation.legislation_id}', support_amount: 1})" class="vote-btn support-btn">
-                                Support
-                            </button>
-                            <button onclick="performAction('oppose_legislation', {legislation_id: '${legislation.legislation_id}', oppose_amount: 1})" class="vote-btn oppose-btn">
-                                Oppose
-                            </button>
+                            <button class="vote-btn support-btn" onclick="showLegislationSupportMenu()">Support (Commit PC)</button>
+                            <button class="vote-btn oppose-btn" onclick="showLegislationOpposeMenu()">Oppose (Commit PC)</button>
                         </div>
                     `;
                 }
