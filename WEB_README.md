@@ -51,6 +51,7 @@ Then open your browser to: **http://localhost:5001**
 The game is fully optimized for mobile devices:
 - Responsive design that works on iPhone, Android, tablets
 - Touch-friendly buttons and interface
+- **2024 update:** Improved mobile spacing, font sizes, and button touch targets for a cleaner, non-overlapping experience. All changes are in CSS media queries, so desktop layout is unaffected.
 - Optimized for portrait and landscape orientations
 - Works offline once loaded (except for API calls)
 
