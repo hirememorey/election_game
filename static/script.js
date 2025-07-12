@@ -845,7 +845,72 @@ function showCandidacyMenu() {
     `);
 }
 
-function showLegislationSupportMenu() {
+async function showLegislationOpposeMenu() {
+    await getGameState(); // Always fetch latest state
+    const currentPlayer = gameState.players[gameState.current_player_index];
+    const pendingLegislation = gameState.pending_legislation;
+    const termLegislation = gameState.term_legislation || [];
+    
+    console.log('DEBUG: showLegislationOpposeMenu called');
+    console.log('DEBUG: currentPlayer.id:', currentPlayer.id);
+    console.log('DEBUG: pendingLegislation:', pendingLegislation);
+    console.log('DEBUG: termLegislation:', termLegislation);
+    
+    // Find legislation the current player can oppose
+    const availableLegislation = [];
+    
+    if (pendingLegislation && pendingLegislation.sponsor_id !== currentPlayer.id) {
+        const legislationData = gameState.legislation_options[pendingLegislation.legislation_id];
+        availableLegislation.push({
+            id: pendingLegislation.legislation_id,
+            title: legislationData ? legislationData.title : pendingLegislation.legislation_id,
+            sponsor: getPlayerName(pendingLegislation.sponsor_id)
+        });
+    }
+    
+    termLegislation.forEach(leg => {
+        if (leg.sponsor_id !== currentPlayer.id) {
+            const legislationData = gameState.legislation_options[leg.legislation_id];
+            availableLegislation.push({
+                id: leg.legislation_id,
+                title: legislationData ? legislationData.title : leg.legislation_id,
+                sponsor: getPlayerName(leg.sponsor_id)
+            });
+        }
+    });
+    
+    console.log('DEBUG: availableLegislation:', availableLegislation);
+    
+    if (availableLegislation.length === 0) {
+        showMessage('No legislation available to oppose', 'info');
+        return;
+    }
+    
+    const legislationOptions = availableLegislation.map(leg => `
+        <option value="${leg.id}">${leg.title} (sponsored by ${leg.sponsor})</option>
+    `).join('');
+    
+    showModal('Oppose Legislation', `
+        <div class="form-group">
+            <label for="oppose-legislation">Choose Legislation:</label>
+            <select id="oppose-legislation">
+                <option value="">Select legislation...</option>
+                ${legislationOptions}
+            </select>
+        </div>
+        <div class="form-group">
+            <label for="oppose-pc">PC to Commit:</label>
+            <input type="number" id="oppose-pc" min="1" max="50" required placeholder="Enter PC amount">
+        </div>
+        <div class="modal-actions">
+            <button class="btn-primary" onclick="handleOpposeAction()">Oppose</button>
+            <button class="btn-secondary" onclick="closeModal()">Cancel</button>
+        </div>
+    `);
+}
+
+async function showLegislationSupportMenu() {
+    await getGameState(); // Always fetch latest state
     const currentPlayer = gameState.players[gameState.current_player_index];
     const pendingLegislation = gameState.pending_legislation;
     const termLegislation = gameState.term_legislation || [];
@@ -896,62 +961,6 @@ function showLegislationSupportMenu() {
         </div>
         <div class="modal-actions">
             <button class="btn-primary" onclick="handleSupportAction()">Support</button>
-            <button class="btn-secondary" onclick="closeModal()">Cancel</button>
-        </div>
-    `);
-}
-
-function showLegislationOpposeMenu() {
-    const currentPlayer = gameState.players[gameState.current_player_index];
-    const pendingLegislation = gameState.pending_legislation;
-    const termLegislation = gameState.term_legislation || [];
-    
-    // Find legislation the current player can oppose
-    const availableLegislation = [];
-    
-    if (pendingLegislation && pendingLegislation.sponsor_id !== currentPlayer.id) {
-        const legislationData = gameState.legislation_options[pendingLegislation.legislation_id];
-        availableLegislation.push({
-            id: pendingLegislation.legislation_id,
-            title: legislationData ? legislationData.title : pendingLegislation.legislation_id,
-            sponsor: getPlayerName(pendingLegislation.sponsor_id)
-        });
-    }
-    
-    termLegislation.forEach(leg => {
-        if (leg.sponsor_id !== currentPlayer.id) {
-            const legislationData = gameState.legislation_options[leg.legislation_id];
-            availableLegislation.push({
-                id: leg.legislation_id,
-                title: legislationData ? legislationData.title : leg.legislation_id,
-                sponsor: getPlayerName(leg.sponsor_id)
-            });
-        }
-    });
-    
-    if (availableLegislation.length === 0) {
-        showMessage('No legislation available to oppose', 'info');
-        return;
-    }
-    
-    const legislationOptions = availableLegislation.map(leg => `
-        <option value="${leg.id}">${leg.title} (sponsored by ${leg.sponsor})</option>
-    `).join('');
-    
-    showModal('Oppose Legislation', `
-        <div class="form-group">
-            <label for="oppose-legislation">Choose Legislation:</label>
-            <select id="oppose-legislation">
-                <option value="">Select legislation...</option>
-                ${legislationOptions}
-            </select>
-        </div>
-        <div class="form-group">
-            <label for="oppose-pc">PC to Commit:</label>
-            <input type="number" id="oppose-pc" min="1" max="50" required placeholder="Enter PC amount">
-        </div>
-        <div class="modal-actions">
-            <button class="btn-primary" onclick="handleOpposeAction()">Oppose</button>
             <button class="btn-secondary" onclick="closeModal()">Cancel</button>
         </div>
     `);
@@ -1063,6 +1072,12 @@ async function handleOpposeAction() {
     
     const legislationId = legislationSelect.value;
     const pcAmount = parseInt(pcInput.value);
+    
+    console.log('DEBUG: handleOpposeAction called');
+    console.log('DEBUG: legislationId:', legislationId);
+    console.log('DEBUG: pcAmount:', pcAmount);
+    console.log('DEBUG: current gameState.pending_legislation:', gameState.pending_legislation);
+    console.log('DEBUG: current gameState.term_legislation:', gameState.term_legislation);
     
     if (!legislationId) {
         showMessage('Please select legislation to oppose', 'error');

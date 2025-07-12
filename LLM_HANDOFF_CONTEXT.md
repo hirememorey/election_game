@@ -29,6 +29,12 @@
   - **Status**: Frontend UI now matches the intended PC gambling system design
   - **Next Steps**: Ready for user testing of the improved voting experience
 
+### Frontend Legislation Menu Race Condition Fix (LATEST)
+- **Issue**: Players sometimes saw 'There's no pending legislation to oppose' even when there was unresolved legislation, due to the frontend using stale game state.
+- **Solution**: The frontend now always fetches the latest game state from the backend before displaying the support/oppose legislation menus. This ensures only currently available legislation is shown and eliminates the race condition.
+- **Files Modified**: `static/script.js` (showLegislationSupportMenu, showLegislationOpposeMenu)
+- **Impact**: No more false negatives when supporting/opposing legislation; menus are always accurate.
+
 ### Apple-Level Design System Overhaul (LATEST - Just Completed)
 - **Complete UI Redesign**: Implemented Apple-inspired design system with SF Pro Display typography
   - **Typography**: Apple's signature SF Pro Display font with proper font weights and sizes

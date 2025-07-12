@@ -237,6 +237,10 @@ This document tracks the major improvements and features that have been implemen
 **Testing**: Manual testing confirms improved game flow
 **Impact**: Much clearer game flow and better user experience
 
+### Frontend Legislation Menu Race Condition Fix
+- The support/oppose legislation menus now always fetch the latest game state before displaying options, preventing bugs where players saw 'no pending legislation' due to stale state.
+- This ensures menus are always accurate and up-to-date.
+
 ## 🎮 Gameplay Improvements
 
 ### Enhanced Strategic Depth

@@ -408,6 +408,7 @@ PORT=5001 python3 server.py
   - **Technical**: Added AP granting (1 AP) at start of voting phase in legislation session
   - **Technical**: Added AP granting (3 AP) at start of election phase
   - **Testing**: `test_pc_commitment_and_term_transition.py` now passes all tests
+- **Legislation Menu Race Condition Fix**: The frontend now always fetches the latest game state before displaying the support/oppose legislation menus. This prevents the 'There's no pending legislation to oppose' bug caused by stale state and ensures players only see currently available legislation.
 
 ## 🎯 Recommended Development Approach
 
