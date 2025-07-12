@@ -163,3 +163,8 @@ election/
 Your Election game is now fully functional as a web application! The static file serving issue has been resolved, all API endpoints are working, and the game is ready to play on any device with a web browser.
 
 **Happy campaigning!** 🗳️ 
+
+## UI/UX Updates
+- The header is now minimal, showing only the game title and New Game button.
+- All game state information (round, phase, mood, AP, PC, office) is consolidated in the compact game state bar for clarity.
+- Redundant displays of Action Points, round, phase, and mood have been removed for a cleaner interface. 
