@@ -3,6 +3,8 @@
 ## Project Overview
 - **What it is:** A Python-based political board game, now with a Flask backend and a mobile-friendly web frontend.
 - **Goal:** Make the game playable on iPhone (and other devices) via a web browser.
+- **All blue gradient bars have been removed for a cleaner, more information-dense interface.**
+- **The UI is now more compact, with full-width identity cards and neutral backgrounds for all status bars.**
 
 ## Current State
 - **Backend:** Flask API (`server.py`) exposes game logic and serves static files.

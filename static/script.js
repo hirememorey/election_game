@@ -336,9 +336,61 @@ function updateUi() {
     renderIntelligenceBriefing();
     renderMainStage();
     renderPlayerDashboard();
+    updatePendingLegislationDisplay(); // Call this function here
+    updateCompactGameStateBar(); // Add this new function call
     
     // Update manual resolution buttons visibility
     updateManualResolutionButtons();
+}
+
+function updateCompactGameStateBar() {
+    if (!gameState) return;
+    
+    const currentPlayer = gameState.players[gameState.current_player_index];
+    const remainingAP = gameState.action_points?.[currentPlayer.id] || 2;
+    
+    // Update compact player info
+    const playerNameCompact = document.getElementById('current-player-name-compact');
+    const playerPcCompact = document.getElementById('current-player-pc-compact');
+    const playerOfficeCompact = document.getElementById('current-player-office-compact');
+    const playerAvatarCompact = document.getElementById('current-player-avatar-compact');
+    
+    if (playerNameCompact) {
+        playerNameCompact.textContent = currentPlayer.name;
+    }
+    if (playerPcCompact) {
+        playerPcCompact.textContent = currentPlayer.pc || 0;
+    }
+    if (playerOfficeCompact) {
+        playerOfficeCompact.textContent = currentPlayer.office || 'None';
+    }
+    if (playerAvatarCompact) {
+        playerAvatarCompact.textContent = getPlayerAvatar(currentPlayer);
+    }
+    
+    // Update compact game meta
+    const roundInfoCompact = document.getElementById('round-info-compact');
+    const phaseInfoCompact = document.getElementById('phase-info-compact');
+    const moodInfoCompact = document.getElementById('mood-info-compact');
+    
+    if (roundInfoCompact) {
+        roundInfoCompact.textContent = `Round ${gameState.round_marker || 1}`;
+    }
+    if (phaseInfoCompact) {
+        phaseInfoCompact.textContent = formatPhase(gameState.current_phase || 'Unknown');
+    }
+    if (moodInfoCompact) {
+        moodInfoCompact.textContent = `Mood: ${formatMood(gameState.public_mood || 0)}`;
+    }
+    
+    // Update compact action points
+    const actionPointsCompact = document.getElementById('action-points-compact');
+    if (actionPointsCompact) {
+        const apTextCompact = actionPointsCompact.querySelector('.ap-text-compact');
+        if (apTextCompact) {
+            apTextCompact.textContent = `${remainingAP}/2 AP`;
+        }
+    }
 }
 
 function updateManualResolutionButtons() {
@@ -599,14 +651,20 @@ function updatePendingLegislationDisplay() {
     const pendingSection = document.getElementById('pending-legislation-section');
     if (!pendingSection || !gameState) return;
     
-    if (gameState.current_phase === 'LEGISLATION_PHASE' && gameState.term_legislation && gameState.term_legislation.length > 0) {
+    // Show legislation whenever it exists, not just during legislation phase
+    if (gameState.term_legislation && gameState.term_legislation.length > 0) {
         pendingSection.classList.remove('hidden');
+        
+        // Determine if we're in legislation phase for different styling
+        const isLegislationPhase = gameState.current_phase === 'LEGISLATION_PHASE';
+        const phaseClass = isLegislationPhase ? 'legislation-phase' : 'pending-legislation';
+        
         pendingSection.innerHTML = `
             <div class="section-header">
-                <h3>🗳️ Pending Legislation (PC Gambling System)</h3>
-                <p class="system-explanation">Commit PC to support or oppose legislation. Bigger commitments = bigger rewards!</p>
+                <h3>🗳️ ${isLegislationPhase ? 'Legislation Session' : 'Pending Legislation'} (PC Gambling System)</h3>
+                <p class="system-explanation">${isLegislationPhase ? 'Vote on bills sponsored this term.' : 'Legislation will be voted on during the legislation session.'} Commit PC to support or oppose legislation. Bigger commitments = bigger rewards!</p>
             </div>
-            <div class="legislation-list">
+            <div class="legislation-list ${phaseClass}">
                 ${gameState.term_legislation.map(legislation => {
                     const bill = gameState.legislation_options[legislation.legislation_id];
                     const sponsor = gameState.players.find(p => p.id === legislation.sponsor_id);
@@ -1910,6 +1968,29 @@ function showMessage(message, type = 'success') {
         }
     }, 5000);
 }
+
+function toggleSection(sectionId) {
+    const section = document.querySelector(`.${sectionId}`);
+    if (!section) return;
+    section.classList.toggle('collapsed');
+    // Update toggle arrow
+    const toggle = document.getElementById(`${sectionId}-toggle`);
+    if (toggle) {
+        if (section.classList.contains('collapsed')) {
+            toggle.textContent = '►';
+        } else {
+            toggle.textContent = '▼';
+        }
+    }
+}
+
+// On DOMContentLoaded, ensure all collapsible sections are expanded by default
+// (could be collapsed by default on mobile if desired)
+document.addEventListener('DOMContentLoaded', () => {
+    document.querySelectorAll('.collapsible-section').forEach(section => {
+        section.classList.remove('collapsed');
+    });
+});
 
 // Initialize
 // Event listeners are already set up at the top of the file 

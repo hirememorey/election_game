@@ -88,11 +88,44 @@
                     </div>
                 </section>
 
+                <!-- Compact Game State Bar -->
+                <section class="game-state-bar" aria-live="polite">
+                    <div class="state-bar-content">
+                        <div class="current-player-compact">
+                            <div class="player-avatar-compact" id="current-player-avatar-compact" aria-hidden="true">👤</div>
+                            <div class="player-info-compact">
+                                <h4 id="current-player-name-compact">Player Name</h4>
+                                <div class="player-stats-compact">
+                                    <span class="stat-compact">
+                                        <span class="stat-label-compact">PC:</span>
+                                        <span class="stat-value-compact" id="current-player-pc-compact">0</span>
+                                    </span>
+                                    <span class="stat-compact">
+                                        <span class="stat-label-compact">Office:</span>
+                                        <span class="stat-value-compact" id="current-player-office-compact">None</span>
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="game-meta-compact">
+                            <span id="round-info-compact" class="meta-item-compact">Round 1</span>
+                            <span id="phase-info-compact" class="meta-item-compact">Event Phase</span>
+                            <span id="mood-info-compact" class="meta-item-compact">Mood: Neutral</span>
+                        </div>
+                        
+                        <div class="action-points-compact" id="action-points-compact">
+                            <span class="ap-icon-compact" aria-hidden="true">⚡</span>
+                            <span class="ap-text-compact">2 AP</span>
+                        </div>
+                    </div>
+                </section>
+
                 <!-- Game Layout -->
                 <div class="game-layout">
                     <!-- Left Column: Game State -->
                     <div class="game-state-column">
-                        <!-- Current Player Info -->
+                        <!-- Current Player Info (Detailed) -->
                         <section class="player-section" aria-labelledby="current-player-heading">
                             <div class="section-header">
                                 <h3 id="current-player-heading">Current Player</h3>
@@ -114,27 +147,31 @@
                         </section>
 
                         <!-- Player Identity Cards -->
-                        <section class="identity-section" aria-labelledby="identity-heading">
-                            <h3 id="identity-heading" class="sr-only">Player Identity</h3>
-                            <div class="identity-card">
-                                <div class="card-header">
-                                    <h4>Political Archetype</h4>
-                                    <div class="card-icon" aria-hidden="true">🎭</div>
-                                </div>
-                                <div class="card-content">
-                                    <h5 id="current-player-archetype-title">Loading...</h5>
-                                    <p id="current-player-archetype-desc">Loading...</p>
-                                </div>
+                        <section class="identity-section collapsible-section" aria-labelledby="identity-heading">
+                            <div class="collapsible-header" onclick="toggleSection('identity-section')">
+                                <h3 id="identity-heading" class="sr-only">Player Identity</h3>
+                                <span class="collapsible-toggle" id="identity-section-toggle">▼</span>
                             </div>
-                            
-                            <div class="identity-card">
-                                <div class="card-header">
-                                    <h4>Hidden Mission</h4>
-                                    <div class="card-icon" aria-hidden="true">🎯</div>
+                            <div class="collapsible-content" id="identity-section-content">
+                                <div class="identity-card">
+                                    <div class="card-header">
+                                        <h4>Political Archetype</h4>
+                                        <div class="card-icon" aria-hidden="true">🎭</div>
+                                    </div>
+                                    <div class="card-content">
+                                        <h5 id="current-player-archetype-title">Loading...</h5>
+                                        <p id="current-player-archetype-desc">Loading...</p>
+                                    </div>
                                 </div>
-                                <div class="card-content">
-                                    <h5 id="current-player-mandate-title">Loading...</h5>
-                                    <p id="current-player-mandate-desc">Loading...</p>
+                                <div class="identity-card">
+                                    <div class="card-header">
+                                        <h4>Hidden Mission</h4>
+                                        <div class="card-icon" aria-hidden="true">🎯</div>
+                                    </div>
+                                    <div class="card-content">
+                                        <h5 id="current-player-mandate-title">Loading...</h5>
+                                        <p id="current-player-mandate-desc">Loading...</p>
+                                    </div>
                                 </div>
                             </div>
                         </section>
@@ -169,16 +206,21 @@
                         </section>
 
                         <!-- Game Log -->
-                        <section class="log-section" aria-labelledby="log-heading">
-                            <div class="section-header">
-                                <h3 id="log-heading">Game Log</h3>
-                                <button class="btn-clear-log" id="clear-log-btn" aria-label="Clear game log">
-                                    <span class="btn-icon" aria-hidden="true">🗑️</span>
-                                </button>
+                        <section class="log-section collapsible-section" aria-labelledby="log-heading">
+                            <div class="collapsible-header" onclick="toggleSection('log-section')">
+                                <div class="section-header">
+                                    <h3 id="log-heading">Game Log</h3>
+                                    <button class="btn-clear-log" id="clear-log-btn" aria-label="Clear game log">
+                                        <span class="btn-icon" aria-hidden="true">🗑️</span>
+                                    </button>
+                                </div>
+                                <span class="collapsible-toggle" id="log-section-toggle">▼</span>
                             </div>
-                            <div class="log-container">
-                                <div id="log-content" class="log-content" role="log" aria-live="polite">
-                                    <!-- Game log will be populated here -->
+                            <div class="collapsible-content" id="log-section-content">
+                                <div class="log-container">
+                                    <div id="log-content" class="log-content" role="log" aria-live="polite">
+                                        <!-- Game log will be populated here -->
+                                    </div>
                                 </div>
                             </div>
                         </section>

@@ -192,7 +192,7 @@ body {
 
 /* ===== SETUP SCREEN ===== */
 .setup-screen {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: var(--color-background) !important;
   justify-content: center;
   align-items: center;
   padding: var(--spacing-6);
@@ -248,8 +248,7 @@ body {
   left: 0;
   right: 0;
   bottom: 0;
-  background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grain" width="100" height="100" patternUnits="userSpaceOnUse"><circle cx="50" cy="50" r="1" fill="white" opacity="0.1"/></pattern></defs><rect width="100" height="100" fill="url(%23grain)"/></svg>');
-  opacity: 0.3;
+  background: none !important;
 }
 
 .logo {
@@ -269,7 +268,7 @@ body {
   transform: translate(-50%, -50%);
   width: 140px;
   height: 140px;
-  background: radial-gradient(circle, rgba(255, 255, 255, 0.15) 0%, transparent 70%);
+  background: none !important;
   border-radius: 50%;
   z-index: -1;
 }
@@ -452,20 +451,13 @@ body {
 }
 
 .turn-status-section {
-  margin-bottom: var(--spacing-8);
+  background: none !important;
+  box-shadow: none !important;
 }
 
 .enhanced-turn-status {
-  background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-secondary) 100%);
-  color: var(--color-text-inverse);
-  padding: var(--spacing-10);
-  border-radius: var(--radius-3xl);
-  text-align: center;
-  box-shadow: var(--shadow-xl);
-  position: relative;
-  overflow: hidden;
-  backdrop-filter: blur(20px);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: none !important;
+  box-shadow: none !important;
 }
 
 .enhanced-turn-status::before {
@@ -475,8 +467,7 @@ body {
   left: 0;
   right: 0;
   bottom: 0;
-  background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grain" width="100" height="100" patternUnits="userSpaceOnUse"><circle cx="50" cy="50" r="1" fill="white" opacity="0.1"/></pattern></defs><rect width="100" height="100" fill="url(%23grain)"/></svg>');
-  opacity: 0.2;
+  background: none !important;
 }
 
 .enhanced-turn-status::after {
@@ -534,7 +525,7 @@ body {
 .player-avatar {
   width: 48px;
   height: 48px;
-  background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-secondary) 100%);
+  background: none !important;
   border-radius: var(--radius-full);
   display: flex;
   align-items: center;
@@ -586,19 +577,22 @@ body {
 .identity-section {
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-6);
+  gap: var(--spacing-3); /* Reduce gap for compactness */
 }
 
 .identity-card {
   background: var(--color-surface);
-  border-radius: var(--radius-2xl);
-  padding: var(--spacing-8);
-  box-shadow: var(--shadow-md);
+  border-radius: var(--radius-lg); /* Slightly smaller radius for compactness */
+  padding: var(--spacing-4); /* Reduce padding for compactness */
+  box-shadow: var(--shadow-sm); /* Lighter shadow for less visual weight */
   border: 1px solid var(--color-border-light);
   transition: all var(--transition-spring);
   position: relative;
   overflow: hidden;
-  backdrop-filter: blur(10px);
+  backdrop-filter: blur(6px);
+  width: 100%; /* Ensure full width */
+  max-width: 100%;
+  margin: 0;
 }
 
 .identity-card::before {
@@ -608,8 +602,7 @@ body {
   left: 0;
   right: 0;
   bottom: 0;
-  background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-secondary) 100%);
-  opacity: 0;
+  background: none !important;
   transition: opacity var(--transition-spring);
   z-index: 0;
 }
@@ -742,8 +735,7 @@ body {
   left: 0;
   right: 0;
   bottom: 0;
-  background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-secondary) 100%);
-  opacity: 0;
+  background: none !important;
   transition: opacity var(--transition-spring);
   z-index: 0;
 }
@@ -867,7 +859,7 @@ body {
 }
 
 .btn-primary {
-  background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-dark) 100%);
+  background: var(--color-primary) !important;
   color: var(--color-text-inverse);
   box-shadow: var(--shadow-md);
 }
@@ -894,6 +886,7 @@ body {
 }
 
 .btn-primary:active {
+  background: var(--color-primary-dark) !important;
   transform: translateY(0);
   box-shadow: var(--shadow-md);
 }
@@ -1835,7 +1828,7 @@ body {
 /* ===== GAMBLING-STYLE LEGISLATION SYSTEM ===== */
 
 .gambling-legislation {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: var(--color-surface) !important;
   border: 2px solid var(--color-primary);
   box-shadow: var(--shadow-lg);
   position: relative;
@@ -1849,8 +1842,7 @@ body {
   left: 0;
   right: 0;
   height: 3px;
-  background: linear-gradient(90deg, #FFD700, #FFA500, #FF6347);
-  animation: shimmer 2s ease-in-out infinite;
+  background: none !important;
 }
 
 .system-explanation {
@@ -1967,7 +1959,7 @@ body {
 
 /* Gambling Menu Styles */
 .gambling-menu {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: var(--color-surface) !important;
   border: 2px solid var(--color-primary);
   box-shadow: var(--shadow-xl);
 }
@@ -2143,3 +2135,391 @@ body {
     padding: var(--spacing-2);
   }
 } 
+
+/* ===== COMPACT GAME STATE BAR ===== */
+.game-state-bar {
+  background: none !important;
+  border-bottom: 1px solid var(--color-border);
+  padding: var(--spacing-3) var(--spacing-4);
+  box-shadow: var(--shadow-sm);
+  position: sticky;
+  top: 0;
+  z-index: var(--z-sticky);
+}
+
+.state-bar-content {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--spacing-4);
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.current-player-compact {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-3);
+  flex: 1;
+}
+
+.player-avatar-compact {
+  width: 40px;
+  height: 40px;
+  border-radius: var(--radius-full);
+  background: linear-gradient(135deg, var(--color-primary), var(--color-secondary));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: var(--font-size-lg);
+  color: var(--color-text-inverse);
+  box-shadow: var(--shadow-sm);
+}
+
+.player-info-compact {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-1);
+}
+
+.player-info-compact h4 {
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-primary);
+  margin: 0;
+  line-height: var(--line-height-tight);
+}
+
+.player-stats-compact {
+  display: flex;
+  gap: var(--spacing-3);
+  font-size: var(--font-size-sm);
+}
+
+.stat-compact {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-1);
+}
+
+.stat-label-compact {
+  color: var(--color-text-secondary);
+  font-weight: var(--font-weight-medium);
+}
+
+.stat-value-compact {
+  color: var(--color-text-primary);
+  font-weight: var(--font-weight-semibold);
+}
+
+.game-meta-compact {
+  display: flex;
+  gap: var(--spacing-4);
+  align-items: center;
+}
+
+.meta-item-compact {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+  font-weight: var(--font-weight-medium);
+  padding: var(--spacing-1) var(--spacing-2);
+  background: var(--color-surface-secondary);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-border-light);
+}
+
+.action-points-compact {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2);
+  padding: var(--spacing-2) var(--spacing-3);
+  background: linear-gradient(135deg, var(--color-success), var(--color-success-dark));
+  color: var(--color-text-inverse);
+  border-radius: var(--radius-lg);
+  font-weight: var(--font-weight-semibold);
+  box-shadow: var(--shadow-sm);
+}
+
+.ap-icon-compact {
+  font-size: var(--font-size-base);
+}
+
+.ap-text-compact {
+  font-size: var(--font-size-sm);
+}
+
+/* Responsive design for compact bar */
+@media (max-width: 768px) {
+  .state-bar-content {
+    flex-direction: column;
+    gap: var(--spacing-2);
+    align-items: stretch;
+  }
+  
+  .current-player-compact {
+    justify-content: center;
+  }
+  
+  .game-meta-compact {
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+  
+  .action-points-compact {
+    align-self: center;
+  }
+}
+
+@media (max-width: 480px) {
+  .game-state-bar {
+    padding: var(--spacing-2);
+  }
+  
+  .player-stats-compact {
+    flex-direction: column;
+    gap: var(--spacing-1);
+  }
+  
+  .game-meta-compact {
+    gap: var(--spacing-2);
+  }
+  
+  .meta-item-compact {
+    font-size: var(--font-size-xs);
+    padding: var(--spacing-1);
+  }
+} 
+
+/* ===== PENDING LEGISLATION STYLES ===== */
+.legislation-section.pending-legislation {
+  background: var(--color-surface-secondary);
+  border: 1px solid var(--color-border-light);
+  border-radius: var(--radius-lg);
+  margin-bottom: var(--spacing-4);
+}
+
+.legislation-section.legislation-phase {
+  background: var(--color-primary-ultra-light);
+  border: 2px solid var(--color-primary);
+  border-radius: var(--radius-lg);
+  margin-bottom: var(--spacing-4);
+}
+
+.legislation-list.pending-legislation .legislation-item {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: var(--spacing-3);
+  margin-bottom: var(--spacing-2);
+  box-shadow: var(--shadow-xs);
+}
+
+.legislation-list.legislation-phase .legislation-item {
+  background: var(--color-surface);
+  border: 2px solid var(--color-primary-light);
+  border-radius: var(--radius-md);
+  padding: var(--spacing-4);
+  margin-bottom: var(--spacing-3);
+  box-shadow: var(--shadow-sm);
+}
+
+.legislation-list.pending-legislation .legislation-header h4 {
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-sm);
+}
+
+.legislation-list.legislation-phase .legislation-header h4 {
+  color: var(--color-text-primary);
+  font-size: var(--font-size-base);
+}
+
+.legislation-list.pending-legislation .system-explanation {
+  color: var(--color-text-tertiary);
+  font-size: var(--font-size-sm);
+  font-style: italic;
+}
+
+.legislation-list.legislation-phase .system-explanation {
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-medium);
+}
+
+/* Compact legislation display for non-legislation phases */
+.legislation-list.pending-legislation .legislation-details {
+  font-size: var(--font-size-sm);
+}
+
+.legislation-list.pending-legislation .target-info {
+  margin-bottom: var(--spacing-2);
+}
+
+.legislation-list.pending-legislation .current-status {
+  margin-bottom: var(--spacing-2);
+}
+
+.legislation-list.pending-legislation .reward-info {
+  display: none; /* Hide detailed reward info in pending state */
+}
+
+/* Show reward info only in legislation phase */
+.legislation-list.legislation-phase .reward-info {
+  display: block;
+}
+
+/* ===== IMPROVED LAYOUT FOR REDUCED SCROLLING ===== */
+.game-layout {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--spacing-6);
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: var(--spacing-4);
+}
+
+.game-state-column {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-4);
+}
+
+.game-actions-column {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-4);
+}
+
+/* Make sections more compact */
+.player-section,
+.identity-section,
+.actions-section,
+.legislation-section,
+.log-section {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: var(--spacing-4);
+  box-shadow: var(--shadow-sm);
+}
+
+/* Compact identity cards */
+.identity-section {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--spacing-3);
+}
+
+.identity-card {
+  padding: var(--spacing-3);
+  background: var(--color-surface-secondary);
+  border: 1px solid var(--color-border-light);
+  border-radius: var(--radius-md);
+}
+
+/* Compact log section */
+.log-section {
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+.log-content {
+  max-height: 200px;
+  overflow-y: auto;
+  font-size: var(--font-size-sm);
+  line-height: var(--line-height-relaxed);
+}
+
+/* Responsive design improvements */
+@media (max-width: 768px) {
+  .game-layout {
+    grid-template-columns: 1fr;
+    gap: var(--spacing-4);
+    padding: var(--spacing-3);
+  }
+  
+  .identity-section {
+    grid-template-columns: 1fr;
+  }
+  
+  .player-section,
+  .identity-section,
+  .actions-section,
+  .legislation-section,
+  .log-section {
+    padding: var(--spacing-3);
+  }
+}
+
+@media (max-width: 480px) {
+  .game-layout {
+    padding: var(--spacing-2);
+  }
+  
+  .player-section,
+  .identity-section,
+  .actions-section,
+  .legislation-section,
+  .log-section {
+    padding: var(--spacing-2);
+  }
+  
+  .log-section {
+    max-height: 200px;
+  }
+  
+  .log-content {
+    max-height: 150px;
+  }
+} 
+
+/* ===== COLLAPSIBLE SECTIONS ===== */
+.collapsible-section {
+  margin-bottom: var(--spacing-4);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-xs);
+}
+
+.collapsible-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  cursor: pointer;
+  background: var(--color-surface-tertiary);
+  border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+  padding: var(--spacing-2) var(--spacing-3);
+  font-weight: var(--font-weight-semibold);
+  font-size: var(--font-size-base);
+  user-select: none;
+}
+
+.collapsible-toggle {
+  font-size: var(--font-size-lg);
+  color: var(--color-text-tertiary);
+  margin-left: var(--spacing-2);
+  transition: transform 0.2s;
+}
+
+.collapsible-section.collapsed .collapsible-toggle {
+  transform: rotate(-90deg);
+}
+
+.collapsible-content {
+  padding: var(--spacing-2) var(--spacing-3);
+  background: var(--color-surface);
+  border-radius: 0 0 var(--radius-lg) var(--radius-lg);
+  display: block;
+}
+
+.collapsible-section.collapsed .collapsible-content {
+  display: none;
+}
+
+@media (max-width: 768px) {
+  .collapsible-header {
+    font-size: var(--font-size-sm);
+    padding: var(--spacing-2);
+  }
+  .collapsible-content {
+    padding: var(--spacing-2);
+  }
+}

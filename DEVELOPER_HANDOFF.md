@@ -219,6 +219,8 @@ static/
 - **Transitions**: Smooth animations (150ms, 250ms, 350ms) for all interactions
 - **Mobile**: Touch-friendly interactions with proper button sizes (44px minimum)
 - **Accessibility**: Better contrast ratios and focus states
+- All blue gradient bars have been removed for a cleaner, more information-dense interface.
+- The UI is now more compact, with full-width identity cards and neutral backgrounds for all status bars.
 
 ### Key API Endpoints
 - `POST /api/game`: Create new game

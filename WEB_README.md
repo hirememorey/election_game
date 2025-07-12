@@ -9,6 +9,8 @@ A political board game now playable in your web browser! This is a mobile-friend
 ✅ **READY**: Game is playable in browser on any device  
 ✅ **MOBILE**: Responsive design for iPhone and other mobile devices  
 ✅ **APPLE-LEVEL DESIGN**: Professional, modern interface with Apple-inspired design system  
+- All blue gradient bars have been removed for a cleaner, more information-dense interface.
+- The UI is now more compact, with full-width identity cards and neutral backgrounds for all status bars.
 
 ## 🚀 Quick Start
 
