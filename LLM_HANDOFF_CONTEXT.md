@@ -63,6 +63,14 @@
   - **Impact**: Eliminated player frustration from being stuck
 
 ### Recent Critical Bug Fixes (LATEST)
+- **Legislation Voting Unlimited PC Fix**: Fixed critical issue where players were limited to committing only 1 PC during the final voting round
+  - **Issue**: Players could commit unlimited PC in earlier rounds through the gambling-style system, but were limited to only 1 PC during the final voting phase, creating an imbalance
+  - **Root Cause**: Frontend voting buttons were hardcoded to commit only 1 PC (`support_amount: 1`, `oppose_amount: 1`)
+  - **Files Modified**: `static/script.js` - Modified `showVotingPhaseUI()` to call new `showVotingSupportMenu()` and `showVotingOpposeMenu()` functions instead of hardcoded 1 PC buttons
+  - **New Functions**: Added `showVotingSupportMenu(legislationId)` and `showVotingOpposeMenu(legislationId)` that allow unlimited PC commitment during voting phase
+  - **Impact**: Players can now commit unlimited PC during the voting phase, creating balance between early and late commitments
+  - **Status**: Fixed and deployed
+
 - **Legislation Display Fix**: Fixed critical bug where pending legislation was showing as "undefined" in the final round of the term
   - **Issue**: Frontend was trying to access `legislation.title` and `legislation.description` directly from `PendingLegislation` objects, but these properties don't exist
   - **Root Cause**: `PendingLegislation` objects only contain `legislation_id`, `sponsor_id`, etc. The actual legislation data is in `gameState.legislation_options`

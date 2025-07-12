@@ -169,6 +169,7 @@ python3 test_action_points_system.py
 
 ### 🎰 Gambling-Style Legislation System (Latest)
 - **PC Commitment During Any Turn**: Players can commit PC to support/oppose legislation throughout the term, not just during legislation session
+- **Unlimited PC Commitment in Voting Phase**: **FIXED** - Players can now commit unlimited PC during the final voting round (previously limited to 1 PC)
 - **Risk/Reward Mechanics**: Bigger commitments yield bigger rewards with tiered system (small/medium/big bets)
 - **Sponsor Bonus**: Legislation sponsors get 50% bonus on success, 50% penalty on failure
 - **Gambling Rewards**: Supporters get rewards if legislation passes, opponents get rewards if it fails
@@ -245,6 +246,7 @@ python3 test_action_points_system.py
 - **Apple-Level Design**: Fully implemented and ready for user experience testing
 
 ### Recent Bug Fixes
+- **Legislation Voting Unlimited PC**: ✅ **RESOLVED** - Fixed critical issue where players were limited to committing only 1 PC during the final voting round, but could commit unlimited PC in earlier rounds. Now players can commit unlimited PC during the voting phase, creating balance between early and late commitments.
 - **War Mood Lock**: ✅ **RESOLVED** - Fixed bug where "War Breaks Out" event didn't properly lock public mood. Other events could still change public mood during war, violating the intended game mechanic. Now public mood is properly locked for the rest of the term when war is active.
 - **Legislation Display**: ✅ **RESOLVED** - Fixed critical bug where pending legislation was showing as "undefined" in the final round of the term. Legislation now displays properly with titles, descriptions, and sponsor information.
 - **Use Favor Action**: Fixed to work with selection menu

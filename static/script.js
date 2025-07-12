@@ -898,10 +898,10 @@ function showVotingPhaseUI() {
                             <p><strong>Sponsored by:</strong> ${sponsor ? sponsor.name : 'Unknown'}</p>
                         </div>
                         <div class="voting-actions">
-                            <button onclick="performAction('support_legislation', {legislation_id: '${legislation.legislation_id}', support_amount: 1})" class="vote-btn support-btn">
+                            <button onclick="showVotingSupportMenu('${legislation.legislation_id}')" class="vote-btn support-btn">
                                 Support
                             </button>
-                            <button onclick="performAction('oppose_legislation', {legislation_id: '${legislation.legislation_id}', oppose_amount: 1})" class="vote-btn oppose-btn">
+                            <button onclick="showVotingOpposeMenu('${legislation.legislation_id}')" class="vote-btn oppose-btn">
                                 Oppose
                             </button>
                         </div>
@@ -1587,6 +1587,206 @@ function showLegislationOpposeMenu() {
             }
             overlay.remove();
         });
+    });
+    
+    modal.querySelector('.cancel-btn').addEventListener('click', () => {
+        overlay.remove();
+    });
+    
+    overlay.appendChild(modal);
+    document.body.appendChild(overlay);
+}
+
+function showVotingSupportMenu(legislationId) {
+    if (!gameState || !gameState.term_legislation) return;
+    
+    const currentPlayer = gameState.players[gameState.current_player_index];
+    const legislation = gameState.term_legislation.find(l => l.legislation_id === legislationId);
+    
+    if (!legislation || legislation.resolved || legislation.sponsor_id === currentPlayer.id) {
+        showMessage('Cannot support this legislation', 'error');
+        return;
+    }
+    
+    const bill = gameState.legislation_options[legislationId];
+    const sponsor = gameState.players.find(p => p.id === legislation.sponsor_id);
+    
+    if (!bill) {
+        showMessage('Legislation not found', 'error');
+        return;
+    }
+    
+    // Create modal overlay
+    const overlay = document.createElement('div');
+    overlay.className = 'modal-overlay';
+    
+    const modal = document.createElement('div');
+    modal.className = 'legislation-menu gambling-menu';
+    
+    // Calculate current support and opposition
+    const totalSupport = Object.values(legislation.support_players).reduce((sum, amount) => sum + amount, 0);
+    const totalOpposition = Object.values(legislation.oppose_players).reduce((sum, amount) => sum + amount, 0);
+    const netInfluence = totalSupport - totalOpposition;
+    const currentCommitment = legislation.support_players[currentPlayer.id] || 0;
+    
+    modal.innerHTML = `
+        <h3>🎯 Support Legislation (Voting Phase)</h3>
+        <div class="gambling-info">
+            <p><strong>💰 Commitment Rewards:</strong></p>
+            <ul>
+                <li>Small bet (1-4 PC): 1x reward</li>
+                <li>Medium bet (5-9 PC): 1.5x reward</li>
+                <li>Big bet (10+ PC): 2x reward</li>
+            </ul>
+            <p><em>Rewards are paid if the legislation passes!</em></p>
+        </div>
+        <div class="legislation-details">
+            <div class="legislation-header">
+                <div><strong>${bill.title}</strong></div>
+                <div class="sponsor">Sponsored by: ${sponsor ? sponsor.name : 'Unknown'}</div>
+            </div>
+            <div class="targets">
+                <span>Success: ${bill.success_target} PC</span>
+                <span>Crit: ${bill.crit_target} PC</span>
+            </div>
+            <div class="current-status">
+                <span class="support">Support: ${totalSupport} PC</span>
+                <span class="opposition">Opposition: ${totalOpposition} PC</span>
+                <span class="net">Net: ${netInfluence} PC</span>
+            </div>
+            ${currentCommitment > 0 ? `<div class="your-commitment">Your commitment: ${currentCommitment} PC</div>` : ''}
+        </div>
+        <div class="modal-buttons">
+            <button class="btn-primary support-btn">Support</button>
+            <button class="btn-secondary cancel-btn">Cancel</button>
+        </div>
+    `;
+    
+    // Add event listeners
+    modal.querySelector('.support-btn').addEventListener('click', () => {
+        const maxPC = currentPlayer.pc;
+        
+        const amount = prompt(
+            `How much PC do you want to commit to support?\n\n` +
+            `You have: ${maxPC} PC\n` +
+            `Current commitment: ${currentCommitment} PC\n\n` +
+            `Rewards if legislation passes:\n` +
+            `• 1-4 PC: 1x reward\n` +
+            `• 5-9 PC: 1.5x reward\n` +
+            `• 10+ PC: 2x reward\n\n` +
+            `Enter amount:`, 
+            '1'
+        );
+        
+        if (amount && !isNaN(amount) && parseInt(amount) > 0 && parseInt(amount) <= maxPC) {
+            performAction('support_legislation', { 
+                legislation_id: legislationId, 
+                support_amount: parseInt(amount)
+            });
+        } else if (amount !== null) {
+            showMessage('Invalid amount', 'error');
+        }
+        overlay.remove();
+    });
+    
+    modal.querySelector('.cancel-btn').addEventListener('click', () => {
+        overlay.remove();
+    });
+    
+    overlay.appendChild(modal);
+    document.body.appendChild(overlay);
+}
+
+function showVotingOpposeMenu(legislationId) {
+    if (!gameState || !gameState.term_legislation) return;
+    
+    const currentPlayer = gameState.players[gameState.current_player_index];
+    const legislation = gameState.term_legislation.find(l => l.legislation_id === legislationId);
+    
+    if (!legislation || legislation.resolved || legislation.sponsor_id === currentPlayer.id) {
+        showMessage('Cannot oppose this legislation', 'error');
+        return;
+    }
+    
+    const bill = gameState.legislation_options[legislationId];
+    const sponsor = gameState.players.find(p => p.id === legislation.sponsor_id);
+    
+    if (!bill) {
+        showMessage('Legislation not found', 'error');
+        return;
+    }
+    
+    // Create modal overlay
+    const overlay = document.createElement('div');
+    overlay.className = 'modal-overlay';
+    
+    const modal = document.createElement('div');
+    modal.className = 'legislation-menu gambling-menu';
+    
+    // Calculate current support and opposition
+    const totalSupport = Object.values(legislation.support_players).reduce((sum, amount) => sum + amount, 0);
+    const totalOpposition = Object.values(legislation.oppose_players).reduce((sum, amount) => sum + amount, 0);
+    const netInfluence = totalSupport - totalOpposition;
+    const currentCommitment = legislation.oppose_players[currentPlayer.id] || 0;
+    
+    modal.innerHTML = `
+        <h3>🎯 Oppose Legislation (Voting Phase)</h3>
+        <div class="gambling-info">
+            <p><strong>💰 Commitment Rewards:</strong></p>
+            <ul>
+                <li>Small bet (1-4 PC): 1x reward</li>
+                <li>Medium bet (5-9 PC): 1.5x reward</li>
+                <li>Big bet (10+ PC): 2x reward</li>
+            </ul>
+            <p><em>Rewards are paid if the legislation fails!</em></p>
+        </div>
+        <div class="legislation-details">
+            <div class="legislation-header">
+                <div><strong>${bill.title}</strong></div>
+                <div class="sponsor">Sponsored by: ${sponsor ? sponsor.name : 'Unknown'}</div>
+            </div>
+            <div class="targets">
+                <span>Success: ${bill.success_target} PC</span>
+                <span>Crit: ${bill.crit_target} PC</span>
+            </div>
+            <div class="current-status">
+                <span class="support">Support: ${totalSupport} PC</span>
+                <span class="opposition">Opposition: ${totalOpposition} PC</span>
+                <span class="net">Net: ${netInfluence} PC</span>
+            </div>
+            ${currentCommitment > 0 ? `<div class="your-commitment">Your commitment: ${currentCommitment} PC</div>` : ''}
+        </div>
+        <div class="modal-buttons">
+            <button class="btn-primary oppose-btn">Oppose</button>
+            <button class="btn-secondary cancel-btn">Cancel</button>
+        </div>
+    `;
+    
+    // Add event listeners
+    modal.querySelector('.oppose-btn').addEventListener('click', () => {
+        const maxPC = currentPlayer.pc;
+        
+        const amount = prompt(
+            `How much PC do you want to commit to oppose?\n\n` +
+            `You have: ${maxPC} PC\n` +
+            `Current commitment: ${currentCommitment} PC\n\n` +
+            `Rewards if legislation fails:\n` +
+            `• 1-4 PC: 1x reward\n` +
+            `• 5-9 PC: 1.5x reward\n` +
+            `• 10+ PC: 2x reward\n\n` +
+            `Enter amount:`, 
+            '1'
+        );
+        
+        if (amount && !isNaN(amount) && parseInt(amount) > 0 && parseInt(amount) <= maxPC) {
+            performAction('oppose_legislation', { 
+                legislation_id: legislationId, 
+                oppose_amount: parseInt(amount)
+            });
+        } else if (amount !== null) {
+            showMessage('Invalid amount', 'error');
+        }
+        overlay.remove();
     });
     
     modal.querySelector('.cancel-btn').addEventListener('click', () => {
