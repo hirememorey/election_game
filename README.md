@@ -64,6 +64,7 @@ A Python-based political strategy board game with a Flask backend and mobile-fri
 - **Term Transition Fixes**: Proper state cleanup between terms
 - **Legislation Voting Fixes**: Players cannot vote on their own legislation, with proper "Pass Turn" option when no valid votes exist
 - **🎰 Gambling-Style Legislation System**: Players can commit PC to support/oppose legislation during any turn with risk/reward mechanics
+- **🎭 Identity Display System**: Players can easily view their archetype and mission information through multiple access methods
 
 ### 🎮 Core Game Mechanics
 
@@ -86,6 +87,34 @@ A Python-based political strategy board game with a Flask backend and mobile-fri
 - Support/Oppose Legislation: 1 AP each
 - Trading actions: 0 AP (free during trading phase)
 - Pass Turn: 0 AP (free action)
+
+### 🎭 Identity System
+Players have unique identities that affect gameplay:
+
+**Political Archetypes:**
+- **The Insider**: Starts with State Senator office and 15 PC
+- **The Populist**: Gains +1 PC when gaining PC from negative Public Mood as an Outsider
+- **The Fundraiser**: First Fundraise action each term grants +2 PC
+- **The Orator**: Once per term, may re-roll one failed legislation die roll
+
+**Personal Mandates (Missions):**
+- **The Principled Leader**: Win Presidency without ever holding Governor office
+- **The Environmentalist**: Ensure Infrastructure Bill passes twice, personally sponsor one
+- **The War Hawk**: Ensure Military Funding bill passes with Critical Success
+- **The Kingmaker**: Be allied with the player who wins Presidency
+- **The Master Legislator**: Personally sponsor and pass 3 different types of legislation
+- **The Statesman**: Hold Governor or US Senator office at game end
+- **The Shadow Donor**: Ensure a player you supported wins Presidency
+- **The Unpopular Hero**: Pass Healthcare Overhaul legislation
+- **The Minimalist**: Win Presidency having committed 20 PC or less to final election
+- **The People's Champion**: Ensure Public Mood is +2 or +3 at final Presidential election
+- **The Opportunist**: Win Presidency without ever being an Incumbent before final Election Phase
+
+**Access Methods:**
+- **Swipe up** on mobile devices
+- **Click "Game Info"** button in header
+- **Press G key** on desktop
+- **"View Identity"** button during action phase
 
 ## 🚀 Quick Start
 
@@ -149,6 +178,7 @@ See `DEPLOYMENT.md` for step-by-step instructions for Render, Netlify, Heroku, R
 - **`test_mood_system.py`**: Mood system functionality
 - **`test_war_mood_lock.py`**: War event mood lock functionality
 - **`performance_test.py`**: Performance benchmarking
+- **`test_archetype_display.py`**: Archetype and mandate display functionality
 
 ### Run Tests
 ```bash
@@ -166,10 +196,19 @@ python3 test_action_points_system.py
 - **`GAME_IMPROVEMENTS.md`**: Recent feature additions and improvements
 - **`NETWORK_ACTION_DESIGN.md`**: Design for merging Network and Form Alliance actions
 - **`DEPLOYMENT.md`**: Deployment instructions for various platforms
+- **`SIMPLIFIED_UI_IMPLEMENTATION.md`**: Phase-based UI redesign with identity display system
 
 ## 🎯 Recent Major Improvements
 
-### 🎰 Gambling-Style Legislation System (Latest)
+### 🎭 Identity Display System (Latest)
+- **Archetype Cards**: Clear display of player's political archetype and special abilities
+- **Mission Cards**: Prominent display of personal mandate and win conditions
+- **Multiple Access Methods**: Swipe up, click "Game Info", press G key, or use "View Identity" button
+- **Visual Design**: Gradient headers with clear descriptions for archetype and mission cards
+- **Strategic Understanding**: Players now understand their unique abilities and objectives
+- **Reduced Confusion**: Clear explanation of why players start with specific PC amounts and offices
+
+### 🎰 Gambling-Style Legislation System
 - **PC Commitment During Any Turn**: Players can commit PC to support/oppose legislation throughout the term, not just during legislation session
 - **Risk/Reward Mechanics**: Bigger commitments yield bigger rewards with tiered system (small/medium/big bets)
 - **Sponsor Bonus**: Legislation sponsors get 50% bonus on success, 50% penalty on failure
@@ -197,104 +236,4 @@ python3 test_action_points_system.py
 - **Status**: Backend fully implemented, frontend enhanced with Apple-level design
 
 ### Candidacy Mechanic Update
-- Multiple players can now declare candidacy for the same or different offices in the same round, enabling head-to-head matchups and more dynamic elections.
-
-### Trading Mechanic
-- Players can trade PC and favors during legislation sessions
-- Trading phase before voting in legislation sessions
-- Propose, accept, decline trade offers
-- Strategic negotiation for votes
-
-### Political Favors System
-- Players can use favors gained from networking
-- Selection menu for different favor types
-- PEEK_EVENT favor reveals top event card
-- Favors are consumed when used
-- **New:** Negative favors (e.g., Political Debt, Public Gaffe, Media Scrutiny, Compromising Position, Political Hot Potato) are applied immediately when drawn and are never kept in hand. Players cannot choose to use them; the effect is automatic.
-
-### PC Commitment System
-- Custom PC amounts for legislation support/opposition
-- Additional PC commitment for candidacy declarations
-- Strategic depth through resource investment
-
-### Automatic Event Phases
-- Events draw automatically at start of each round/term
-- No manual intervention required
-- Smooth game flow
-
-## 🔧 Technical Details
-
-- **Port**: 5001 (configurable, avoids macOS AirPlay conflicts)
-- **Dependencies**: Flask, flask-cors (see requirements.txt)
-- **Storage**: In-memory game storage (production would need database)
-- **CORS**: Enabled for development
-- **Static Files**: Served from `/static/` directory
-
-## 🎮 Game Flow
-
-1. **Setup**: 2-4 players, each with archetype and mandate
-2. **Event Phase**: Random events affect all players (automatic)
-3. **Action Phase**: Players take turns performing actions using Action Points
-4. **Resolution**: Actions resolve, game state updates
-5. **Repeat**: Until election victory conditions met
-
-## 🚨 Known Issues & Limitations
-
-### Current Limitations
-- **In-memory Storage**: Game state lost on server restart (production needs database)
-- **Single Session**: No persistent user accounts or game history
-- **No AI Opponents**: All players must be human
-- **Apple-Level Design**: Fully implemented and ready for user experience testing
-
-### Recent Bug Fixes
-- **War Mood Lock**: ✅ **RESOLVED** - Fixed bug where "War Breaks Out" event didn't properly lock public mood. Other events could still change public mood during war, violating the intended game mechanic. Now public mood is properly locked for the rest of the term when war is active.
-- **Legislation Display**: ✅ **RESOLVED** - Fixed critical bug where pending legislation was showing as "undefined" in the final round of the term. Legislation now displays properly with titles, descriptions, and sponsor information.
-- **Use Favor Action**: Fixed to work with selection menu
-- **PC Commitment**: Added custom PC amounts for legislation and candidacy
-- **Automatic Event Phases**: Events now draw automatically
-- **Term Transitions**: Fixed state cleanup between terms
-- **Legislation Timing**: Fixed premature legislation resolution
-- **Static File Serving**: Fixed 404 errors for CSS/JS files
-- **Round 5 Confusion**: ✅ **RESOLVED** - Legislation session now triggers at end of round 4
-- **Action Point Handling**: ✅ **RESOLVED** - Clear UI and Pass Turn functionality added
-- **Multiple Legislation Sponsorship**: ✅ **RESOLVED** - Fixed a bug that prevented players from sponsoring multiple pieces of legislation in the same term.
-- **Skip Trading**: Fixed: Skip Trading button in legislation session now works correctly and advances to the voting phase (previously logged 'Unknown action type: complete_trading').
-
-### Gameplay Balance Changes (Latest)
-- **Action Points Reduced**: Changed from 3 AP per round to 2 AP per round for more strategic gameplay
-- **Use Favor Cost**: Changed from 0 AP to 1 AP to prevent unlimited favor usage
-
-## 🎯 Next Steps
-
-### High Priority
-1. **Apple-Level Design Testing**: Test the new design system across devices and gather user feedback
-2. **Extensive Playtesting**: Test Action Points and trading systems thoroughly
-3. **Balance Adjustments**: Fine-tune AP costs and PC commitment amounts
-4. **Legislation Session Testing**: Test the improved legislation session flow (no more round 5 confusion)
-
-### Medium Priority
-1. **Database Integration**: Replace in-memory storage with persistent database
-2. **Multiplayer Real-time**: Add WebSocket support for live multiplayer
-3. **Advanced AI**: Add AI opponents with strategic decision-making
-4. **Network Action Design**: Implement merged Network/Alliance system
-
-### Low Priority
-1. **Game Variants**: Different election scenarios, rule sets
-2. **Analytics**: Track game statistics and player behavior
-3. **Mobile App**: Native iOS/Android apps
-
-## 🤝 Contributing
-
-Feel free to submit issues and enhancement requests! See `LLM_HANDOFF_CONTEXT.md` for detailed development context.
-
-## 📄 License
-
-This project is open source and available under the [MIT License](LICENSE).
-
-## Changelog
-
-### 2024-07-07
-- Added a negative favors system: Networking can now yield negative Political Favors, introducing risk/reward and new strategic depth. **Negative favors are now applied immediately when drawn and are not kept in hand.** See GAME_IMPROVEMENTS.md for details.
-
-## Features
-- Political Favors system (now includes both positive and negative favors for richer gameplay) 
+- Multiple players can now declare candidacy for the same or different offices in the same round, enabling head-to-head matchups and more dynamic elections. 

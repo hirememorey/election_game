@@ -7,7 +7,6 @@
     <meta name="theme-color" content="#007AFF">
     <title>Election: The Game</title>
     <link rel="stylesheet" href="/static/style.css">
-    <!-- Using system fonts to avoid CORB issues -->
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🗳️</text></svg>">
 </head>
 <body>
@@ -26,7 +25,7 @@
                 <div class="setup-content">
                     <div class="setup-card">
                         <h2>Start New Game</h2>
-                        <p class="setup-description">Enter player names to begin your political campaign. Experience the thrill of strategic decision-making in this sophisticated political simulation.</p>
+                        <p class="setup-description">Enter player names to begin your political campaign.</p>
                         
                         <form class="player-form" id="player-form" novalidate>
                             <div class="player-inputs">
@@ -59,166 +58,72 @@
 
         <!-- Game Screen -->
         <div id="game-screen" class="screen game-screen hidden">
-            <!-- Game Header -->
-            <header class="game-header" role="banner">
+            <!-- Simplified Header -->
+            <header class="game-header">
                 <div class="header-content">
-                    <div class="header-left">
-                        <h1>Election</h1>
-                    </div>
-                    <div class="header-right">
-                        <button id="new-game-btn" class="btn-secondary btn-small" aria-label="Start new game">
-                            <span class="btn-icon" aria-hidden="true">↻</span>
+                    <h1>Election</h1>
+                    <div class="header-actions">
+                        <button id="game-info-btn" class="btn-secondary btn-small">
+                            <span class="btn-icon">ℹ️</span>
+                            <span class="btn-text">Game Info</span>
+                        </button>
+                        <button id="new-game-btn" class="btn-secondary btn-small">
+                            <span class="btn-icon">↻</span>
                             <span class="btn-text">New Game</span>
                         </button>
                     </div>
                 </div>
             </header>
 
-            <!-- Main Game Content -->
-            <main class="game-content" role="main">
-                <!-- Enhanced Turn Status -->
-                <section class="turn-status-section" aria-live="polite">
-                    <div id="turn-status" class="enhanced-turn-status">
-                        <!-- Turn status will be populated by JavaScript -->
+            <!-- Phase-Based Game Content -->
+            <main class="game-content">
+                <!-- Current Phase Display -->
+                <section class="phase-display">
+                    <div id="phase-indicator" class="phase-indicator">
+                        <!-- Phase info will be populated by JavaScript -->
                     </div>
                 </section>
 
-                <!-- Compact Game State Bar -->
-                <section class="game-state-bar" aria-live="polite">
-                    <div class="state-bar-content">
-                        <div class="current-player-compact">
-                            <div class="player-avatar-compact" id="current-player-avatar-compact" aria-hidden="true">👤</div>
-                            <div class="player-info-compact">
-                                <h4 id="current-player-name-compact">Player Name</h4>
-                                <div class="player-stats-compact">
-                                    <span class="stat-compact">
-                                        <span class="stat-label-compact">PC:</span>
-                                        <span class="stat-value-compact" id="current-player-pc-compact">0</span>
-                                    </span>
-                                    <span class="stat-compact">
-                                        <span class="stat-label-compact">Office:</span>
-                                        <span class="stat-value-compact" id="current-player-office-compact">None</span>
-                                    </span>
-                                </div>
-                            </div>
+                <!-- Game Log -->
+                <section class="game-log-section">
+                    <div id="game-log" class="game-log">
+                        <!-- Game log will be populated -->
+                    </div>
+                </section>
+
+                <!-- Contextual Action Area -->
+                <section class="action-area">
+                    <div id="action-content" class="action-content">
+                        <!-- Contextual content will be populated by JavaScript -->
+                    </div>
+                </section>
+
+                <!-- Quick Access Panel (Swipe up) -->
+                <section class="quick-access-panel" id="quick-access-panel">
+                    <div class="panel-header">
+                        <h3>Game Info</h3>
+                        <button class="panel-close" onclick="hideQuickAccess()">×</button>
+                    </div>
+                    <div class="panel-content">
+                        <div id="identity-info" class="info-section">
+                            <!-- Identity info will be populated -->
                         </div>
-                        
-                        <div class="game-meta-compact">
-                            <span id="round-info-compact" class="meta-item-compact">Round 1</span>
-                            <span id="phase-info-compact" class="meta-item-compact">Event Phase</span>
-                            <span id="mood-info-compact" class="meta-item-compact">Mood: Neutral</span>
-                        </div>
-                        
-                        <div class="action-points-compact" id="action-points-compact">
-                            <span class="ap-icon-compact" aria-hidden="true">⚡</span>
-                            <span class="ap-text-compact">2 AP</span>
+                        <div id="quick-access-content" class="info-section">
+                            <!-- Game log will be populated -->
                         </div>
                     </div>
                 </section>
 
-                <!-- Game Layout -->
-                <div class="game-layout">
-                    <!-- Left Column: Game State -->
-                    <div class="game-state-column">
-                        <!-- Player Identity Cards -->
-                        <section class="identity-section collapsible-section" aria-labelledby="identity-heading">
-                            <div class="collapsible-header" onclick="toggleSection('identity-section')">
-                                <h3 id="identity-heading" class="sr-only">Player Identity</h3>
-                                <span class="collapsible-toggle" id="identity-section-toggle">▼</span>
-                            </div>
-                            <div class="collapsible-content" id="identity-section-content">
-                                <div class="identity-card">
-                                    <div class="card-header">
-                                        <h4>Political Archetype</h4>
-                                        <div class="card-icon" aria-hidden="true">🎭</div>
-                                    </div>
-                                    <div class="card-content">
-                                        <h5 id="current-player-archetype-title">Loading...</h5>
-                                        <p id="current-player-archetype-desc">Loading...</p>
-                                    </div>
-                                </div>
-                                <div class="identity-card">
-                                    <div class="card-header">
-                                        <h4>Hidden Mission</h4>
-                                        <div class="card-icon" aria-hidden="true">🎯</div>
-                                    </div>
-                                    <div class="card-content">
-                                        <h5 id="current-player-mandate-title">Loading...</h5>
-                                        <p id="current-player-mandate-desc">Loading...</p>
-                                    </div>
-                                </div>
-                            </div>
-                        </section>
-
-                        <!-- Player Favors -->
-                        <section id="player-favors-section" class="favors-section hidden" aria-labelledby="favors-heading">
-                            <h3 id="favors-heading" class="sr-only">Player Favors</h3>
-                            <!-- Player favors will be displayed here -->
-                        </section>
-                    </div>
-
-                    <!-- Right Column: Actions & Game Log -->
-                    <div class="game-actions-column">
-                        <!-- Action Buttons -->
-                        <section class="actions-section" aria-labelledby="actions-heading">
-                            <div class="section-header">
-                                <h3 id="actions-heading">Available Actions</h3>
-                            </div>
-                            <div class="action-grid" id="action-list" role="group" aria-label="Game actions">
-                                <!-- Actions will be populated here -->
-                            </div>
-                        </section>
-
-                        <!-- Pending Legislation -->
-                        <section id="pending-legislation-section" class="legislation-section hidden" aria-labelledby="legislation-heading">
-                            <h3 id="legislation-heading" class="sr-only">Pending Legislation</h3>
-                            <!-- Pending legislation will be displayed here -->
-                        </section>
-
-                        <!-- Game Log -->
-                        <section class="log-section collapsible-section" aria-labelledby="log-heading">
-                            <div class="collapsible-header" onclick="toggleSection('log-section')">
-                                <div class="section-header">
-                                    <h3 id="log-heading">Game Log</h3>
-                                    <button class="btn-clear-log" id="clear-log-btn" aria-label="Clear game log">
-                                        <span class="btn-icon" aria-hidden="true">🗑️</span>
-                                    </button>
-                                </div>
-                                <span class="collapsible-toggle" id="log-section-toggle">▼</span>
-                            </div>
-                            <div class="collapsible-content" id="log-section-content">
-                                <div class="log-container">
-                                    <div id="log-content" class="log-content" role="log" aria-live="polite">
-                                        <!-- Game log will be populated here -->
-                                    </div>
-                                </div>
-                            </div>
-                        </section>
-                    </div>
+                <!-- Swipe Hint -->
+                <div class="swipe-hint" id="swipe-hint">
+                    <span class="hint-text">↑ Swipe up or click "Game Info" for game details</span>
                 </div>
             </main>
 
-            <!-- Event Phase Button -->
-            <footer class="game-footer" role="contentinfo">
-                <div id="event-phase-section" class="event-phase hidden">
-                    <button id="run-event-btn" class="btn-primary btn-large" aria-label="Draw event card">
-                        <span class="btn-icon" aria-hidden="true">🎲</span>
-                        <span class="btn-text">Draw Event Card</span>
-                    </button>
-                </div>
-                
-                <!-- Manual Resolution Buttons -->
-                <div id="manual-resolution-section" class="manual-resolution hidden">
-                    <div class="resolution-buttons">
-                        <button id="resolve-legislation-btn" class="btn-primary btn-large" aria-label="Resolve legislation">
-                            <span class="btn-icon" aria-hidden="true">📋</span>
-                            <span class="btn-text">Resolve Legislation</span>
-                        </button>
-                        <button id="resolve-elections-btn" class="btn-primary btn-large" aria-label="Resolve elections">
-                            <span class="btn-icon" aria-hidden="true">🗳️</span>
-                            <span class="btn-text">Resolve Elections</span>
-                        </button>
-                    </div>
+            <!-- Bottom Action Bar -->
+            <footer class="action-bar">
+                <div id="primary-actions" class="primary-actions">
+                    <!-- Primary actions will be populated -->
                 </div>
             </footer>
         </div>
@@ -227,6 +132,6 @@
     <!-- Screen Reader Only Content -->
     <div class="sr-only" aria-live="polite" id="sr-announcements"></div>
 
-    <script src="/static/script.js?v=8"></script>
+    <script src="/static/script.js?v=11"></script>
 </body>
 </html> 
