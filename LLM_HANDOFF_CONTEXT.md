@@ -931,6 +931,15 @@ The backend already provides all necessary data:
 - All game state information (round, phase, mood, AP, PC, office) is now shown exclusively in the compact game state bar below the header.
 - Redundant displays of Action Points, round, phase, and mood have been removed from the header and actions section for a more focused and less cluttered interface.
 
+### Mobile UI Improvements (June 2024)
+- **CSS and layout changes implemented for mobile usability:**
+  - Increased spacing between action cards and ensured vertical stacking on mobile
+  - Improved modal and overlay responsiveness and z-index stacking
+  - Increased touch target sizes for all action buttons
+  - Adjusted media queries for better mobile layout
+  - Ensured overlays (like the swipe hint and quick-access panel) do not block action buttons
+- **Impact:** The UI is now much cleaner and more usable on mobile devices, with no overlapping or crowded elements, and all actions are easily tappable.
+
 ---
 
 **The project is in excellent shape with a solid foundation, clear architecture, and comprehensive improvements. All major bugs have been fixed, new features are fully functional and tested, and the game is ready for extensive playtesting. The next LLM has a strong base to build upon with clear technical patterns and strategic direction established. The most immediate opportunity is completing the Action Points system frontend implementation and extensive playtesting of the new PC commitment and trading systems to ensure they enhance rather than detract from the game experience.**

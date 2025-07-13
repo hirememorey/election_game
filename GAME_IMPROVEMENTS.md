@@ -241,6 +241,22 @@ This document tracks the major improvements and features that have been implemen
 - The support/oppose legislation menus now always fetch the latest game state before displaying options, preventing bugs where players saw 'no pending legislation' due to stale state.
 - This ensures menus are always accurate and up-to-date.
 
+### 12. **Mobile UI Improvements (June 2024)** - COMPLETED
+**Status**: CSS and layout changes implemented and tested
+
+**What it does**:
+- Increased spacing between action cards and ensured vertical stacking on mobile
+- Improved modal and overlay responsiveness and z-index stacking
+- Increased touch target sizes for all action buttons
+- Adjusted media queries for better mobile layout
+- Ensured overlays (like the swipe hint and quick-access panel) do not block action buttons
+
+**Technical Implementation**:
+- `static/style.css`: Major updates to responsive breakpoints, action card layout, modal/panel sizing, and z-index
+- Manual and automated test suite run to verify no regressions
+
+**Impact**: The UI is now much cleaner and more usable on mobile devices, with no overlapping or crowded elements, and all actions are easily tappable.
+
 ## 🎮 Gameplay Improvements
 
 ### Enhanced Strategic Depth
