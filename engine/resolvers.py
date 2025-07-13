@@ -324,9 +324,8 @@ def resolve_support_legislation(state: GameState, action: ActionSupportLegislati
         state.add_log(error_msg)
         return state
     
-    if player.id == target_legislation.sponsor_id:
-        state.add_log(f"{player.name} cannot support their own legislation.")
-        return state
+    # Allow sponsors to support their own legislation with additional PC commitment
+    is_sponsor = player.id == target_legislation.sponsor_id
     
     if player.pc < action.support_amount:
         state.add_log(f"{player.name} doesn't have enough PC to provide that much support.")
@@ -336,7 +335,10 @@ def resolve_support_legislation(state: GameState, action: ActionSupportLegislati
     current_support = target_legislation.support_players.get(player.id, 0)
     target_legislation.support_players[player.id] = current_support + action.support_amount
     
-    state.add_log(f"{player.name} commits {action.support_amount} PC to support the legislation.")
+    if is_sponsor:
+        state.add_log(f"{player.name} commits an additional {action.support_amount} PC to support their own legislation.")
+    else:
+        state.add_log(f"{player.name} commits {action.support_amount} PC to support the legislation.")
     
     return state
 
@@ -386,9 +388,8 @@ def resolve_oppose_legislation(state: GameState, action: ActionOpposeLegislation
         state.add_log(error_msg)
         return state
     
-    if player.id == target_legislation.sponsor_id:
-        state.add_log(f"{player.name} cannot oppose their own legislation.")
-        return state
+    # Allow sponsors to oppose their own legislation (for strategic reasons)
+    is_sponsor = player.id == target_legislation.sponsor_id
     
     if player.pc < action.oppose_amount:
         state.add_log(f"{player.name} doesn't have enough PC to provide that much opposition.")
@@ -398,7 +399,10 @@ def resolve_oppose_legislation(state: GameState, action: ActionOpposeLegislation
     current_oppose = target_legislation.oppose_players.get(player.id, 0)
     target_legislation.oppose_players[player.id] = current_oppose + action.oppose_amount
     
-    state.add_log(f"{player.name} commits {action.oppose_amount} PC to oppose the legislation.")
+    if is_sponsor:
+        state.add_log(f"{player.name} commits {action.oppose_amount} PC to oppose their own legislation.")
+    else:
+        state.add_log(f"{player.name} commits {action.oppose_amount} PC to oppose the legislation.")
     
     return state
 

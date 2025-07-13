@@ -237,6 +237,24 @@ This document tracks the major improvements and features that have been implemen
 **Testing**: Manual testing confirms improved game flow
 **Impact**: Much clearer game flow and better user experience
 
+### 12. **📜 Sponsor Support Enhancement** - COMPLETED
+**Status**: Fully implemented and tested
+
+**What it does**:
+- Players who sponsor legislation can now commit additional PC to their own legislation throughout the rounds
+- Sponsors can also oppose their own legislation for strategic reasons
+- Multiple PC commitments allowed to the same legislation
+- Enhanced UI with "YOUR BILL" indicators for own legislation
+- Clear log messages distinguishing sponsor actions from regular player actions
+
+**Technical Implementation**:
+- `engine/resolvers.py`: Updated `resolve_support_legislation()` and `resolve_oppose_legislation()` to allow sponsor actions
+- `static/script.js`: Updated `showLegislationSupportMenu()`, `showLegislationOpposeMenu()`, and `getAvailableActions()` to include sponsor actions
+- `test_sponsor_support_own_legislation.py`: Comprehensive test coverage
+
+**Testing**: `test_sponsor_support_own_legislation.py` provides comprehensive testing
+**Impact**: Increased strategic depth and player agency for legislation sponsors
+
 ### Frontend Legislation Menu Race Condition Fix
 - The support/oppose legislation menus now always fetch the latest game state before displaying options, preventing bugs where players saw 'no pending legislation' due to stale state.
 - This ensures menus are always accurate and up-to-date.

@@ -38,13 +38,14 @@
    - **NEW**: Enhanced AP display with gradient styling and prominent cost indicators
 
 3. **Legislation Voting Fixes** (NEW - Latest)
-   - **Voting Restrictions**: Players cannot vote on their own sponsored legislation
+   - **Voting Restrictions**: Players can now support and oppose their own legislation with additional PC commitment
    - **Pass Turn Option**: When a player has no valid legislation to vote on, they can use "Pass Turn" to advance
    - **Backend Bug Fix**: Fixed critical issue where player index wasn't reset after voting, causing invalid player indices
    - **Frontend UI**: Added proper handling for cases where no votable legislation exists
    - **Manual Resolution**: Legislation sessions can be manually resolved when all players have voted
    - **Frontend Voting UI Fix**: Removed old binary "Support" and "Oppose" buttons, replaced with "Support (Commit PC)" and "Oppose (Commit PC)" buttons that open PC commitment modals
    - **Consistent Gambling System**: Voting now exclusively uses the PC commitment gambling system with risk/reward mechanics
+   - **📜 Sponsor Support Enhancement**: **NEW** - Sponsors can now support and oppose their own legislation with additional PC commitment throughout the rounds
    - **Status**: Fully implemented and tested
 
 4. **Incumbent/Outsider Public Mood System** (NEW - Latest)

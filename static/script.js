@@ -586,17 +586,15 @@ function getAvailableActions(currentPlayer) {
         const termLegislation = gameState.term_legislation || [];
         
         if (pendingLegislation || termLegislation.length > 0) {
-            // Check if there's legislation the current player can support/oppose
+            // Check if there's legislation the current player can support/oppose (including their own)
             const availableLegislation = [];
             
-            if (pendingLegislation && pendingLegislation.sponsor_id !== currentPlayer.id) {
+            if (pendingLegislation) {
                 availableLegislation.push(pendingLegislation);
             }
             
             termLegislation.forEach(leg => {
-                if (leg.sponsor_id !== currentPlayer.id) {
-                    availableLegislation.push(leg);
-                }
+                availableLegislation.push(leg);
             });
             
             if (availableLegislation.length > 0) {
@@ -865,27 +863,27 @@ async function showLegislationOpposeMenu() {
     console.log('DEBUG: pendingLegislation:', pendingLegislation);
     console.log('DEBUG: termLegislation:', termLegislation);
     
-    // Find legislation the current player can oppose
+    // Find legislation the current player can oppose (including their own)
     const availableLegislation = [];
     
-    if (pendingLegislation && pendingLegislation.sponsor_id !== currentPlayer.id) {
+    if (pendingLegislation) {
         const legislationData = gameState.legislation_options[pendingLegislation.legislation_id];
         availableLegislation.push({
             id: pendingLegislation.legislation_id,
             title: legislationData ? legislationData.title : pendingLegislation.legislation_id,
-            sponsor: getPlayerName(pendingLegislation.sponsor_id)
+            sponsor: getPlayerName(pendingLegislation.sponsor_id),
+            isOwn: pendingLegislation.sponsor_id === currentPlayer.id
         });
     }
     
     termLegislation.forEach(leg => {
-        if (leg.sponsor_id !== currentPlayer.id) {
-            const legislationData = gameState.legislation_options[leg.legislation_id];
-            availableLegislation.push({
-                id: leg.legislation_id,
-                title: legislationData ? legislationData.title : leg.legislation_id,
-                sponsor: getPlayerName(leg.sponsor_id)
-            });
-        }
+        const legislationData = gameState.legislation_options[leg.legislation_id];
+        availableLegislation.push({
+            id: leg.legislation_id,
+            title: legislationData ? legislationData.title : leg.legislation_id,
+            sponsor: getPlayerName(leg.sponsor_id),
+            isOwn: leg.sponsor_id === currentPlayer.id
+        });
     });
     
     console.log('DEBUG: availableLegislation:', availableLegislation);
@@ -896,7 +894,7 @@ async function showLegislationOpposeMenu() {
     }
     
     const legislationOptions = availableLegislation.map(leg => `
-        <option value="${leg.id}">${leg.title} (sponsored by ${leg.sponsor})</option>
+        <option value="${leg.id}">${leg.title} (sponsored by ${leg.sponsor})${leg.isOwn ? ' - YOUR BILL' : ''}</option>
     `).join('');
     
     showModal('Oppose Legislation', `
@@ -924,27 +922,27 @@ async function showLegislationSupportMenu() {
     const pendingLegislation = gameState.pending_legislation;
     const termLegislation = gameState.term_legislation || [];
     
-    // Find legislation the current player can support
+    // Find legislation the current player can support (including their own)
     const availableLegislation = [];
     
-    if (pendingLegislation && pendingLegislation.sponsor_id !== currentPlayer.id) {
+    if (pendingLegislation) {
         const legislationData = gameState.legislation_options[pendingLegislation.legislation_id];
         availableLegislation.push({
             id: pendingLegislation.legislation_id,
             title: legislationData ? legislationData.title : pendingLegislation.legislation_id,
-            sponsor: getPlayerName(pendingLegislation.sponsor_id)
+            sponsor: getPlayerName(pendingLegislation.sponsor_id),
+            isOwn: pendingLegislation.sponsor_id === currentPlayer.id
         });
     }
     
     termLegislation.forEach(leg => {
-        if (leg.sponsor_id !== currentPlayer.id) {
-            const legislationData = gameState.legislation_options[leg.legislation_id];
-            availableLegislation.push({
-                id: leg.legislation_id,
-                title: legislationData ? legislationData.title : leg.legislation_id,
-                sponsor: getPlayerName(leg.sponsor_id)
-            });
-        }
+        const legislationData = gameState.legislation_options[leg.legislation_id];
+        availableLegislation.push({
+            id: leg.legislation_id,
+            title: legislationData ? legislationData.title : leg.legislation_id,
+            sponsor: getPlayerName(leg.sponsor_id),
+            isOwn: leg.sponsor_id === currentPlayer.id
+        });
     });
     
     if (availableLegislation.length === 0) {
@@ -953,7 +951,7 @@ async function showLegislationSupportMenu() {
     }
     
     const legislationOptions = availableLegislation.map(leg => `
-        <option value="${leg.id}">${leg.title} (sponsored by ${leg.sponsor})</option>
+        <option value="${leg.id}">${leg.title} (sponsored by ${leg.sponsor})${leg.isOwn ? ' - YOUR BILL' : ''}</option>
     `).join('');
     
     showModal('Support Legislation', `

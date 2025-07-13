@@ -20,7 +20,7 @@
 - **Enhanced PC Commitment Voting**: Replaced old buttons with "Support (Commit PC)" and "Oppose (Commit PC)" buttons that open the respective modals
   - **New Button Behavior**: Buttons now call `showLegislationSupportMenu()` and `showLegislationOpposeMenu()` respectively
   - **Modal System**: Players can now only vote through the PC commitment modals with gambling rewards
-  - **Sponsor Handling**: Sponsors still see the "You cannot vote on your own legislation" message, but without any voting buttons
+  - **Sponsor Support Enhancement**: **NEW** - Sponsors can now support and oppose their own legislation with additional PC commitment
   - **Files Modified**: `static/script.js` - Updated voting phase UI to use modal system exclusively
   - **Impact**: Consistent gambling-style voting experience with proper risk/reward mechanics
 

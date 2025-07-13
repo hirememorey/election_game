@@ -15,6 +15,7 @@
 ## Recent Issues & Next Steps
 - **Legislation Voting Fix:** Fixed critical backend bug where players couldn't vote on their own legislation, causing the game to get stuck. Backend now properly resets player index after voting completes.
 - **Frontend Voting UI:** Added "Pass Turn" button when players have no valid voting options during legislation sessions.
+- **Sponsor Support Enhancement:** **NEW** - Players who sponsor legislation can now commit additional PC to their own legislation throughout the rounds, providing more strategic control and agency.
 - **Testing:** Comprehensive test suite covers all major game mechanics. Manual testing is possible via browser.
 - **API URL:** In `static/script.js`, `API_BASE_URL` is set to `http://localhost:5001/api` (matches backend port).
 
@@ -25,7 +26,7 @@
 - `DEPLOYMENT.md`: Deployment instructions for Render, Netlify, Heroku, Railway, and local testing.
 
 ## Immediate To-Dos
-- **Test legislation voting:** Verify the recent fixes work correctly in gameplay.
+- **Test sponsor support enhancement:** Verify sponsors can support their own legislation with additional PC commitment.
 - **Test API endpoints:** Use Postman/curl or browser to verify `/api/game`, `/api/game/<id>`, etc.
 - **Test frontend:** Play through a game in browser, check for bugs, and improve UX.
 - **Automated tests:** (Optional) Add unit tests for API and game logic.
@@ -65,6 +66,7 @@ A Python-based political strategy board game with a Flask backend and mobile-fri
 - **Legislation Voting Fixes**: Players cannot vote on their own legislation, with proper "Pass Turn" option when no valid votes exist
 - **🎰 Gambling-Style Legislation System**: Players can commit PC to support/oppose legislation during any turn with risk/reward mechanics
 - **🎭 Identity Display System**: Players can easily view their archetype and mission information through multiple access methods
+- **📜 Sponsor Support Enhancement**: **NEW** - Players who sponsor legislation can now commit additional PC to their own legislation throughout the rounds, providing more strategic control and agency.
 
 ### 🎮 Core Game Mechanics
 
@@ -179,6 +181,7 @@ See `DEPLOYMENT.md` for step-by-step instructions for Render, Netlify, Heroku, R
 - **`test_war_mood_lock.py`**: War event mood lock functionality
 - **`performance_test.py`**: Performance benchmarking
 - **`test_archetype_display.py`**: Archetype and mandate display functionality
+- **`test_sponsor_support_own_legislation.py`**: **NEW** - Sponsor support own legislation enhancement
 
 ### Run Tests
 ```bash
@@ -199,6 +202,19 @@ python3 test_action_points_system.py
 - **`SIMPLIFIED_UI_IMPLEMENTATION.md`**: Phase-based UI redesign with identity display system
 
 ## 🎯 Recent Major Improvements
+
+### 📜 Sponsor Support Enhancement (Latest)
+- **Sponsor Agency**: Players who sponsor legislation can now commit additional PC to their own legislation throughout the rounds
+- **Strategic Control**: Sponsors have more control over their legislation's success through multiple PC commitments
+- **Risk Management**: Sponsors can choose to oppose their own legislation for strategic reasons
+- **Enhanced Logging**: Clear distinction between sponsor actions and regular player actions
+- **UI Indicators**: Legislation menus show "YOUR BILL" for own legislation
+- **Multiple Commitments**: Sponsors can commit PC multiple times to the same legislation
+- **Files Modified**: 
+  - `engine/resolvers.py`: Updated support/oppose functions to allow sponsor actions
+  - `static/script.js`: Updated frontend to show sponsor actions and enhanced UI
+  - `test_sponsor_support_own_legislation.py`: Comprehensive test coverage
+- **Impact**: Increased strategic depth and player agency for legislation sponsors
 
 ### 🎭 Identity Display System (Latest)
 - **Archetype Cards**: Clear display of player's political archetype and special abilities
