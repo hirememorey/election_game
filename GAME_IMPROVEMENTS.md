@@ -257,6 +257,20 @@ This document tracks the major improvements and features that have been implemen
 
 **Impact**: The UI is now much cleaner and more usable on mobile devices, with no overlapping or crowded elements, and all actions are easily tappable.
 
+### 13. **Overlay/Modal Coordination Fix (June 2024)** - COMPLETED
+**Status**: JavaScript logic refactored and tested
+
+**What it does**:
+- Ensures only one of: modal, quick access panel, or swipe hint is visible at a time
+- When a modal is shown, the quick access panel and swipe hint are hidden, and background scroll is locked
+- When the quick access panel is shown, any open modal is closed, the swipe hint is hidden, and background scroll is locked
+- When both are closed, the swipe hint is shown and scroll is unlocked
+
+**Technical Implementation**:
+- `static/script.js`: Refactored overlay/modal logic to coordinate visibility and scroll lock
+
+**Impact**: Prevents persistent overlap and stacking issues on mobile and desktop, ensuring a clean, usable interface for all users.
+
 ## 🎮 Gameplay Improvements
 
 ### Enhanced Strategic Depth

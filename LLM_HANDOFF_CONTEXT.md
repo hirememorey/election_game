@@ -940,6 +940,14 @@ The backend already provides all necessary data:
   - Ensured overlays (like the swipe hint and quick-access panel) do not block action buttons
 - **Impact:** The UI is now much cleaner and more usable on mobile devices, with no overlapping or crowded elements, and all actions are easily tappable.
 
+### Overlay/Modal Coordination Fix (June 2024)
+- **JavaScript logic refactored for overlays and modals:**
+  - Only one of: modal, quick access panel, or swipe hint is visible at a time
+  - When a modal is shown, the quick access panel and swipe hint are hidden, and background scroll is locked
+  - When the quick access panel is shown, any open modal is closed, the swipe hint is hidden, and background scroll is locked
+  - When both are closed, the swipe hint is shown and scroll is unlocked
+- **Impact:** Prevents persistent overlap and stacking issues on mobile and desktop, ensuring a clean, usable interface for all users.
+
 ---
 
 **The project is in excellent shape with a solid foundation, clear architecture, and comprehensive improvements. All major bugs have been fixed, new features are fully functional and tested, and the game is ready for extensive playtesting. The next LLM has a strong base to build upon with clear technical patterns and strategic direction established. The most immediate opportunity is completing the Action Points system frontend implementation and extensive playtesting of the new PC commitment and trading systems to ensure they enhance rather than detract from the game experience.**
