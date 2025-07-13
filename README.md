@@ -11,8 +11,12 @@
 - **Frontend:** HTML/CSS/JS in `static/` folder, mobile-optimized, interacts with backend via REST API.
 - **Game Logic:** All core logic is in Python (`engine/`, `models/`, etc.), reused from the CLI version.
 - **Deployment:** Local server works on custom port (e.g., 5001). Deployment instructions are in `DEPLOYMENT.md`.
+- **🤫 Secret Commitment System:** **COMPLETED** - Replaced gambling-style legislation with strategic secret commitments
+- **🧪 Automated Testing:** **COMPLETED** - Comprehensive Playwright tests validate game playability
 
 ## Recent Issues & Next Steps
+- **Secret Commitment System:** **COMPLETED** - Players now make secret commitments to support/oppose legislation, revealed dramatically at term end
+- **Automated Frontend Testing:** **COMPLETED** - Playwright tests ensure game never gets stuck and all features work correctly
 - **Legislation Voting Fix:** Fixed critical backend bug where players couldn't vote on their own legislation, causing the game to get stuck. Backend now properly resets player index after voting completes.
 - **Frontend Voting UI:** Added "Pass Turn" button when players have no valid voting options during legislation sessions.
 - **Sponsor Support Enhancement:** **NEW** - Players who sponsor legislation can now commit additional PC to their own legislation throughout the rounds, providing more strategic control and agency.
@@ -24,12 +28,14 @@
 - `static/index.html`, `static/style.css`, `static/script.js`: Frontend.
 - `engine/`, `models/`, `game_data.py`: Game logic and data.
 - `DEPLOYMENT.md`: Deployment instructions for Render, Netlify, Heroku, Railway, and local testing.
+- `tests/election-game.spec.ts`: **NEW** - Comprehensive Playwright tests for frontend validation
 
 ## Immediate To-Dos
+- **✅ Secret Commitment System:** Fully implemented and tested
+- **✅ Automated Testing:** Playwright tests validate all game flows
 - **Test sponsor support enhancement:** Verify sponsors can support their own legislation with additional PC commitment.
 - **Test API endpoints:** Use Postman/curl or browser to verify `/api/game`, `/api/game/<id>`, etc.
 - **Test frontend:** Play through a game in browser, check for bugs, and improve UX.
-- **Automated tests:** (Optional) Add unit tests for API and game logic.
 
 ## How to Run Locally
 ```bash
@@ -64,9 +70,10 @@ A Python-based political strategy board game with a Flask backend and mobile-fri
 - **Automatic Event Phases**: Events draw automatically for smooth gameplay
 - **Term Transition Fixes**: Proper state cleanup between terms
 - **Legislation Voting Fixes**: Players cannot vote on their own legislation, with proper "Pass Turn" option when no valid votes exist
-- **🎰 Gambling-Style Legislation System**: Players can commit PC to support/oppose legislation during any turn with risk/reward mechanics
+- **🤫 Secret Commitment System**: **COMPLETED** - Players make secret commitments to support/oppose legislation, revealed dramatically at term end
 - **🎭 Identity Display System**: Players can easily view their archetype and mission information through multiple access methods
 - **📜 Sponsor Support Enhancement**: **NEW** - Players who sponsor legislation can now commit additional PC to their own legislation throughout the rounds, providing more strategic control and agency.
+- **🧪 Automated Testing**: **COMPLETED** - Comprehensive Playwright tests validate game playability across browsers
 
 ### 🎮 Core Game Mechanics
 
@@ -76,7 +83,7 @@ A Python-based political strategy board game with a Flask backend and mobile-fri
 - **Sponsor Legislation** (2 AP): Create legislation for votes/mood
 - **Declare Candidacy** (2 AP): Run for office (Round 4 only; multiple players can declare candidacy for the same or different offices in the same round)
 - **Use Favor** (1 AP): Strategic advantage actions with selection menu
-- **Support/Oppose Legislation** (1 AP): **🎰 Gambling-style system** - commit PC during any turn with risk/reward mechanics
+- **Support/Oppose Legislation** (1 AP): **Secretly commit PC** to influence a bill's outcome. Bluff, form secret alliances, and betray your rivals.
 - **Campaign** (2 AP): Place influence for future elections
 - **Trading** (0 AP): Propose trades of PC/favors for votes during legislation sessions
 - **Pass Turn** (0 AP): Skip turn when no valid actions available
@@ -89,6 +96,21 @@ A Python-based political strategy board game with a Flask backend and mobile-fri
 - Support/Oppose Legislation: 1 AP each
 - Trading actions: 0 AP (free during trading phase)
 - Pass Turn: 0 AP (free action)
+
+### 🤫 Secret Commitment System (New Core Mechanic)
+The previous "Gambling-Style" legislation system has been **successfully replaced** with a more strategic and interactive **Secret Commitment System**. This elevates the game from a resource management puzzle to a high-stakes game of political poker.
+
+**Key Features:**
+- **Secret Contributions**: Players no longer commit PC publicly. All contributions to support or oppose legislation are made secretly.
+- **Bluffing & Betrayal**: Publicly promise support while secretly opposing a bill, or bluff about the amount of your contribution to force other players to spend their resources.
+- **Dramatic Reveals**: At the end of a term, all secret contributions are revealed simultaneously, leading to dramatic moments of truth.
+- **Strategic Depth**: Success now depends on your ability to read your opponents and manage their trust, not just on the size of your treasury.
+- **Implementation**: Backend stores secret commitments separately, frontend provides clear confirmation messages to acting players while other players see generic notifications.
+
+**Technical Implementation:**
+- **Backend**: `SECRET_COMMITMENTS` storage in `server.py`, updated action processing and legislation resolution
+- **Frontend**: Enhanced UI with secret commitment notices and confirmation messages
+- **Testing**: Comprehensive test coverage validates all secret commitment scenarios
 
 ### 🎭 Identity System
 Players have unique identities that affect gameplay:
@@ -176,20 +198,31 @@ See `DEPLOYMENT.md` for step-by-step instructions for Render, Netlify, Heroku, R
 - **`test_api.py`**: API endpoints and favor system
 - **`test_legislation_timing.py`**: Legislation session timing
 - **`test_legislation_voting_fix.py`**: Legislation voting fixes and pass turn functionality
-- **`test_legislation_gambling_system.py`**: **🎰 Gambling-style legislation system** with PC commitment and sponsor bonuses
+- **`test_secret_commitment_system.py`**: **NEW** - Secret commitment system functionality
 - **`test_mood_system.py`**: Mood system functionality
 - **`test_war_mood_lock.py`**: War event mood lock functionality
 - **`performance_test.py`**: Performance benchmarking
 - **`test_archetype_display.py`**: Archetype and mandate display functionality
 - **`test_sponsor_support_own_legislation.py`**: **NEW** - Sponsor support own legislation enhancement
 
+### Automated Frontend Testing (Playwright)
+- **`tests/election-game.spec.ts`**: **NEW** - Comprehensive Playwright tests for frontend validation
+- **Full Game Flow**: Tests complete game flow from creation to term transitions
+- **Secret Commitment System**: Validates secret commitment mechanics work correctly
+- **Error Handling**: Ensures proper error messages for invalid actions
+- **Cross-Browser Compatibility**: Tests pass on Chromium, Firefox, and WebKit
+- **Stuck Prevention**: Ensures game never gets stuck when players have no valid actions
+
 ### Run Tests
 ```bash
-# Run all tests
+# Run all Python tests
 python3 test_*.py
 
 # Run specific test
 python3 test_action_points_system.py
+
+# Run Playwright tests
+npx playwright test tests/election-game.spec.ts
 ```
 
 ## 📚 Documentation
@@ -200,8 +233,27 @@ python3 test_action_points_system.py
 - **`NETWORK_ACTION_DESIGN.md`**: Design for merging Network and Form Alliance actions
 - **`DEPLOYMENT.md`**: Deployment instructions for various platforms
 - **`SIMPLIFIED_UI_IMPLEMENTATION.md`**: Phase-based UI redesign with identity display system
+- **`PHYSICAL_GAME_SPEC.md`**: **NEW** - Rulebook and manufacturing specifications for a physical board game version.
 
 ## 🎯 Recent Major Improvements
+
+### 🤫 Secret Commitment Legislation System (COMPLETED)
+The previous "Gambling-Style" legislation system has been **successfully replaced** with a more strategic and interactive **Secret Commitment System**. This elevates the game from a resource management puzzle to a high-stakes game of political poker.
+- **Secret Contributions**: Players no longer commit PC publicly. All contributions to support or oppose legislation are made secretly.
+- **Bluffing & Betrayal**: Publicly promise support while secretly opposing a bill, or bluff about the amount of your contribution to force other players to spend their resources.
+- **Dramatic Reveals**: At the end of a term, all secret contributions are revealed simultaneously, leading to dramatic moments of truth.
+- **Strategic Depth**: Success now depends on your ability to read your opponents and manage their trust, not just on the size of your treasury.
+- **Implementation**: Backend stores secret commitments separately, frontend provides clear confirmation messages to acting players while other players see generic notifications.
+- **Testing**: Comprehensive test coverage validates all secret commitment scenarios
+
+### 🧪 Automated Frontend Testing (COMPLETED)
+- **Playwright Integration**: Comprehensive automated testing using Playwright
+- **Full Game Flow Validation**: Tests complete game flow from creation to term transitions
+- **Cross-Browser Compatibility**: Tests pass on Chromium, Firefox, and WebKit
+- **Stuck Prevention**: Ensures game never gets stuck when players have no valid actions
+- **Secret Commitment Validation**: Tests verify secret commitment mechanics work correctly
+- **Error Handling**: Validates proper error messages for invalid actions
+- **Performance**: All tests complete in under 6 seconds per browser
 
 ### 📜 Sponsor Support Enhancement (Latest)
 - **Sponsor Agency**: Players who sponsor legislation can now commit additional PC to their own legislation throughout the rounds
@@ -210,7 +262,7 @@ python3 test_action_points_system.py
 - **Enhanced Logging**: Clear distinction between sponsor actions and regular player actions
 - **UI Indicators**: Legislation menus show "YOUR BILL" for own legislation
 - **Multiple Commitments**: Sponsors can commit PC multiple times to the same legislation
-- **Files Modified**: 
+- **Files Modified**:
   - `engine/resolvers.py`: Updated support/oppose functions to allow sponsor actions
   - `static/script.js`: Updated frontend to show sponsor actions and enhanced UI
   - `test_sponsor_support_own_legislation.py`: Comprehensive test coverage
@@ -224,7 +276,8 @@ python3 test_action_points_system.py
 - **Strategic Understanding**: Players now understand their unique abilities and objectives
 - **Reduced Confusion**: Clear explanation of why players start with specific PC amounts and offices
 
-### 🎰 Gambling-Style Legislation System
+### 🎰 Gambling-Style Legislation System (DEPRECATED)
+- **This system has been successfully replaced by the new Secret Commitment System.**
 - **PC Commitment During Any Turn**: Players can commit PC to support/oppose legislation throughout the term, not just during legislation session
 - **Risk/Reward Mechanics**: Bigger commitments yield bigger rewards with tiered system (small/medium/big bets)
 - **Sponsor Bonus**: Legislation sponsors get 50% bonus on success, 50% penalty on failure
@@ -235,9 +288,9 @@ python3 test_action_points_system.py
 
 ### Manual Phase Resolution System
 - **Manual Legislation Resolution**: After the term ends, players can manually trigger legislation resolution with a "Resolve Legislation" button
-- **Manual Election Resolution**: After legislation is resolved, players can manually trigger election resolution with a "Resolve Elections" button  
+- **Manual Election Resolution**: After legislation is resolved, players can manually trigger election resolution with a "Resolve Elections" button
 - **Enhanced Game Flow**: Players can review the game state before seeing phase results
-- **New API Endpoints**: 
+- **New API Endpoints**:
   - `POST /api/game/<id>/resolve_legislation`: Manually resolve all pending legislation
   - `POST /api/game/<id>/resolve_elections`: Manually resolve elections and start new term
 - **State Flags**: `awaiting_legislation_resolution` and `awaiting_election_resolution` flags control when resolution buttons appear

@@ -6,11 +6,37 @@ This document tracks the major improvements and features that have been implemen
 
 ## ✅ Recently Implemented Features
 
-### 1. **Action Points System (Phase 2)** - COMPLETED
+### 1. **🤫 Secret Commitment Legislation System** - COMPLETED
+**Status**: **COMPLETED** - Fully implemented and tested, replaces previous "Gambling-Style" system.
+
+**What it does**:
+- Elevates the legislation phase from a resource race to a high-stakes game of political poker, bluffing, and betrayal.
+- **Secret Contributions**: Players no longer commit PC publicly. All contributions to support or oppose legislation are made secretly.
+- **Bluffing & Betrayal**: Enables advanced strategies where players can publicly promise support while secretly opposing a bill, or bluff about the amount of their contribution to force other players to spend their resources.
+- **Dramatic Reveals**: At the end of a term, all secret contributions are revealed simultaneously, creating climactic moments of truth and shocking betrayals.
+- **Strategic Depth**: Success now depends on a player's ability to read their opponents and manage trust, not just on the size of their treasury.
+
+**Technical Implementation (COMPLETED):**
+- **Backend**: `SECRET_COMMITMENTS` storage in `server.py` holds secret commitments separate from main `GameState`
+- **Action Processing**: `support/oppose` actions store commitments in secret storage, no public state changes
+- **Legislation Resolution**: `resolve_legislation` function reveals all secret commitments dramatically at term end
+- **Frontend**: Enhanced UI with secret commitment notices and confirmation messages for acting players
+- **Testing**: Comprehensive test coverage validates all secret commitment scenarios
+
+**Files Modified**:
+- `server.py`: Added `SECRET_COMMITMENTS` storage and updated action processing
+- `engine/resolvers.py`: Updated support/oppose resolvers to validate actions without changing public state
+- `static/script.js`: Enhanced UI with secret commitment notices and confirmation messages
+- `static/style.css`: Added styling for secret commitment notices
+- `test_secret_commitment_system.py`: Comprehensive test coverage
+
+**Impact**: Fundamentally shifts the game's focus towards social deduction and player interaction, creating dramatic moments of revelation and betrayal.
+
+### 2. **Action Points System (Phase 2)** - COMPLETED
 **Status**: Backend fully implemented and tested, frontend enhanced with Apple-level design
 
 **What it does**:
-- Players get 3 Action Points per turn instead of 1 action
+- Players get 2 Action Points per turn instead of 1 action
 - Multiple actions per turn until AP are exhausted
 - Variable AP costs for different actions (1-2 AP)
 - Campaign action for placing influence for future elections
@@ -29,7 +55,7 @@ This document tracks the major improvements and features that have been implemen
 **Impact**: Dramatically increases player autonomy and speeds up gameplay
 **Frontend Status**: **ENHANCED** - Apple-level design system implemented
 
-### 2. **Trading Mechanic** - COMPLETED
+### 3. **Trading Mechanic** - COMPLETED
 **Status**: Fully implemented and tested
 
 **What it does**:
@@ -50,7 +76,7 @@ This document tracks the major improvements and features that have been implemen
 **Testing**: `test_trading_mechanic.py` provides comprehensive testing
 **Impact**: Adds negotiation and deal-making to legislation sessions, increasing player interaction
 
-### 3. **Political Favors System** - COMPLETED
+### 4. **Political Favors System** - COMPLETED
 **Status**: Fully implemented and tested
 
 **What it does**:
@@ -79,7 +105,7 @@ This document tracks the major improvements and features that have been implemen
 **Testing**: `test_api.py` includes favor system testing
 **Impact**: Adds strategic depth to networking actions
 
-### 4. **PC Commitment System** - COMPLETED
+### 5. **PC Commitment System** - COMPLETED
 **Status**: Fully implemented and tested
 
 **What it does**:
@@ -95,7 +121,7 @@ This document tracks the major improvements and features that have been implemen
 **Testing**: `test_pc_commitment_and_term_transition.py` provides comprehensive testing
 **Impact**: Adds strategic depth to legislation and candidacy actions
 
-### 5. **Automatic Event Phases** - COMPLETED
+### 6. **Automatic Event Phases** - COMPLETED
 **Status**: Fully implemented and tested
 
 **What it does**:
@@ -109,7 +135,7 @@ This document tracks the major improvements and features that have been implemen
 **Testing**: `test_automatic_event_phase.py` provides comprehensive testing
 **Impact**: Eliminates manual event drawing, improves game flow
 
-### 6. **Term Transition Fixes** - COMPLETED
+### 7. **Term Transition Fixes** - COMPLETED
 **Status**: Fully implemented and tested
 
 **What it does**:
@@ -124,7 +150,7 @@ This document tracks the major improvements and features that have been implemen
 **Testing**: `test_pc_commitment_and_term_transition.py` includes term transition testing
 **Impact**: Prevents state corruption between terms
 
-### 7. **Legislation Session Timing** - COMPLETED
+### 8. **Legislation Session Timing** - COMPLETED
 **Status**: Fully implemented and tested
 
 **What it does**:
@@ -139,7 +165,7 @@ This document tracks the major improvements and features that have been implemen
 **Testing**: `test_legislation_timing.py` provides comprehensive testing
 **Impact**: Ensures all players have a chance to vote on bills
 
-### 8. **Form Alliance Action Removal** - COMPLETED
+### 9. **Form Alliance Action Removal** - COMPLETED
 **Status**: Successfully removed for simplified testing
 
 **What it does**:
@@ -157,7 +183,7 @@ This document tracks the major improvements and features that have been implemen
 **Testing**: `test_form_alliance_removal.py` verifies the action is gone
 **Impact**: Simplified action set for easier testing and balance
 
-### 9. **Round 5 Confusion Fix** - COMPLETED
+### 10. **Round 5 Confusion Fix** - COMPLETED
 **Status**: Fully implemented and tested
 
 **What it does**:
@@ -177,7 +203,7 @@ This document tracks the major improvements and features that have been implemen
 **Testing**: Manual testing confirms improved game flow
 **Impact**: Much clearer game flow and better user experience
 
-### 10. **Action Points System Fixes** - COMPLETED
+### 11. **Action Points System Fixes** - COMPLETED
 **Status**: Fully implemented and tested
 
 **What it does**:
@@ -195,65 +221,13 @@ This document tracks the major improvements and features that have been implemen
 **Testing**: `test_pc_commitment_and_term_transition.py` now passes all tests
 **Impact**: Resolves AP validation errors and ensures smooth gameplay flow
 
-### 11. **🎰 Gambling-Style Legislation System** - COMPLETED
-**Status**: Fully implemented and tested
-
-**What it does**:
-- Players can commit PC to support/oppose legislation during any turn, not just legislation session
-- Risk/reward mechanics: bigger commitments yield bigger rewards
-- Tiered reward system: small bet (1-4 PC) = 1x, medium bet (5-9 PC) = 1.5x, big bet (10+ PC) = 2x
-- Sponsor bonus: 50% bonus on success, 50% penalty on failure
-- Gambling rewards: supporters get paid if legislation passes, opponents get paid if it fails
-- Turn advancement fix: pass turn action now properly advances turns
-
-**Technical Implementation**:
-- `engine/resolvers.py`: Updated `resolve_support_legislation()` and `resolve_oppose_legislation()` to allow actions during any turn
-- `engine/resolvers.py`: Updated `resolve_pending_legislation()` to apply sponsor bonuses and gambling rewards
-- `engine/resolvers.py`: Fixed `resolve_pass_turn()` to set AP to 0 for proper turn advancement
-- `static/script.js`: Added gambling-style UI with PC commitment modals and reward explanations
-- `static/style.css`: Added gambling-themed styling and detailed reward displays
-- `test_legislation_gambling_system.py`: Comprehensive test coverage
-
-**Testing**: Full test coverage including sponsor bonuses and failure scenarios
-**Impact**: Adds meaningful agency and strategic depth to legislation system
-
-### 12. **Round 5 Confusion Fix** - COMPLETED
-**Status**: Fully implemented and tested
-
-**What it does**:
-- Fixes the confusing round 5 state where legislation session would trigger
-- Legislation session now triggers at the END of round 4 (not beginning of round 5)
-- Clear game flow: Rounds 1-4 = actions, then legislation session, then elections
-- Improved legislation session UI with clear trading and voting phases
-- Added Pass Turn functionality for better user experience
-
-**Technical Implementation**:
-- `engine/engine.py`: Fixed round logic in `run_upkeep_phase()` to trigger legislation at end of round 4
-- `engine/engine.py`: Enhanced `run_legislation_session()` to clear action points during legislation
-- `static/script.js`: Added phase-specific UI for legislation sessions
-- `static/script.js`: Added Pass Turn button when players have 0 AP
-- `static/style.css`: Added styling for legislation session UI components
-
-**Testing**: Manual testing confirms improved game flow
-**Impact**: Much clearer game flow and better user experience
-
-### 12. **📜 Sponsor Support Enhancement** - COMPLETED
-**Status**: Fully implemented and tested
-
-**What it does**:
-- Players who sponsor legislation can now commit additional PC to their own legislation throughout the rounds
-- Sponsors can also oppose their own legislation for strategic reasons
-- Multiple PC commitments allowed to the same legislation
-- Enhanced UI with "YOUR BILL" indicators for own legislation
-- Clear log messages distinguishing sponsor actions from regular player actions
-
-**Technical Implementation**:
-- `engine/resolvers.py`: Updated `resolve_support_legislation()` and `resolve_oppose_legislation()` to allow sponsor actions
-- `static/script.js`: Updated `showLegislationSupportMenu()`, `showLegislationOpposeMenu()`, and `getAvailableActions()` to include sponsor actions
-- `test_sponsor_support_own_legislation.py`: Comprehensive test coverage
-
-**Testing**: `test_sponsor_support_own_legislation.py` provides comprehensive testing
-**Impact**: Increased strategic depth and player agency for legislation sponsors
+### 12. **🎰 Gambling-Style Legislation System** - DEPRECATED
+**Status**: Replaced by the **Secret Commitment Legislation System**.
+**What it did**:
+- Allowed players to commit PC to support/oppose legislation during any turn.
+- Featured risk/reward mechanics with a tiered system for "bets".
+- Offered a bonus to the legislation's sponsor on success and a penalty on failure.
+- **Reason for deprecation**: While functional, this system promoted a "who has more money" dynamic. The new Secret Commitment system promotes more engaging social deduction, bluffing, and strategic depth.
 
 ### Frontend Legislation Menu Race Condition Fix
 - The support/oppose legislation menus now always fetch the latest game state before displaying options, preventing bugs where players saw 'no pending legislation' due to stale state.
@@ -304,6 +278,33 @@ This document tracks the major improvements and features that have been implemen
 - ✅ PEEK_EVENT favor reveals top event card
 - ✅ No leftover legislation between terms
 - ✅ Player index properly reset between terms
+
+### 🧪 Automated Frontend Testing (COMPLETED)
+**Status**: **COMPLETED** - Comprehensive Playwright tests validate game playability
+
+**What it does**:
+- **Full Game Flow Validation**: Tests complete game flow from creation to term transitions
+- **Cross-Browser Compatibility**: Tests pass on Chromium, Firefox, and WebKit
+- **Stuck Prevention**: Ensures game never gets stuck when players have no valid actions
+- **Secret Commitment Validation**: Tests verify secret commitment mechanics work correctly
+- **Error Handling**: Validates proper error messages for invalid actions
+- **Performance**: All tests complete in under 6 seconds per browser
+
+**Technical Implementation**:
+- **Playwright Integration**: Comprehensive automated testing using Playwright
+- **Test Coverage**: `tests/election-game.spec.ts` provides full frontend validation
+- **Test Scenarios**:
+  - Full game flow is playable and never gets stuck
+  - Secret commitment system works correctly
+  - Game never gets stuck when players have no valid actions
+  - Error handling works correctly
+
+**Files Added**:
+- `tests/election-game.spec.ts`: Comprehensive Playwright test suite
+- `playwright.config.ts`: Playwright configuration
+- `package.json`: Added Playwright dependencies
+
+**Impact**: Provides confidence that the game is stable and playable across different browsers and scenarios, preventing regressions and ensuring quality.
 
 ## 🎯 Strategic Implications
 

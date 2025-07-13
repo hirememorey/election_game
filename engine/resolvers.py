@@ -292,8 +292,8 @@ def resolve_support_legislation(state: GameState, action: ActionSupportLegislati
     player = state.get_player_by_id(action.player_id)
     if not player: return state
     
-    # Allow support during any turn, not just legislation session
-    # This creates a "long-form auction" feel where players can commit PC throughout the term
+    # NEW: Secret Commitment System - only validate, don't update public state
+    # The actual commitment is stored secretly on the server
     
     # Find the legislation to support in pending_legislation or term_legislation
     target_legislation = None
@@ -331,14 +331,14 @@ def resolve_support_legislation(state: GameState, action: ActionSupportLegislati
         state.add_log(f"{player.name} doesn't have enough PC to provide that much support.")
         return state
     
-    player.pc -= action.support_amount
-    current_support = target_legislation.support_players.get(player.id, 0)
-    target_legislation.support_players[player.id] = current_support + action.support_amount
+    # NEW: Don't deduct PC here - it will be deducted during the reveal
+    # Don't update the public legislation state - it will be updated during the reveal
     
+    # Provide confirmation feedback
     if is_sponsor:
-        state.add_log(f"{player.name} commits an additional {action.support_amount} PC to support their own legislation.")
+        state.add_log(f"{player.name} secretly commits {action.support_amount} PC to support their own legislation.")
     else:
-        state.add_log(f"{player.name} commits {action.support_amount} PC to support the legislation.")
+        state.add_log(f"{player.name} secretly commits {action.support_amount} PC to support the legislation.")
     
     return state
 
@@ -346,15 +346,8 @@ def resolve_oppose_legislation(state: GameState, action: ActionOpposeLegislation
     player = state.get_player_by_id(action.player_id)
     if not player: return state
     
-    print(f"DEBUG: resolve_oppose_legislation called for player {player.name}")
-    print(f"DEBUG: action.legislation_id: {action.legislation_id}")
-    print(f"DEBUG: pending_legislation: {getattr(state.pending_legislation, 'legislation_id', None)}")
-    print(f"DEBUG: term_legislation count: {len(state.term_legislation)}")
-    for i, leg in enumerate(state.term_legislation):
-        print(f"DEBUG: term_legislation[{i}]: {leg.legislation_id} (resolved: {leg.resolved})")
-    
-    # Allow opposition during any turn, not just legislation session
-    # This creates a "long-form auction" feel where players can commit PC throughout the term
+    # NEW: Secret Commitment System - only validate, don't update public state
+    # The actual commitment is stored secretly on the server
     
     # Find the legislation to oppose in pending_legislation or term_legislation
     target_legislation = None
@@ -362,14 +355,12 @@ def resolve_oppose_legislation(state: GameState, action: ActionOpposeLegislation
     # Check pending legislation first
     if state.pending_legislation and state.pending_legislation.legislation_id == action.legislation_id:
         target_legislation = state.pending_legislation
-        print(f"DEBUG: found in pending_legislation")
     
     # If not found in pending, check term legislation
     if not target_legislation:
         for legislation in state.term_legislation:
             if legislation.legislation_id == action.legislation_id and not legislation.resolved:
                 target_legislation = legislation
-                print(f"DEBUG: found in term_legislation")
                 break
     
     if not target_legislation:
@@ -384,7 +375,6 @@ def resolve_oppose_legislation(state: GameState, action: ActionOpposeLegislation
         error_msg = f"There's no legislation to oppose. Looking for: {action.legislation_id}"
         if available_legislation:
             error_msg += f". Available: {', '.join(available_legislation)}"
-        print(f"DEBUG: {error_msg}")
         state.add_log(error_msg)
         return state
     
@@ -395,14 +385,14 @@ def resolve_oppose_legislation(state: GameState, action: ActionOpposeLegislation
         state.add_log(f"{player.name} doesn't have enough PC to provide that much opposition.")
         return state
     
-    player.pc -= action.oppose_amount
-    current_oppose = target_legislation.oppose_players.get(player.id, 0)
-    target_legislation.oppose_players[player.id] = current_oppose + action.oppose_amount
+    # NEW: Don't deduct PC here - it will be deducted during the reveal
+    # Don't update the public legislation state - it will be updated during the reveal
     
+    # Provide confirmation feedback
     if is_sponsor:
-        state.add_log(f"{player.name} commits {action.oppose_amount} PC to oppose their own legislation.")
+        state.add_log(f"{player.name} secretly commits {action.oppose_amount} PC to oppose their own legislation.")
     else:
-        state.add_log(f"{player.name} commits {action.oppose_amount} PC to oppose the legislation.")
+        state.add_log(f"{player.name} secretly commits {action.oppose_amount} PC to oppose the legislation.")
     
     return state
 

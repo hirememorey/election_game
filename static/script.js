@@ -897,7 +897,10 @@ async function showLegislationOpposeMenu() {
         <option value="${leg.id}">${leg.title} (sponsored by ${leg.sponsor})${leg.isOwn ? ' - YOUR BILL' : ''}</option>
     `).join('');
     
-    showModal('Oppose Legislation', `
+    showModal('🤫 Secret Opposition Commitment', `
+        <div class="secret-commitment-notice">
+            <p><strong>⚠️ Secret Commitment:</strong> Your opposition will be hidden from other players until the legislation reveal.</p>
+        </div>
         <div class="form-group">
             <label for="oppose-legislation">Choose Legislation:</label>
             <select id="oppose-legislation">
@@ -906,11 +909,11 @@ async function showLegislationOpposeMenu() {
             </select>
         </div>
         <div class="form-group">
-            <label for="oppose-pc">PC to Commit:</label>
+            <label for="oppose-pc">PC to Commit (Secret):</label>
             <input type="number" id="oppose-pc" min="1" max="50" required placeholder="Enter PC amount">
         </div>
         <div class="modal-actions">
-            <button class="btn-primary" onclick="handleOpposeAction()">Oppose</button>
+            <button class="btn-primary" onclick="handleOpposeAction()">🤫 Secretly Oppose</button>
             <button class="btn-secondary" onclick="closeModal()">Cancel</button>
         </div>
     `);
@@ -954,7 +957,10 @@ async function showLegislationSupportMenu() {
         <option value="${leg.id}">${leg.title} (sponsored by ${leg.sponsor})${leg.isOwn ? ' - YOUR BILL' : ''}</option>
     `).join('');
     
-    showModal('Support Legislation', `
+    showModal('🤫 Secret Support Commitment', `
+        <div class="secret-commitment-notice">
+            <p><strong>⚠️ Secret Commitment:</strong> Your support will be hidden from other players until the legislation reveal.</p>
+        </div>
         <div class="form-group">
             <label for="support-legislation">Choose Legislation:</label>
             <select id="support-legislation">
@@ -963,11 +969,11 @@ async function showLegislationSupportMenu() {
             </select>
         </div>
         <div class="form-group">
-            <label for="support-pc">PC to Commit:</label>
+            <label for="support-pc">PC to Commit (Secret):</label>
             <input type="number" id="support-pc" min="1" max="50" required placeholder="Enter PC amount">
         </div>
         <div class="modal-actions">
-            <button class="btn-primary" onclick="handleSupportAction()">Support</button>
+            <button class="btn-primary" onclick="handleSupportAction()">🤫 Secretly Support</button>
             <button class="btn-secondary" onclick="closeModal()">Cancel</button>
         </div>
     `);
@@ -1115,6 +1121,13 @@ async function handleSupportAction() {
     }
     
     closeModal();
+    
+    // NEW: Secret Commitment System - provide clear confirmation
+    const legislationData = gameState.legislation_options[legislationId];
+    const legislationTitle = legislationData ? legislationData.title : legislationId;
+    
+    showMessage(`🤫 Your secret commitment of ${pcAmount} PC to support "${legislationTitle}" has been registered. Other players will not see your stance until the reveal.`, 'success');
+    
     await performAction('support_legislation', {
         legislation_id: legislationId,
         support_amount: pcAmount
@@ -1128,12 +1141,6 @@ async function handleOpposeAction() {
     const legislationId = legislationSelect.value;
     const pcAmount = parseInt(pcInput.value);
     
-    console.log('DEBUG: handleOpposeAction called');
-    console.log('DEBUG: legislationId:', legislationId);
-    console.log('DEBUG: pcAmount:', pcAmount);
-    console.log('DEBUG: current gameState.pending_legislation:', gameState.pending_legislation);
-    console.log('DEBUG: current gameState.term_legislation:', gameState.term_legislation);
-    
     if (!legislationId) {
         showMessage('Please select legislation to oppose', 'error');
         return;
@@ -1145,6 +1152,13 @@ async function handleOpposeAction() {
     }
     
     closeModal();
+    
+    // NEW: Secret Commitment System - provide clear confirmation
+    const legislationData = gameState.legislation_options[legislationId];
+    const legislationTitle = legislationData ? legislationData.title : legislationId;
+    
+    showMessage(`🤫 Your secret commitment of ${pcAmount} PC to oppose "${legislationTitle}" has been registered. Other players will not see your stance until the reveal.`, 'success');
+    
     await performAction('oppose_legislation', {
         legislation_id: legislationId,
         oppose_amount: pcAmount

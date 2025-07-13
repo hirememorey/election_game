@@ -293,6 +293,55 @@ class GameEngine:
         state.awaiting_election_resolution = True
         return state
 
+    def resolve_legislation_session_with_secrets(self, state: GameState, secret_commitments: dict) -> GameState:
+        """Manually resolve all pending legislation using the Secret Commitment System."""
+        if not state.awaiting_legislation_resolution:
+            state.add_log("No legislation session to resolve.")
+            return state
+        
+        state.add_log("\n--- LEGISLATION SESSION: Secret Commitment Reveal ---")
+        state.add_log("All secret commitments will now be revealed!")
+        
+        for legislation in state.term_legislation:
+            if not legislation.resolved:
+                legislation_id = legislation.legislation_id
+                state.add_log(f"\n--- Revealing commitments for {legislation_id} ---")
+                
+                # Get secret commitments for this legislation
+                if legislation_id in secret_commitments:
+                    commitments = secret_commitments[legislation_id]
+                    
+                    # Reveal each commitment dramatically
+                    for player_id, stance, amount in commitments:
+                        player = state.get_player_by_id(player_id)
+                        if player:
+                            if stance == 'support':
+                                state.add_log(f"🎭 REVEAL: {player.name} secretly supported with {amount} PC!")
+                                # Apply PC deduction (if not already done)
+                                if player.pc >= amount:
+                                    player.pc -= amount
+                                legislation.support_players[player_id] = amount
+                            else:  # oppose
+                                state.add_log(f"🎭 REVEAL: {player.name} secretly opposed with {amount} PC!")
+                                # Apply PC deduction (if not already done)
+                                if player.pc >= amount:
+                                    player.pc -= amount
+                                legislation.oppose_players[player_id] = amount
+                else:
+                    state.add_log(f"No secret commitments found for {legislation_id}")
+                
+                # Now resolve the legislation using the existing system
+                state.pending_legislation = legislation
+                state = resolvers.resolve_pending_legislation(state)
+        
+        # Clear term legislation and move to elections
+        state.term_legislation.clear()
+        state.legislation_session_active = False
+        state.current_player_index = 0  # Reset for new term
+        state.awaiting_legislation_resolution = False
+        state.awaiting_election_resolution = True
+        return state
+
     def resolve_elections_session(self, state: GameState) -> GameState:
         """Manually resolve all elections after legislation session."""
         if not state.awaiting_election_resolution:

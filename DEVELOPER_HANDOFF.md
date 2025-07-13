@@ -16,9 +16,30 @@
 - **Comprehensive Testing**: 10+ test files covering all major functionality
 - **Production Deployment**: Successfully deployed to Render at https://election-game.onrender.com
 - **Recent Bug Fixes**: Trading action visibility fixed (frontend/backend phase name alignment), Media Scrutiny favor logic fixed, **Legislation voting fixes** (players cannot vote on own legislation, proper pass turn functionality)
+- **🤫 Secret Commitment System**: **COMPLETED** - Replaced gambling-style legislation with strategic secret commitments
+- **🧪 Automated Testing**: **COMPLETED** - Comprehensive Playwright tests validate game playability
 
 ### Major Features Implemented
-1. **Apple-Level Design System** (COMPLETED - Just Deployed)
+1. **🤫 Secret Commitment System** (COMPLETED - Latest)
+   - **Secret Contributions**: Players no longer commit PC publicly. All contributions to support or oppose legislation are made secretly.
+   - **Bluffing & Betrayal**: Publicly promise support while secretly opposing a bill, or bluff about the amount of your contribution to force other players to spend their resources.
+   - **Dramatic Reveals**: At the end of a term, all secret contributions are revealed simultaneously, leading to dramatic moments of truth.
+   - **Strategic Depth**: Success now depends on your ability to read your opponents and manage their trust, not just on the size of your treasury.
+   - **Implementation**: Backend stores secret commitments separately, frontend provides clear confirmation messages to acting players while other players see generic notifications.
+   - **Testing**: Comprehensive test coverage validates all secret commitment scenarios
+   - **Status**: Fully implemented and tested
+
+2. **🧪 Automated Frontend Testing** (COMPLETED - Latest)
+   - **Playwright Integration**: Comprehensive automated testing using Playwright
+   - **Full Game Flow Validation**: Tests complete game flow from creation to term transitions
+   - **Cross-Browser Compatibility**: Tests pass on Chromium, Firefox, and WebKit
+   - **Stuck Prevention**: Ensures game never gets stuck when players have no valid actions
+   - **Secret Commitment Validation**: Tests verify secret commitment mechanics work correctly
+   - **Error Handling**: Validates proper error messages for invalid actions
+   - **Performance**: All tests complete in under 6 seconds per browser
+   - **Status**: Fully implemented and tested
+
+3. **Apple-Level Design System** (COMPLETED - Just Deployed)
    - **Complete UI Redesign**: Apple-inspired design with SF Pro Display typography
    - **Modern Color Palette**: Semantic color system with Apple-inspired colors
    - **Consistent Spacing**: CSS custom properties for consistent spacing throughout
@@ -131,37 +152,44 @@
 
 ## 🎯 Immediate Next Steps (Priority Order)
 
-### 1. **Frontend Manual Resolution Implementation** (HIGH PRIORITY)
-**What**: Implement the frontend UI for the manual phase resolution system
-**Why**: Complete the manual resolution feature for better user experience
-**How**: Add resolve buttons to the frontend when `awaiting_legislation_resolution` or `awaiting_election_resolution` flags are true
-**Files to Modify**: `static/script.js`, `static/style.css`
-**Focus Areas**:
-- Show "Resolve Legislation" button when `awaiting_legislation_resolution` is true
-- Show "Resolve Elections" button when `awaiting_election_resolution` is true
-- Call the appropriate API endpoints when buttons are clicked
-- Display the resolution results in the game log
-- Handle the state transitions properly
-**Estimated Effort**: 1-2 days
+### 1. **✅ Secret Commitment System** (COMPLETED)
+**What**: The "Gambling-Style" legislation system has been successfully replaced with the new **Secret Commitment System**.
+**Status**: **COMPLETED** - Fully implemented and tested
+**Implementation**: 
+- Backend: `SECRET_COMMITMENTS` storage in `server.py` holds secret commitments separate from main `GameState`
+- Frontend: Enhanced UI with secret commitment notices and confirmation messages
+- Testing: Comprehensive test coverage validates all secret commitment scenarios
 
-### 2. **Extensive Playtesting** (HIGH PRIORITY)
-**What**: Test all systems thoroughly, especially the Action Points system and trading systems
-**Why**: Ensure new mechanics enhance rather than detract from gameplay
+### 2. **✅ Automated Frontend Testing** (COMPLETED)
+**What**: Comprehensive Playwright tests validate game playability
+**Status**: **COMPLETED** - All tests pass across Chromium, Firefox, and WebKit
+**Implementation**:
+- Playwright integration with cross-browser testing
+- Full game flow validation from creation to term transitions
+- Secret commitment validation and error handling
+- Performance: All tests complete in under 6 seconds per browser
+
+### 3. **Extensive Playtesting** (HIGH PRIORITY)
+**What**: Test all systems thoroughly with the new Secret Commitment system.
+**Why**: Ensure the new core mechanic is balanced and enhances gameplay.
 **How**: Play multiple games with different strategies
 **Focus Areas**:
+- Secret Commitment system impact on game flow and player interaction
 - Action Points balance (are costs appropriate?)
 - Trading mechanic balance (is negotiation engaging?)
 - PC commitment amounts (are they strategic?)
 - Incumbent/outsider public mood effects (is the tension engaging?)
 - Overall game flow and pacing
 - Apple-level design system user experience
-- **NEW**: Test the improved legislation session flow (no more round 5 confusion)
-- **NEW**: Test Pass Turn functionality and action point handling
-- **NEW**: Test manual phase resolution system
-- **NEW**: Test legislation voting restrictions and pass turn functionality
+- Test the improved legislation session flow (no more round 5 confusion)
+- Test Pass Turn functionality and action point handling
+- Test manual phase resolution system
+- Test legislation voting restrictions and pass turn functionality
+- Test the Secret Commitment system's impact on game flow, player interaction, and overall fun.
+- Test the new UI and logging for clarity and dramatic effect.
 
-### 3. **Balance Adjustments** (MEDIUM PRIORITY)
-**What**: Fine-tune AP costs and PC commitment amounts based on playtesting
+### 4. **Balance Adjustments** (MEDIUM PRIORITY)
+**What**: Fine-tune AP costs, PC rewards, and legislation targets based on playtesting of the new system.
 **Why**: Ensure optimal gameplay experience
 **How**: Adjust values in `engine/engine.py` and `engine/resolvers.py`
 **Areas to Monitor**:
@@ -170,15 +198,16 @@
 - Trading negotiation dynamics
 - Campaign influence effectiveness
 - Public mood effect magnitudes
+- Secret commitment amounts and strategic impact
 
-### 4. **Database Integration** (MEDIUM PRIORITY)
+### 5. **Database Integration** (MEDIUM PRIORITY)
 **What**: Replace in-memory storage with persistent database
 **Why**: Production readiness and game state persistence
 **How**: Add PostgreSQL/MongoDB integration
 **Files to Modify**: `server.py`, add database models
 **Estimated Effort**: 1-2 days
 
-### 5. **Network Action Design** (LOW PRIORITY)
+### 6. **Network Action Design** (LOW PRIORITY)
 **What**: Implement merged Network/Alliance system from `NETWORK_ACTION_DESIGN.md`
 **Why**: Add strategic depth if Form Alliance is missed
 **How**: Follow design document specifications

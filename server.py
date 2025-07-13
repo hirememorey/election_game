@@ -17,6 +17,10 @@ engine = GameEngine(game_data)
 # In-memory storage for active games (in production, use a database)
 active_games = {}
 
+# NEW: Secret commitment storage for the Secret Commitment System
+# Structure: {game_id: {legislation_id: [(player_id, stance, amount), ...]}}
+SECRET_COMMITMENTS = {}
+
 def serialize_game_state(state):
     """Convert GameState to JSON-serializable format."""
     return {
@@ -237,10 +241,33 @@ def process_action(game_id):
     elif action_type == 'support_legislation':
         legislation_id = data.get('legislation_id')
         support_amount = data.get('support_amount')
+        
+        # NEW: Store secret commitment instead of updating public state
+        if game_id not in SECRET_COMMITMENTS:
+            SECRET_COMMITMENTS[game_id] = {}
+        if legislation_id not in SECRET_COMMITMENTS[game_id]:
+            SECRET_COMMITMENTS[game_id][legislation_id] = []
+        
+        # Store the secret commitment
+        SECRET_COMMITMENTS[game_id][legislation_id].append((player_id, 'support', support_amount))
+        
+        # Create a minimal action for validation only (no state changes)
         action = ActionSupportLegislation(player_id=player_id, legislation_id=legislation_id, support_amount=support_amount)
+        
     elif action_type == 'oppose_legislation':
         legislation_id = data.get('legislation_id')
         oppose_amount = data.get('oppose_amount')
+        
+        # NEW: Store secret commitment instead of updating public state
+        if game_id not in SECRET_COMMITMENTS:
+            SECRET_COMMITMENTS[game_id] = {}
+        if legislation_id not in SECRET_COMMITMENTS[game_id]:
+            SECRET_COMMITMENTS[game_id][legislation_id] = []
+        
+        # Store the secret commitment
+        SECRET_COMMITMENTS[game_id][legislation_id].append((player_id, 'oppose', oppose_amount))
+        
+        # Create a minimal action for validation only (no state changes)
         action = ActionOpposeLegislation(player_id=player_id, legislation_id=legislation_id, oppose_amount=oppose_amount)
     elif action_type == 'propose_trade':
         target_player_id = data.get('target_player_id')
@@ -309,8 +336,19 @@ def resolve_legislation(game_id):
     """Manually resolve all pending legislation at the end of the term."""
     if game_id not in active_games:
         return jsonify({'error': 'Game not found'}), 404
+    
     state = active_games[game_id]
-    new_state = engine.resolve_legislation_session(state)
+    
+    # NEW: Use secret commitments for legislation resolution
+    if game_id in SECRET_COMMITMENTS:
+        # Pass the secret commitments to the engine for resolution
+        new_state = engine.resolve_legislation_session_with_secrets(state, SECRET_COMMITMENTS[game_id])
+        # Clear the secret commitments after resolution
+        del SECRET_COMMITMENTS[game_id]
+    else:
+        # Fallback to old system if no secret commitments
+        new_state = engine.resolve_legislation_session(state)
+    
     active_games[game_id] = new_state
     return jsonify({
         'game_id': game_id,
