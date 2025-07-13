@@ -91,8 +91,8 @@ function updateGameLog() {
     if (log.length === 0) {
         gameLogDiv.innerHTML = '<div class="game-log-entry">No game events yet.</div>';
     } else {
-        // Show the last 5 log entries for context
-        const entries = log.slice(-5).map(entry => `<div class="game-log-entry">${entry}</div>`).join('');
+        // Show the last 20 log entries for context
+        const entries = log.slice(-20).map(entry => `<div class="game-log-entry">${entry}</div>`).join('');
         gameLogDiv.innerHTML = entries;
     }
 }
@@ -444,9 +444,16 @@ function showActionPhaseUI(currentPlayer) {
 }
 
 function showLegislationPhaseUI() {
-    const pendingLegislation = gameState.pending_legislation || [];
-    
-    if (pendingLegislation.length === 0) {
+    // Collect all unresolved legislation
+    let allLegislation = [];
+    if (gameState.pending_legislation && !gameState.pending_legislation.resolved) {
+        allLegislation.push(gameState.pending_legislation);
+    }
+    if (Array.isArray(gameState.term_legislation)) {
+        allLegislation = allLegislation.concat(gameState.term_legislation.filter(leg => !leg.resolved));
+    }
+
+    if (allLegislation.length === 0) {
         actionContent.innerHTML = `
             <div class="text-center">
                 <h3>No Legislation to Vote On</h3>
@@ -455,18 +462,17 @@ function showLegislationPhaseUI() {
         `;
         return;
     }
-    
-    const legislationCards = pendingLegislation.map(legislation => {
-        const legislationData = gameState.legislation_options.find(l => l.id === legislation.legislation_id);
+
+    const legislationCards = allLegislation.map(legislation => {
+        const legislationData = gameState.legislation_options[legislation.legislation_id];
         if (!legislationData) return '';
-        
         return `
             <div class="legislation-card">
                 <div class="legislation-header">
                     <div class="legislation-title">${legislationData.title}</div>
                     <div class="legislation-sponsor">Sponsored by ${getPlayerName(legislation.sponsor_id)}</div>
                 </div>
-                <div class="legislation-description">${legislationData.description}</div>
+                <div class="legislation-description">${legislationData.description || ''}</div>
                 <div class="legislation-actions">
                     <button class="btn-primary" onclick="showLegislationSupportMenu('${legislation.legislation_id}')">
                         Support
@@ -474,11 +480,14 @@ function showLegislationPhaseUI() {
                     <button class="btn-secondary" onclick="showLegislationOpposeMenu('${legislation.legislation_id}')">
                         Oppose
                     </button>
+                    <button class="btn-secondary" onclick="passTurn()">
+                        Pass Turn
+                    </button>
                 </div>
             </div>
         `;
     }).join('');
-    
+
     actionContent.innerHTML = `
         <div class="text-center">
             <h3>Legislation Session</h3>
@@ -740,9 +749,9 @@ function showFavorMenu() {
     }
     
     const favorOptions = currentPlayer.favors.map(favor => `
-        <button class="action-btn" onclick="useFavor('${favor}')">
+        <button class="action-btn" onclick="useFavor('${favor.id}')">
             <div class="action-icon">🎭</div>
-            <div class="action-label">${favor}</div>
+            <div class="action-label">${favor.description}</div>
         </button>
     `).join('');
     
@@ -993,10 +1002,58 @@ function showIdentityInfo() {
     showModal('Your Identity', content);
 }
 
-// Action handlers
-async function useFavor(favorType) {
+// Favor IDs that require a target player
+const favorsRequiringTarget = ['POLITICAL_PRESSURE', 'POLITICAL_DEBT', 'POLITICAL_HOT_POTATO'];
+
+async function useFavor(favorId) {
+    // Find the favor object to get its id and description
+    const currentPlayer = gameState.players[gameState.current_player_index];
+    const favor = currentPlayer.favors.find(f => f.id === favorId);
+    if (!favor) {
+        showMessage('Favor not found', 'error');
+        return;
+    }
+    // If this favor requires a target, prompt for target player
+    if (favorsRequiringTarget.includes(favorId)) {
+        // Show a modal to select a target player (excluding self)
+        const otherPlayers = gameState.players.filter(p => p.id !== currentPlayer.id);
+        if (otherPlayers.length === 0) {
+            showMessage('No valid target players', 'error');
+            return;
+        }
+        const playerOptions = otherPlayers.map(p => `
+            <option value="${p.id}">${p.name}</option>
+        `).join('');
+        showModal('Select Target Player', `
+            <div class="form-group">
+                <label for="target-player-select">Choose a player to target:</label>
+                <select id="target-player-select">
+                    <option value="">Select player...</option>
+                    ${playerOptions}
+                </select>
+            </div>
+            <div class="modal-actions">
+                <button class="btn-primary" onclick="handleTargetFavorAction('${favorId}')">Use Favor</button>
+                <button class="btn-secondary" onclick="closeModal()">Cancel</button>
+            </div>
+        `);
+        return;
+    }
+    // Otherwise, use the favor immediately
     closeModal();
-    await performAction('use_favor', { favor_type: favorType });
+    await performAction('use_favor', { favor_id: favorId });
+}
+
+// Handler for using a favor with a selected target
+async function handleTargetFavorAction(favorId) {
+    const select = document.getElementById('target-player-select');
+    const targetId = select ? parseInt(select.value) : null;
+    if (!targetId) {
+        showMessage('Please select a target player', 'error');
+        return;
+    }
+    closeModal();
+    await performAction('use_favor', { favor_id: favorId, target_player_id: targetId });
 }
 
 async function sponsorLegislation(legislationId) {

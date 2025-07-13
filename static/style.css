@@ -451,6 +451,39 @@ body {
   border-radius: var(--radius-sm);
 }
 
+/* ===== LEGISLATION DETAILS ===== */
+.legislation-details {
+  margin-top: var(--spacing-2);
+  text-align: left;
+  width: 100%;
+}
+
+.legislation-cost {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-secondary);
+  font-weight: var(--font-weight-medium);
+  margin-bottom: var(--spacing-1);
+}
+
+.legislation-thresholds {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-secondary);
+  margin-bottom: var(--spacing-1);
+}
+
+.legislation-thresholds div {
+  margin-bottom: 2px;
+}
+
+.legislation-rewards {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-secondary);
+}
+
+.legislation-rewards div {
+  margin-bottom: 2px;
+}
+
 /* ===== QUICK ACCESS PANEL ===== */
 .quick-access-panel {
   position: fixed;
@@ -524,24 +557,7 @@ body {
   margin-bottom: var(--spacing-2);
 }
 
-/* ===== SWIPE HINT ===== */
-.swipe-hint {
-  position: absolute;
-  bottom: var(--spacing-6);
-  left: 50%;
-  transform: translateX(-50%);
-  background: rgba(0, 0, 0, 0.7);
-  color: white;
-  padding: var(--spacing-2) var(--spacing-4);
-  border-radius: var(--radius-full);
-  font-size: var(--font-size-sm);
-  opacity: 0.8;
-  transition: opacity var(--transition-fast);
-}
 
-.swipe-hint.hidden {
-  opacity: 0;
-}
 
 /* ===== ACTION BAR ===== */
 .action-bar {

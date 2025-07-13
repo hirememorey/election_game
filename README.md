@@ -237,3 +237,10 @@ python3 test_action_points_system.py
 
 ### Candidacy Mechanic Update
 - Multiple players can now declare candidacy for the same or different offices in the same round, enabling head-to-head matchups and more dynamic elections. 
+
+## Recent Improvements (July 2024)
+- Fixed bug where using a favor would fail if the frontend sent the wrong property; now uses `favor_id` and supports targeting players for favors that require it.
+- Legislation session UI now displays all unresolved bills from both pending and term legislation, and allows players to pass their turn during voting.
+- Added a "Pass Turn" button to the legislation session so players can skip voting if desired.
+- Improved log visibility: the game log now shows the last 20 entries, making it easier to see detailed results of legislation resolutions and other actions.
+- Fixed frontend display of favor descriptions and legislation details (no more `[object Object]` or `undefined`). 

@@ -344,6 +344,13 @@ def resolve_oppose_legislation(state: GameState, action: ActionOpposeLegislation
     player = state.get_player_by_id(action.player_id)
     if not player: return state
     
+    print(f"DEBUG: resolve_oppose_legislation called for player {player.name}")
+    print(f"DEBUG: action.legislation_id: {action.legislation_id}")
+    print(f"DEBUG: pending_legislation: {getattr(state.pending_legislation, 'legislation_id', None)}")
+    print(f"DEBUG: term_legislation count: {len(state.term_legislation)}")
+    for i, leg in enumerate(state.term_legislation):
+        print(f"DEBUG: term_legislation[{i}]: {leg.legislation_id} (resolved: {leg.resolved})")
+    
     # Allow opposition during any turn, not just legislation session
     # This creates a "long-form auction" feel where players can commit PC throughout the term
     
@@ -353,12 +360,14 @@ def resolve_oppose_legislation(state: GameState, action: ActionOpposeLegislation
     # Check pending legislation first
     if state.pending_legislation and state.pending_legislation.legislation_id == action.legislation_id:
         target_legislation = state.pending_legislation
+        print(f"DEBUG: found in pending_legislation")
     
     # If not found in pending, check term legislation
     if not target_legislation:
         for legislation in state.term_legislation:
             if legislation.legislation_id == action.legislation_id and not legislation.resolved:
                 target_legislation = legislation
+                print(f"DEBUG: found in term_legislation")
                 break
     
     if not target_legislation:
@@ -373,6 +382,7 @@ def resolve_oppose_legislation(state: GameState, action: ActionOpposeLegislation
         error_msg = f"There's no legislation to oppose. Looking for: {action.legislation_id}"
         if available_legislation:
             error_msg += f". Available: {', '.join(available_legislation)}"
+        print(f"DEBUG: {error_msg}")
         state.add_log(error_msg)
         return state
     
