@@ -1125,6 +1125,70 @@ function closeModal() {
     }
 }
 
+// --- Overlay/Modal Coordination Logic ---
+
+function hideSwipeHint() {
+    const swipeHint = document.getElementById('swipe-hint');
+    if (swipeHint) swipeHint.classList.add('hidden');
+}
+
+function showSwipeHint() {
+    const swipeHint = document.getElementById('swipe-hint');
+    // Only show if no modal or quick access panel is open
+    const modal = document.querySelector('.modal-overlay');
+    const quickAccessPanel = document.getElementById('quick-access-panel');
+    if (swipeHint && !modal && (!quickAccessPanel || !quickAccessPanel.classList.contains('show'))) {
+        swipeHint.classList.remove('hidden');
+    }
+}
+
+function lockBodyScroll() {
+    document.body.style.overflow = 'hidden';
+}
+
+function unlockBodyScroll() {
+    document.body.style.overflow = '';
+}
+
+// Patch showModal to hide quick access and swipe hint, and lock scroll
+const _originalShowModal = showModal;
+showModal = function(title, content) {
+    hideQuickAccess();
+    hideSwipeHint();
+    lockBodyScroll();
+    _originalShowModal(title, content);
+};
+
+// Patch closeModal to show swipe hint and unlock scroll
+const _originalCloseModal = closeModal;
+closeModal = function() {
+    _originalCloseModal();
+    unlockBodyScroll();
+    showSwipeHint();
+};
+
+// Patch showQuickAccess to hide swipe hint, close modal, and lock scroll
+const _originalShowQuickAccess = showQuickAccess;
+showQuickAccess = function() {
+    closeModal();
+    hideSwipeHint();
+    lockBodyScroll();
+    _originalShowQuickAccess();
+};
+
+// Patch hideQuickAccess to show swipe hint and unlock scroll
+const _originalHideQuickAccess = hideQuickAccess;
+hideQuickAccess = function() {
+    _originalHideQuickAccess();
+    unlockBodyScroll();
+    showSwipeHint();
+};
+
+// On DOMContentLoaded, ensure only swipe hint is visible by default
+window.addEventListener('DOMContentLoaded', () => {
+    showSwipeHint();
+});
+
 // Message system
 function showMessage(message, type = 'success') {
     const messageDiv = document.createElement('div');
