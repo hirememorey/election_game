@@ -55,28 +55,62 @@ This document tracks the major improvements and features that have been implemen
 **Impact**: Dramatically increases player autonomy and speeds up gameplay
 **Frontend Status**: **ENHANCED** - Apple-level design system implemented
 
-### 3. **Trading Mechanic** - COMPLETED
-**Status**: Fully implemented and tested
+### 3. **Trading Mechanic** - REMOVED
+**Status**: Successfully removed to streamline gameplay
 
-**What it does**:
-- Players can trade PC and favors during legislation sessions
+**What it did**:
+- Players could trade PC and favors during legislation sessions
 - Trading phase before voting in legislation sessions
 - Propose, accept, decline trade offers
 - Strategic negotiation for votes
 
+**Why removed**:
+- Simplified the legislation session flow
+- Reduced complexity for better game balance
+- Legislation now resolves immediately after the action phase
+- Streamlined gameplay experience
+
+**Technical Changes**:
+- `models/game_state.py`: Removed `TradeOffer` dataclass and trading state tracking
+- `engine/actions.py`: Removed trading action classes
+- `engine/resolvers.py`: Removed trading resolution logic
+- `engine/engine.py`: Updated legislation session flow to remove trading phase
+- `server.py`: Removed trading API endpoints
+- `static/script.js`: Removed trading UI
+- `static/style.css`: Removed trading UI styles
+
+**Impact**: Simplified legislation sessions for faster, more focused gameplay
+
+### 4. **🏛️ Enhanced Election Results Display** - COMPLETED
+**Status**: **COMPLETED** - Fully implemented and tested
+
+**What it does**:
+- Provides detailed election results showing dice rolls, PC bonuses, and final scores
+- Displays results for all contested offices in a single view
+- Clean, card-based layout with clear winner highlighting
+- Responsive design with clear visual hierarchy
+
 **Technical Implementation**:
-- `models/game_state.py`: Added `TradeOffer` dataclass and trading state tracking
-- `engine/actions.py`: Added trading action classes (`ActionProposeTrade`, `ActionAcceptTrade`, etc.)
-- `engine/resolvers.py`: Added trading resolution logic
-- `engine/engine.py`: Updated legislation session flow to include trading phase
-- `server.py`: Added trading API endpoints and state serialization
-- `static/script.js`: Added trading UI (propose trades, accept/decline offers, trading phase)
-- `static/style.css`: Added trading UI styles
+- **Backend**: Enhanced election resolution with detailed logging in `engine/resolvers.py`
+- **Frontend**: Parses game log to extract and display election results in `static/script.js`
+- **UI**: Added `parseElectionResults()` function and enhanced `showElectionPhaseUI()`
+- **CSS**: Added election results styling in `static/style.css`
 
-**Testing**: `test_trading_mechanic.py` provides comprehensive testing
-**Impact**: Adds negotiation and deal-making to legislation sessions, increasing player interaction
+**Features**:
+- **Dice Rolls**: Shows the actual dice roll for each candidate
+- **PC Bonuses**: Displays committed PC converted to election bonuses
+- **Final Scores**: Shows total scores and highlights the winner
+- **Visual Design**: Clean, card-based layout with clear winner highlighting
+- **Multiple Offices**: Displays results for all contested offices in a single view
 
-### 4. **Political Favors System** - COMPLETED
+**Files Modified**:
+- `static/script.js`: Added election results parsing and display logic
+- `static/style.css`: Added election results styling
+- `engine/resolvers.py`: Enhanced election logging for detailed results
+
+**Impact**: Provides players with clear, detailed feedback on election outcomes, enhancing the strategic understanding of the game
+
+### 5. **Political Favors System** - COMPLETED
 **Status**: Fully implemented and tested
 
 **What it does**:
@@ -105,7 +139,7 @@ This document tracks the major improvements and features that have been implemen
 **Testing**: `test_api.py` includes favor system testing
 **Impact**: Adds strategic depth to networking actions
 
-### 5. **PC Commitment System** - COMPLETED
+### 6. **PC Commitment System** - COMPLETED
 **Status**: Fully implemented and tested
 
 **What it does**:
@@ -121,7 +155,7 @@ This document tracks the major improvements and features that have been implemen
 **Testing**: `test_pc_commitment_and_term_transition.py` provides comprehensive testing
 **Impact**: Adds strategic depth to legislation and candidacy actions
 
-### 6. **Automatic Event Phases** - COMPLETED
+### 7. **Automatic Event Phases** - COMPLETED
 **Status**: Fully implemented and tested
 
 **What it does**:
@@ -135,7 +169,7 @@ This document tracks the major improvements and features that have been implemen
 **Testing**: `test_automatic_event_phase.py` provides comprehensive testing
 **Impact**: Eliminates manual event drawing, improves game flow
 
-### 7. **Term Transition Fixes** - COMPLETED
+### 8. **Term Transition Fixes** - COMPLETED
 **Status**: Fully implemented and tested
 
 **What it does**:
@@ -150,7 +184,7 @@ This document tracks the major improvements and features that have been implemen
 **Testing**: `test_pc_commitment_and_term_transition.py` includes term transition testing
 **Impact**: Prevents state corruption between terms
 
-### 8. **Legislation Session Timing** - COMPLETED
+### 9. **Legislation Session Timing** - COMPLETED
 **Status**: Fully implemented and tested
 
 **What it does**:
@@ -165,7 +199,7 @@ This document tracks the major improvements and features that have been implemen
 **Testing**: `test_legislation_timing.py` provides comprehensive testing
 **Impact**: Ensures all players have a chance to vote on bills
 
-### 9. **Form Alliance Action Removal** - COMPLETED
+### 10. **Form Alliance Action Removal** - COMPLETED
 **Status**: Successfully removed for simplified testing
 
 **What it does**:
@@ -183,7 +217,7 @@ This document tracks the major improvements and features that have been implemen
 **Testing**: `test_form_alliance_removal.py` verifies the action is gone
 **Impact**: Simplified action set for easier testing and balance
 
-### 10. **Round 5 Confusion Fix** - COMPLETED
+### 11. **Round 5 Confusion Fix** - COMPLETED
 **Status**: Fully implemented and tested
 
 **What it does**:
@@ -203,7 +237,7 @@ This document tracks the major improvements and features that have been implemen
 **Testing**: Manual testing confirms improved game flow
 **Impact**: Much clearer game flow and better user experience
 
-### 11. **Action Points System Fixes** - COMPLETED
+### 12. **Action Points System Fixes** - COMPLETED
 **Status**: Fully implemented and tested
 
 **What it does**:
@@ -221,7 +255,7 @@ This document tracks the major improvements and features that have been implemen
 **Testing**: `test_pc_commitment_and_term_transition.py` now passes all tests
 **Impact**: Resolves AP validation errors and ensures smooth gameplay flow
 
-### 12. **🎰 Gambling-Style Legislation System** - DEPRECATED
+### 13. **🎰 Gambling-Style Legislation System** - DEPRECATED
 **Status**: Replaced by the **Secret Commitment Legislation System**.
 **What it did**:
 - Allowed players to commit PC to support/oppose legislation during any turn.

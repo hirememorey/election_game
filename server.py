@@ -113,35 +113,10 @@ def serialize_game_state(state):
                 'sponsor_id': leg.sponsor_id,
                 'support_players': leg.support_players,
                 'oppose_players': leg.oppose_players,
-                'resolved': leg.resolved,
-                'trade_offers': [
-                    {
-                        'offerer_id': offer.offerer_id,
-                        'target_id': offer.target_id,
-                        'legislation_id': offer.legislation_id,
-                        'offered_pc': offer.offered_pc,
-                        'offered_favors': offer.offered_favors,
-                        'requested_vote': offer.requested_vote,
-                        'accepted': offer.accepted,
-                        'declined': offer.declined
-                    } for offer in leg.trade_offers
-                ]
+                'resolved': leg.resolved
             } for leg in state.term_legislation
         ],
-        'legislation_session_active': state.legislation_session_active,
-        'current_trade_phase': state.current_trade_phase,
-        'active_trade_offers': [
-            {
-                'offerer_id': offer.offerer_id,
-                'target_id': offer.target_id,
-                'legislation_id': offer.legislation_id,
-                'offered_pc': offer.offered_pc,
-                'offered_favors': offer.offered_favors,
-                'requested_vote': offer.requested_vote,
-                'accepted': offer.accepted,
-                'declined': offer.declined
-            } for offer in state.active_trade_offers
-        ],
+        # Removed: 'legislation_session_active', 'current_trade_phase', 'active_trade_offers', 'trade_offers'
         'action_points': state.action_points,
         'campaign_influences': [
             {
@@ -192,7 +167,6 @@ def get_game_state(game_id):
     
     # Check if all players have 0 AP and automatically advance (loop until not stuck)
     while (state.current_phase == 'ACTION_PHASE' and 
-           not state.legislation_session_active and
            all(ap == 0 for ap in state.action_points.values())):
         dummy_action = ActionPassTurn(player_id=state.current_player_index)
         try:

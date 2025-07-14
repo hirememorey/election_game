@@ -13,6 +13,7 @@
 - **Deployment:** Local server works on custom port (e.g., 5001). Deployment instructions are in `DEPLOYMENT.md`.
 - **🤫 Secret Commitment System:** **COMPLETED** - Replaced gambling-style legislation with strategic secret commitments
 - **🧪 Automated Testing:** **COMPLETED** - Comprehensive Playwright tests validate game playability
+- **🏛️ Enhanced Election Results:** **NEW** - Detailed election results display showing dice rolls, PC bonuses, and final scores
 
 ## Recent Issues & Next Steps
 - **Secret Commitment System:** **COMPLETED** - Players now make secret commitments to support/oppose legislation, revealed dramatically at term end
@@ -20,6 +21,8 @@
 - **Legislation Voting Fix:** Fixed critical backend bug where players couldn't vote on their own legislation, causing the game to get stuck. Backend now properly resets player index after voting completes.
 - **Frontend Voting UI:** Added "Pass Turn" button when players have no valid voting options during legislation sessions.
 - **Sponsor Support Enhancement:** **NEW** - Players who sponsor legislation can now commit additional PC to their own legislation throughout the rounds, providing more strategic control and agency.
+- **Trading Phase Removal:** **COMPLETED** - Streamlined legislation session by removing the trading phase. Legislation now resolves immediately after the action phase.
+- **Enhanced Election Results:** **NEW** - Election results now display detailed information including dice rolls, PC bonuses, and final scores for each office.
 - **Testing:** Comprehensive test suite covers all major game mechanics. Manual testing is possible via browser.
 - **API URL:** In `static/script.js`, `API_BASE_URL` is set to `http://localhost:5001/api` (matches backend port).
 
@@ -33,6 +36,8 @@
 ## Immediate To-Dos
 - **✅ Secret Commitment System:** Fully implemented and tested
 - **✅ Automated Testing:** Playwright tests validate all game flows
+- **✅ Trading Phase Removal:** Streamlined legislation session
+- **✅ Enhanced Election Results:** Detailed election results display
 - **Test sponsor support enhancement:** Verify sponsors can support their own legislation with additional PC commitment.
 - **Test API endpoints:** Use Postman/curl or browser to verify `/api/game`, `/api/game/<id>`, etc.
 - **Test frontend:** Play through a game in browser, check for bugs, and improve UX.
@@ -64,7 +69,6 @@ A Python-based political strategy board game with a Flask backend and mobile-fri
 - Static file serving (fixed from 404 issues)
 - Performance tested (~5-10ms response times)
 - **Action Points System**: Players get 2 AP per turn with variable costs
-- **Trading Mechanic**: Players can trade PC/favors for votes during legislation sessions
 - **Political Favors System**: Players can use favors with selection menu
 - **PC Commitment System**: Custom PC amounts for legislation and candidacy
 - **Automatic Event Phases**: Events draw automatically for smooth gameplay
@@ -74,6 +78,7 @@ A Python-based political strategy board game with a Flask backend and mobile-fri
 - **🎭 Identity Display System**: Players can easily view their archetype and mission information through multiple access methods
 - **📜 Sponsor Support Enhancement**: **NEW** - Players who sponsor legislation can now commit additional PC to their own legislation throughout the rounds, providing more strategic control and agency.
 - **🧪 Automated Testing**: **COMPLETED** - Comprehensive Playwright tests validate game playability across browsers
+- **🏛️ Enhanced Election Results**: **NEW** - Detailed election results display showing dice rolls, PC bonuses, and final scores for each office
 
 ### 🎮 Core Game Mechanics
 
@@ -85,7 +90,6 @@ A Python-based political strategy board game with a Flask backend and mobile-fri
 - **Use Favor** (1 AP): Strategic advantage actions with selection menu
 - **Support/Oppose Legislation** (1 AP): **Secretly commit PC** to influence a bill's outcome. Bluff, form secret alliances, and betray your rivals.
 - **Campaign** (2 AP): Place influence for future elections
-- **Trading** (0 AP): Propose trades of PC/favors for votes during legislation sessions
 - **Pass Turn** (0 AP): Skip turn when no valid actions available
 
 **Action Point Costs:**
@@ -94,8 +98,14 @@ A Python-based political strategy board game with a Flask backend and mobile-fri
 - Sponsor Legislation/Declare Candidacy/Campaign: 2 AP each
 - Use Favor: 1 AP
 - Support/Oppose Legislation: 1 AP each
-- Trading actions: 0 AP (free during trading phase)
 - Pass Turn: 0 AP (free action)
+
+**Game Flow:**
+1. **Action Phase**: Players take turns performing actions with their Action Points
+2. **Event Phase**: Automatic events occur between rounds
+3. **Legislation Session**: All sponsored legislation is resolved immediately (no trading phase)
+4. **Election Phase**: Elections are resolved with detailed results display
+5. **Term Transition**: New term begins with fresh Action Points
 
 ### 🤫 Secret Commitment System (New Core Mechanic)
 The previous "Gambling-Style" legislation system has been **successfully replaced** with a more strategic and interactive **Secret Commitment System**. This elevates the game from a resource management puzzle to a high-stakes game of political poker.
@@ -111,6 +121,21 @@ The previous "Gambling-Style" legislation system has been **successfully replace
 - **Backend**: `SECRET_COMMITMENTS` storage in `server.py`, updated action processing and legislation resolution
 - **Frontend**: Enhanced UI with secret commitment notices and confirmation messages
 - **Testing**: Comprehensive test coverage validates all secret commitment scenarios
+
+### 🏛️ Enhanced Election Results Display
+Election results now provide detailed information about each race:
+
+**Features:**
+- **Dice Rolls**: Shows the actual dice roll for each candidate
+- **PC Bonuses**: Displays committed PC converted to election bonuses
+- **Final Scores**: Shows total scores and highlights the winner
+- **Visual Design**: Clean, card-based layout with clear winner highlighting
+- **Multiple Offices**: Displays results for all contested offices in a single view
+
+**Technical Implementation:**
+- **Backend**: Enhanced election resolution with detailed logging
+- **Frontend**: Parses game log to extract and display election results
+- **UI**: Responsive design with clear visual hierarchy
 
 ### 🎭 Identity System
 Players have unique identities that affect gameplay:
@@ -192,7 +217,6 @@ See `DEPLOYMENT.md` for step-by-step instructions for Render, Netlify, Heroku, R
 
 ### Comprehensive Test Coverage
 - **`test_action_points_system.py`**: Action Points system functionality
-- **`test_trading_mechanic.py`**: Trading system functionality
 - **`test_pc_commitment_and_term_transition.py`**: PC commitment and term transitions
 - **`test_automatic_event_phase.py`**: Automatic event phase functionality
 - **`test_api.py`**: API endpoints and favor system

@@ -25,8 +25,6 @@ class PendingLegislation:
     support_players: Dict[int, int] = field(default_factory=dict)  # player_id -> pc_amount
     oppose_players: Dict[int, int] = field(default_factory=dict)   # player_id -> pc_amount
     resolved: bool = False
-    # New: Track trade offers for this legislation
-    trade_offers: List[TradeOffer] = field(default_factory=list)
 
 @dataclass
 class GameState:
@@ -63,11 +61,6 @@ class GameState:
     
     # End-of-term legislation session
     term_legislation: List[PendingLegislation] = field(default_factory=list)  # All legislation sponsored this term
-    legislation_session_active: bool = False  # Whether we're in the legislation session phase
-    
-    # New: Trading system state
-    current_trade_phase: bool = False  # Whether we're in the trading phase of legislation session
-    active_trade_offers: List[TradeOffer] = field(default_factory=list)  # All current trade offers
     
     # Lingering effects from events, identified by event ID
     active_effects: Set[str] = field(default_factory=set)

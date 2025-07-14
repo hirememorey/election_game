@@ -84,35 +84,41 @@
    - Enhanced animations and visual feedback
    - **Status**: Fully implemented and tested
 
-6. **Trading Mechanic** (Complete)
-   - Players trade PC/favors for votes during legislation sessions
-   - Propose, accept, decline trade offers
-   - Strategic negotiation system
+6. **Trading Mechanic** (REMOVED)
+   - **Status**: Successfully removed to streamline gameplay
+   - **Why removed**: Simplified legislation session flow, reduced complexity for better game balance
+   - **Impact**: Legislation now resolves immediately after the action phase for faster, more focused gameplay
+
+7. **🏛️ Enhanced Election Results Display** (COMPLETED - Latest)
+   - **Detailed Results**: Shows dice rolls, PC bonuses, and final scores for each office
+   - **Visual Design**: Clean, card-based layout with clear winner highlighting
+   - **Multiple Offices**: Displays results for all contested offices in a single view
+   - **Technical Implementation**: Enhanced election resolution with detailed logging, frontend parsing of game log
    - **Status**: Fully implemented and tested
 
-7. **Political Favors System** (Complete)
+8. **Political Favors System** (Complete)
    - Use favors gained from networking
    - Selection menu for different favor types
    - PEEK_EVENT favor reveals top event card
    - **Status**: Fully implemented and tested
 
-8. **PC Commitment System** (Complete)
+9. **PC Commitment System** (Complete)
    - Custom PC amounts for legislation support/opposition
    - Additional PC commitment for candidacy declarations
    - Strategic resource investment
    - **Status**: Fully implemented and tested
 
-9. **Automatic Event Phases** (Complete)
-   - Events draw automatically at start of each round/term
-   - No manual intervention required
-   - **Status**: Fully implemented and tested
+10. **Automatic Event Phases** (Complete)
+    - Events draw automatically at start of each round/term
+    - No manual intervention required
+    - **Status**: Fully implemented and tested
 
-10. **Term Transition Fixes** (Complete)
+11. **Term Transition Fixes** (Complete)
     - Proper state cleanup between terms
     - Legislation cleanup and player index reset
     - **Status**: Fully implemented and tested
 
-11. **Manual Phase Resolution System** (NEW - Just Completed)
+12. **Manual Phase Resolution System** (NEW - Just Completed)
     - **Manual Legislation Resolution**: After the term ends, players can manually trigger legislation resolution with a "Resolve Legislation" button
     - **Manual Election Resolution**: After legislation is resolved, players can manually trigger election resolution with a "Resolve Elections" button
     - **Enhanced Game Flow**: Players can review the game state before seeing phase results
@@ -136,7 +142,6 @@
 - **Use Favor** (1 AP): Strategic advantage actions with selection menu
 - **Support/Oppose Legislation** (1 AP): Interactive legislation with custom PC commitment
 - **Campaign** (2 AP): Place influence for future elections
-- **Trading** (0 AP): Propose trades during legislation sessions
 - **Pass Turn** (0 AP): Skip turn when no valid actions available
 
 ## 🚨 Current Limitations

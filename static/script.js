@@ -498,12 +498,162 @@ function showLegislationPhaseUI() {
 }
 
 function showElectionPhaseUI() {
+    // Parse the game log to extract election results
+    const electionResults = parseElectionResults();
+    
+    if (electionResults.length === 0) {
+        actionContent.innerHTML = `
+            <div class="text-center">
+                <h3>Election Phase</h3>
+                <p>No elections were held this term.</p>
+            </div>
+        `;
+        return;
+    }
+    
+    const resultsHTML = electionResults.map(result => `
+        <div class="election-result">
+            <div class="election-header">
+                <h4>🏛️ ${result.office}</h4>
+            </div>
+            <div class="election-candidates">
+                ${result.candidates.map(candidate => `
+                    <div class="candidate-result ${candidate.winner ? 'winner' : 'loser'}">
+                        <div class="candidate-name">${candidate.name}</div>
+                        <div class="candidate-details">
+                            <div class="roll-info">
+                                <span class="dice">🎲 ${candidate.roll}</span>
+                                <span class="bonus">+${candidate.bonus} (PC)</span>
+                                <span class="total">= ${candidate.total}</span>
+                            </div>
+                            <div class="pc-committed">Committed: ${candidate.committedPC} PC</div>
+                        </div>
+                        ${candidate.winner ? '<div class="winner-badge">👑 Winner!</div>' : ''}
+                    </div>
+                `).join('')}
+            </div>
+            ${result.tiebreaker ? `<div class="tiebreaker-info">${result.tiebreaker}</div>` : ''}
+        </div>
+    `).join('');
+    
     actionContent.innerHTML = `
-        <div class="text-center">
-            <h3>Election Phase</h3>
-            <p>Elections are being held. Results will be shown shortly.</p>
+        <div class="election-results-container">
+            <div class="election-results-header">
+                <h3>🗳️ Election Results</h3>
+                <p>Here are the detailed results from this term's elections:</p>
+            </div>
+            <div class="election-results-list">
+                ${resultsHTML}
+            </div>
         </div>
     `;
+}
+
+function parseElectionResults() {
+    if (!gameState || !gameState.turn_log) return [];
+    
+    const results = [];
+    const log = gameState.turn_log;
+    let currentElection = null;
+    
+    for (let i = 0; i < log.length; i++) {
+        const entry = log[i];
+        
+        // Look for election resolution headers
+        if (entry.includes('--- Resolving Election for')) {
+            const officeMatch = entry.match(/--- Resolving Election for (.+) ---/);
+            if (officeMatch) {
+                if (currentElection) {
+                    results.push(currentElection);
+                }
+                currentElection = {
+                    office: officeMatch[1],
+                    candidates: [],
+                    tiebreaker: null
+                };
+            }
+        }
+        
+        // Look for candidate results
+        if (currentElection && entry.includes("'s Score:")) {
+            const scoreMatch = entry.match(/(.+)'s Score: (\d+) \(d6\) \+ (\d+) \(PC bonus\) = (\d+)/);
+            if (scoreMatch) {
+                const [, name, roll, bonus, total] = scoreMatch;
+                currentElection.candidates.push({
+                    name: name.trim(),
+                    roll: parseInt(roll),
+                    bonus: parseInt(bonus),
+                    total: parseInt(total),
+                    committedPC: 0, // Will be filled from previous log entry
+                    winner: false
+                });
+            }
+        }
+        
+        // Look for committed PC reveals
+        if (currentElection && entry.includes('reveals') && entry.includes('committed PC')) {
+            const pcMatch = entry.match(/(.+) reveals (\d+) committed PC/);
+            if (pcMatch) {
+                const [, name, pc] = pcMatch;
+                const candidate = currentElection.candidates.find(c => c.name === name.trim());
+                if (candidate) {
+                    candidate.committedPC = parseInt(pc);
+                }
+            }
+        }
+        
+        // Look for NPC challenger results
+        if (currentElection && entry.includes("NPC Challenger's Score:")) {
+            const npcMatch = entry.match(/NPC Challenger's Score: (\d+) \(d6\) \+ (\d+) \(NPC bonus\) = (\d+)/);
+            if (npcMatch) {
+                const [, roll, bonus, total] = npcMatch;
+                currentElection.candidates.push({
+                    name: 'NPC Challenger',
+                    roll: parseInt(roll),
+                    bonus: parseInt(bonus),
+                    total: parseInt(total),
+                    committedPC: 0,
+                    winner: false
+                });
+            }
+        }
+        
+        // Look for winners
+        if (currentElection && entry.includes('wins the election for')) {
+            const winnerMatch = entry.match(/(.+) wins the election for/);
+            if (winnerMatch) {
+                const winnerName = winnerMatch[1].trim();
+                const candidate = currentElection.candidates.find(c => c.name === winnerName);
+                if (candidate) {
+                    candidate.winner = true;
+                }
+            }
+        }
+        
+        // Look for losers
+        if (currentElection && entry.includes('loses the election')) {
+            const loserMatch = entry.match(/(.+) loses the election/);
+            if (loserMatch) {
+                const loserName = loserMatch[1].trim();
+                const candidate = currentElection.candidates.find(c => c.name === loserName);
+                if (candidate) {
+                    candidate.winner = false;
+                }
+            }
+        }
+        
+        // Look for tiebreaker information
+        if (currentElection && (entry.includes('Tie in score') || entry.includes('Still tied'))) {
+            currentElection.tiebreaker = entry;
+        }
+    }
+    
+    // Add the last election if it exists
+    if (currentElection) {
+        results.push(currentElection);
+    }
+    
+    return results;
 }
 
 function updatePrimaryActions() {
