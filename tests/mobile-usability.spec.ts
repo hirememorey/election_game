@@ -59,12 +59,13 @@ test.describe('Mobile Usability Tests', () => {
 
         test('modal dialogs are touch-friendly', async ({ page }) => {
           // Create a game first
-          await page.fill('input[placeholder*="Player"]', 'Test Player');
-          await page.click('button:has-text("Start Game")');
-          await page.waitForSelector('.game-container');
+          await page.fill('#player1', 'Test Player 1');
+          await page.fill('#player2', 'Test Player 2');
+          await page.click('#start-game-btn');
+          await page.waitForSelector('#game-screen:not(.hidden)');
           
           // Trigger a modal (like PC commitment)
-          await page.click('button:has-text("Fundraise")');
+          await page.click('.action-btn:has-text("Fundraise")');
           await page.waitForTimeout(500);
           
           // Check if any modals appear and are touch-friendly
@@ -83,12 +84,13 @@ test.describe('Mobile Usability Tests', () => {
 
         test('swipe gestures work for game info panel', async ({ page }) => {
           // Create a game first
-          await page.fill('input[placeholder*="Player"]', 'Test Player');
-          await page.click('button:has-text("Start Game")');
-          await page.waitForSelector('.game-container');
+          await page.fill('#player1', 'Test Player 1');
+          await page.fill('#player2', 'Test Player 2');
+          await page.click('#start-game-btn');
+          await page.waitForSelector('#game-screen:not(.hidden)');
           
           // Test swipe up gesture
-          const gameContainer = page.locator('.game-container');
+          const gameContainer = page.locator('#game-screen');
           const startY = device.height - 100;
           const endY = 100;
           
@@ -99,7 +101,7 @@ test.describe('Mobile Usability Tests', () => {
           
           // Check if game info panel appears
           await page.waitForTimeout(500);
-          const infoPanel = page.locator('.quick-access-panel, .game-info-panel');
+          const infoPanel = page.locator('#quick-access-panel');
           await expect(infoPanel).toBeVisible();
         });
       });
@@ -188,11 +190,12 @@ test.describe('Mobile Usability Tests', () => {
 
         test('action buttons are properly spaced', async ({ page }) => {
           // Create a game first
-          await page.fill('input[placeholder*="Player"]', 'Test Player');
-          await page.click('button:has-text("Start Game")');
-          await page.waitForSelector('.game-container');
+          await page.fill('#player1', 'Test Player 1');
+          await page.fill('#player2', 'Test Player 2');
+          await page.click('#start-game-btn');
+          await page.waitForSelector('#game-screen:not(.hidden)');
           
-          const actionButtons = await page.locator('.action-button, button[onclick*="performAction"]').all();
+          const actionButtons = await page.locator('.action-btn').all();
           
           for (let i = 0; i < actionButtons.length - 1; i++) {
             const button1 = await actionButtons[i].boundingBox();
@@ -208,16 +211,17 @@ test.describe('Mobile Usability Tests', () => {
 
         test('game state information is clearly visible', async ({ page }) => {
           // Create a game first
-          await page.fill('input[placeholder*="Player"]', 'Test Player');
-          await page.click('button:has-text("Start Game")');
-          await page.waitForSelector('.game-container');
+          await page.fill('#player1', 'Test Player 1');
+          await page.fill('#player2', 'Test Player 2');
+          await page.click('#start-game-btn');
+          await page.waitForSelector('#game-screen:not(.hidden)');
           
           // Check that key game state elements are visible
           const stateElements = [
-            '.game-state',
-            '.player-info',
+            '#phase-indicator',
+            '.player-turn',
             '.action-points',
-            '.political-capital'
+            '.player-stats'
           ];
           
           for (const selector of stateElements) {
@@ -230,15 +234,16 @@ test.describe('Mobile Usability Tests', () => {
 
         test('identity cards display properly on mobile', async ({ page }) => {
           // Create a game first
-          await page.fill('input[placeholder*="Player"]', 'Test Player');
-          await page.click('button:has-text("Start Game")');
-          await page.waitForSelector('.game-container');
+          await page.fill('#player1', 'Test Player 1');
+          await page.fill('#player2', 'Test Player 2');
+          await page.click('#start-game-btn');
+          await page.waitForSelector('#game-screen:not(.hidden)');
           
           // Trigger identity display
           await page.keyboard.press('g');
           await page.waitForTimeout(500);
           
-          const identityCards = page.locator('.identity-card, .archetype-card, .mandate-card');
+          const identityCards = page.locator('.identity-section .identity-card');
           if (await identityCards.count() > 0) {
             await expect(identityCards.first()).toBeVisible();
             
@@ -256,21 +261,22 @@ test.describe('Mobile Usability Tests', () => {
       test.describe('Game Flow', () => {
         test('complete game flow works on mobile', async ({ page }) => {
           // Start game
-          await page.fill('input[placeholder*="Player"]', 'Test Player');
-          await page.click('button:has-text("Start Game")');
-          await page.waitForSelector('.game-container');
+          await page.fill('#player1', 'Test Player 1');
+          await page.fill('#player2', 'Test Player 2');
+          await page.click('#start-game-btn');
+          await page.waitForSelector('#game-screen:not(.hidden)');
           
           // Perform basic actions
           const actions = ['Fundraise', 'Network'];
           
           for (const action of actions) {
-            const button = page.locator(`button:has-text("${action}")`);
+            const button = page.locator(`.action-btn:has-text("${action}")`);
             if (await button.count() > 0) {
               await button.click();
               await page.waitForTimeout(500);
               
               // Check that action was processed
-              const gameLog = page.locator('.game-log');
+              const gameLog = page.locator('#game-log');
               await expect(gameLog).toBeVisible();
             }
           }
@@ -278,27 +284,29 @@ test.describe('Mobile Usability Tests', () => {
 
         test('legislation voting works on mobile', async ({ page }) => {
           // Create a game and sponsor legislation
-          await page.fill('input[placeholder*="Player"]', 'Test Player');
-          await page.click('button:has-text("Start Game")');
-          await page.waitForSelector('.game-container');
+          await page.fill('#player1', 'Test Player 1');
+          await page.fill('#player2', 'Test Player 2');
+          await page.click('#start-game-btn');
+          await page.waitForSelector('#game-screen:not(.hidden)');
           
           // Sponsor legislation
-          const sponsorButton = page.locator('button:has-text("Sponsor Legislation")');
+          const sponsorButton = page.locator('.action-btn:has-text("Sponsor Legislation")');
           if (await sponsorButton.count() > 0) {
             await sponsorButton.click();
             await page.waitForTimeout(500);
             
             // Check that legislation was sponsored
-            const gameLog = page.locator('.game-log');
+            const gameLog = page.locator('#game-log');
             await expect(gameLog).toBeVisible();
           }
         });
 
         test('PC commitment dialogs work on mobile', async ({ page }) => {
           // Create a game
-          await page.fill('input[placeholder*="Player"]', 'Test Player');
-          await page.click('button:has-text("Start Game")');
-          await page.waitForSelector('.game-container');
+          await page.fill('#player1', 'Test Player 1');
+          await page.fill('#player2', 'Test Player 2');
+          await page.click('#start-game-btn');
+          await page.waitForSelector('#game-screen:not(.hidden)');
           
           // Try to commit PC (this should trigger a dialog)
           const commitButton = page.locator('button:has-text("Support"), button:has-text("Oppose")');
@@ -316,9 +324,10 @@ test.describe('Mobile Usability Tests', () => {
 
         test('pass turn functionality works', async ({ page }) => {
           // Create a game
-          await page.fill('input[placeholder*="Player"]', 'Test Player');
-          await page.click('button:has-text("Start Game")');
-          await page.waitForSelector('.game-container');
+          await page.fill('#player1', 'Test Player 1');
+          await page.fill('#player2', 'Test Player 2');
+          await page.click('#start-game-btn');
+          await page.waitForSelector('#game-screen:not(.hidden)');
           
           // Look for Pass Turn button
           const passButton = page.locator('button:has-text("Pass Turn"), button:has-text("Pass")');
@@ -327,7 +336,7 @@ test.describe('Mobile Usability Tests', () => {
             await page.waitForTimeout(500);
             
             // Check that turn advanced
-            const gameLog = page.locator('.game-log');
+            const gameLog = page.locator('#game-log');
             await expect(gameLog).toBeVisible();
           }
         });
@@ -346,12 +355,13 @@ test.describe('Mobile Usability Tests', () => {
 
         test('actions respond within 1 second', async ({ page }) => {
           // Create a game first
-          await page.fill('input[placeholder*="Player"]', 'Test Player');
-          await page.click('button:has-text("Start Game")');
-          await page.waitForSelector('.game-container');
+          await page.fill('#player1', 'Test Player 1');
+          await page.fill('#player2', 'Test Player 2');
+          await page.click('#start-game-btn');
+          await page.waitForSelector('#game-screen:not(.hidden)');
           
           // Test action response time
-          const button = page.locator('button:has-text("Fundraise")');
+          const button = page.locator('.action-btn:has-text("Fundraise")');
           if (await button.count() > 0) {
             const startTime = Date.now();
             await button.click();
@@ -364,13 +374,14 @@ test.describe('Mobile Usability Tests', () => {
 
         test('no memory leaks during gameplay', async ({ page }) => {
           // Create a game
-          await page.fill('input[placeholder*="Player"]', 'Test Player');
-          await page.click('button:has-text("Start Game")');
-          await page.waitForSelector('.game-container');
+          await page.fill('#player1', 'Test Player 1');
+          await page.fill('#player2', 'Test Player 2');
+          await page.click('#start-game-btn');
+          await page.waitForSelector('#game-screen:not(.hidden)');
           
           // Perform multiple actions to test for memory leaks
           for (let i = 0; i < 5; i++) {
-            const button = page.locator('button:has-text("Fundraise")');
+            const button = page.locator('.action-btn:has-text("Fundraise")');
             if (await button.count() > 0) {
               await button.click();
               await page.waitForTimeout(200);
@@ -378,7 +389,7 @@ test.describe('Mobile Usability Tests', () => {
           }
           
           // Check that page is still responsive
-          const gameContainer = page.locator('.game-container');
+          const gameContainer = page.locator('#game-screen');
           await expect(gameContainer).toBeVisible();
         });
       });
@@ -442,6 +453,19 @@ test.describe('Mobile Usability Tests', () => {
             }
           }
         });
+
+        test('all major interactive elements have ARIA labels', async ({ page }) => {
+          await page.fill('#player1', 'Test Player 1');
+          await page.fill('#player2', 'Test Player 2');
+          await page.click('#start-game-btn');
+          await page.waitForSelector('#game-screen:not(.hidden)');
+          const elements = await page.locator('.icon-btn, .action-btn, .player-avatar, #quick-access-panel').all();
+          for (const el of elements) {
+            const ariaLabel = await el.getAttribute('aria-label');
+            expect(ariaLabel).not.toBeNull();
+            expect(ariaLabel).not.toBe('');
+          }
+        });
       });
 
       // ===== ERROR HANDLING TESTS =====
@@ -453,8 +477,9 @@ test.describe('Mobile Usability Tests', () => {
           });
           
           await page.goto('http://localhost:5001');
-          await page.fill('input[placeholder*="Player"]', 'Test Player');
-          await page.click('button:has-text("Start Game")');
+          await page.fill('#player1', 'Test Player 1');
+          await page.fill('#player2', 'Test Player 2');
+          await page.click('#start-game-btn');
           
           // Should show error message
           await page.waitForTimeout(2000);
@@ -466,12 +491,13 @@ test.describe('Mobile Usability Tests', () => {
 
         test('invalid actions show appropriate error messages', async ({ page }) => {
           // Create a game
-          await page.fill('input[placeholder*="Player"]', 'Test Player');
-          await page.click('button:has-text("Start Game")');
-          await page.waitForSelector('.game-container');
+          await page.fill('#player1', 'Test Player 1');
+          await page.fill('#player2', 'Test Player 2');
+          await page.click('#start-game-btn');
+          await page.waitForSelector('#game-screen:not(.hidden)');
           
           // Try to perform an action without sufficient resources
-          const expensiveAction = page.locator('button:has-text("Sponsor Legislation")');
+          const expensiveAction = page.locator('.action-btn:has-text("Sponsor Legislation")');
           if (await expensiveAction.count() > 0) {
             await expensiveAction.click();
             await page.waitForTimeout(500);

@@ -266,43 +266,130 @@ body {
   height: 100vh;
 }
 
+/* Header */
 .game-header {
-  background: var(--color-surface);
-  border-bottom: 1px solid var(--color-border-light);
-  padding: var(--spacing-4) var(--spacing-6);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 12px;
+  background: #007AFF;
+  color: #fff;
   position: sticky;
   top: 0;
   z-index: 100;
 }
+.game-title {
+  font-size: 1.2rem;
+  font-weight: bold;
+}
+.icon-btn {
+  background: none;
+  border: none;
+  color: #fff;
+  font-size: 1.4rem;
+  margin-left: 8px;
+  padding: 4px;
+}
 
-.header-content {
+/* Phase Bar */
+.phase-bar {
+  background: #f4f6fa;
+  padding: 8px 12px 4px 12px;
+  border-bottom: 1px solid #e0e0e0;
+  text-align: left;
+}
+.phase-title {
+  font-size: 1.1rem;
+  font-weight: bold;
+}
+.phase-subtitle {
+  font-size: 0.95rem;
+  color: #888;
+}
+
+/* Player Info */
+.player-info {
   display: flex;
-  justify-content: space-between;
   align-items: center;
-  width: 100%;
-  max-width: 600px;
-  margin: 0 auto;
-  padding: 0 16px;
+  gap: 8px;
+  padding: 8px 12px;
+  font-size: 1rem;
+  background: #fff;
+  border-bottom: 1px solid #eee;
+}
+.avatar {
+  background: #007AFF;
+  color: #fff;
+  border-radius: 50%;
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  font-size: 1.1rem;
+}
+.player-stats {
+  margin-left: 4px;
 }
 
-.header-actions {
-    display: flex;
-    gap: 8px;
-    align-items: center;
+/* Action Area (Horizontal Scroll) */
+.action-area.horizontal-scroll {
+  display: flex;
+  overflow-x: auto;
+  gap: 12px;
+  padding: 12px 8px;
+  background: #f9f9fb;
 }
-
-.header-content h1 {
-  font-size: var(--font-size-xl);
-  font-weight: var(--font-weight-semibold);
-  color: var(--color-text-primary);
-}
-
-.game-content {
-  flex: 1;
+.action-card {
+  min-width: 110px;
+  max-width: 130px;
+  height: 56px;
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.06);
   display: flex;
   flex-direction: column;
-  position: relative;
-  overflow: hidden;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  margin: 0;
+  padding: 6px 0;
+  font-size: 1rem;
+  transition: box-shadow 0.2s;
+}
+.action-card:active, .action-card:focus {
+  box-shadow: 0 2px 8px rgba(0,0,0,0.12);
+}
+.action-icon {
+  font-size: 1.3rem;
+  margin-bottom: 2px;
+}
+.action-label {
+  font-size: 0.98rem;
+  font-weight: 500;
+}
+.action-cost {
+  font-size: 0.85rem;
+  color: #888;
+  margin-top: 2px;
+}
+
+/* Game Log/Details (Collapsible) */
+.game-log-collapsible {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  max-height: 40vh;
+  background: #fff;
+  border-top: 1px solid #eee;
+  box-shadow: 0 -2px 8px rgba(0,0,0,0.08);
+  transition: transform 0.3s;
+  transform: translateY(90%);
+  /* Add JS to toggle to translateY(0) when expanded */
+  overflow-y: auto;
+  z-index: 200;
 }
 
 /* ===== PHASE DISPLAY ===== */
@@ -1169,4 +1256,270 @@ body {
 
 .identity-modal .identity-card {
     margin-bottom: 16px;
+}
+
+@media (max-width: 400px) {
+  .game-header, .phase-bar, .player-info, .action-area.horizontal-scroll {
+    padding-left: 4px;
+    padding-right: 4px;
+  }
+  .action-card {
+    min-width: 90px;
+    max-width: 110px;
+    font-size: 0.95rem;
+  }
+}
+
+/* Menu Dropdown */
+.menu-dropdown {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  background: #fff;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  z-index: 1000;
+  min-width: 150px;
+}
+
+.menu-dropdown.hidden {
+  display: none;
+}
+
+.menu-item {
+  display: block;
+  width: 100%;
+  padding: 12px 16px;
+  border: none;
+  background: none;
+  text-align: left;
+  cursor: pointer;
+  font-size: 14px;
+  color: #333;
+}
+
+.menu-item:hover {
+  background: #f5f5f5;
+}
+
+/* Phase Indicator */
+.phase-indicator {
+  background: #f4f6fa;
+  padding: 12px 16px;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+.phase-title {
+  font-size: 1.1rem;
+  font-weight: bold;
+  color: #333;
+}
+
+.phase-subtitle {
+  font-size: 0.9rem;
+  color: #666;
+  margin-top: 4px;
+}
+
+.player-turn {
+  display: flex;
+  align-items: center;
+  margin-top: 8px;
+}
+
+.player-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: #007AFF;
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  margin-right: 8px;
+}
+
+.player-info {
+  flex: 1;
+}
+
+.player-name {
+  font-weight: bold;
+  color: #333;
+}
+
+.player-stats {
+  font-size: 0.8rem;
+  color: #666;
+}
+
+.action-points {
+  display: flex;
+  align-items: center;
+  margin-top: 8px;
+  font-size: 0.9rem;
+  color: #007AFF;
+}
+
+.ap-icon {
+  margin-right: 4px;
+}
+
+/* Action Content */
+.action-content {
+  padding: 16px;
+  flex: 1;
+  overflow-y: auto;
+}
+
+/* Quick Access Panel */
+.quick-access-panel {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: #fff;
+  border-top: 1px solid #e0e0e0;
+  transform: translateY(100%);
+  transition: transform 0.3s ease;
+  z-index: 1000;
+  max-height: 70vh;
+  overflow-y: auto;
+}
+
+.quick-access-panel.show {
+  transform: translateY(0);
+}
+
+.quick-access-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+.quick-access-header h3 {
+  margin: 0;
+  font-size: 1.1rem;
+}
+
+.close-btn {
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  cursor: pointer;
+  color: #666;
+}
+
+.quick-access-content {
+  padding: 16px;
+}
+
+/* Game Log */
+.game-log {
+  padding: 16px;
+  background: #f8f9fa;
+  border-top: 1px solid #e0e0e0;
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+.game-log-entry {
+  padding: 8px 0;
+  border-bottom: 1px solid #e0e0e0;
+  font-size: 0.9rem;
+  color: #333;
+}
+
+.game-log-entry:last-child {
+  border-bottom: none;
+}
+
+/* Action Bar */
+.action-bar {
+  background: #fff;
+  border-top: 1px solid #e0e0e0;
+  padding: 12px 16px;
+}
+
+.primary-actions {
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+}
+
+/* Action Buttons */
+.action-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 12px;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  background: #fff;
+  cursor: pointer;
+  min-width: 80px;
+  transition: all 0.2s ease;
+}
+
+.action-btn:hover {
+  background: #f5f5f5;
+  border-color: #007AFF;
+}
+
+.action-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.action-icon {
+  font-size: 1.5rem;
+  margin-bottom: 4px;
+}
+
+.action-label {
+  font-size: 0.8rem;
+  font-weight: bold;
+  text-align: center;
+}
+
+.action-cost {
+  font-size: 0.7rem;
+  color: #666;
+  margin-top: 2px;
+}
+
+/* Mobile-specific adjustments */
+@media (max-width: 768px) {
+  .game-header {
+    padding: 8px 12px;
+  }
+  
+  .phase-indicator {
+    padding: 8px 12px;
+  }
+  
+  .action-content {
+    padding: 12px;
+  }
+  
+  .quick-access-panel {
+    max-height: 60vh;
+  }
+  
+  .action-btn {
+    min-width: 70px;
+    padding: 8px;
+  }
+  
+  .action-icon {
+    font-size: 1.3rem;
+  }
+  
+  .action-label {
+    font-size: 0.75rem;
+  }
 }

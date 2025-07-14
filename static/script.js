@@ -5,7 +5,7 @@ let gameId = null;
 let gameState = null;
 
 // Simplified API URL logic
-const API_BASE_URL = `${window.location.protocol}//${window.location.host}/api`;
+const API_BASE_URL = `${window.location.protocol}//${window.location.hostname}:5001/api`;
 
 // Debug logging
 console.log('API_BASE_URL:', API_BASE_URL);
@@ -21,32 +21,88 @@ function announceToScreenReader(message) {
     }
 }
 
-// DOM elements
-const setupScreen = document.getElementById('setup-screen');
-const gameScreen = document.getElementById('game-screen');
-const startGameBtn = document.getElementById('start-game-btn');
-const newGameBtn = document.getElementById('new-game-btn');
-const playerForm = document.getElementById('player-form');
+// DOM elements - will be initialized after DOM loads
+let setupScreen, gameScreen, startGameBtn, newGameBtn, playerForm;
+let phaseIndicator, actionContent, primaryActions, quickAccessPanel;
 
-// Phase-based UI elements
-const phaseIndicator = document.getElementById('phase-indicator');
-const actionContent = document.getElementById('action-content');
-const primaryActions = document.getElementById('primary-actions');
-const quickAccessPanel = document.getElementById('quick-access-panel');
-
-// Event listeners
-if (startGameBtn) {
-    startGameBtn.addEventListener('click', startNewGame);
-}
-if (newGameBtn) {
-    newGameBtn.addEventListener('click', showSetupScreen);
-}
-if (playerForm) {
-    playerForm.addEventListener('submit', function(e) {
-        e.preventDefault();
-        startNewGame();
+// Initialize DOM elements
+function initializeDOMElements() {
+    console.log('Initializing DOM elements...');
+    setupScreen = document.getElementById('setup-screen');
+    gameScreen = document.getElementById('game-screen');
+    startGameBtn = document.getElementById('start-game-btn');
+    newGameBtn = document.getElementById('new-game-btn');
+    playerForm = document.getElementById('player-form');
+    
+    // Phase-based UI elements
+    phaseIndicator = document.getElementById('phase-indicator');
+    actionContent = document.getElementById('action-content');
+    primaryActions = document.getElementById('primary-actions');
+    quickAccessPanel = document.getElementById('quick-access-panel');
+    
+    console.log('DOM elements initialized:', {
+        setupScreen: !!setupScreen,
+        gameScreen: !!gameScreen,
+        startGameBtn: !!startGameBtn,
+        newGameBtn: !!newGameBtn,
+        playerForm: !!playerForm,
+        phaseIndicator: !!phaseIndicator,
+        actionContent: !!actionContent,
+        primaryActions: !!primaryActions,
+        quickAccessPanel: !!quickAccessPanel
     });
 }
+
+// Event listeners
+function setupEventListeners() {
+    console.log('Setting up event listeners...');
+    if (startGameBtn) {
+        startGameBtn.addEventListener('click', startNewGame);
+        console.log('Start game button listener added');
+    }
+    if (newGameBtn) {
+        newGameBtn.addEventListener('click', showSetupScreen);
+        console.log('New game button listener added');
+    }
+    if (playerForm) {
+        playerForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            startNewGame();
+        });
+        console.log('Player form listener added');
+    }
+}
+
+// Menu dropdown functionality
+let menuBtn, menuDropdown, infoBtn;
+
+function setupMenuDropdown() {
+    console.log('Setting up menu dropdown...');
+    menuBtn = document.getElementById('menu-btn');
+    menuDropdown = document.getElementById('menu-dropdown');
+    infoBtn = document.getElementById('info-btn');
+
+    if (menuBtn) {
+        menuBtn.addEventListener('click', function() {
+            menuDropdown.classList.toggle('hidden');
+        });
+        console.log('Menu button listener added');
+    }
+
+    if (infoBtn) {
+        infoBtn.addEventListener('click', function() {
+            showQuickAccess();
+        });
+        console.log('Info button listener added');
+    }
+}
+
+// Close menu when clicking outside
+document.addEventListener('click', function(e) {
+    if (menuDropdown && !menuBtn.contains(e.target) && !menuDropdown.contains(e.target)) {
+        menuDropdown.classList.add('hidden');
+    }
+});
 
 // Swipe gesture handling
 let touchStartY = 0;
@@ -184,8 +240,15 @@ function setupQuickAccessPanel() {
     });
 }
 
-// Call setupQuickAccessPanel on load
-window.addEventListener('DOMContentLoaded', setupQuickAccessPanel);
+// Initialize everything when DOM is loaded
+window.addEventListener('DOMContentLoaded', function() {
+    console.log('DOM loaded, initializing...');
+    initializeDOMElements();
+    setupEventListeners();
+    setupMenuDropdown();
+    setupQuickAccessPanel();
+    console.log('Initialization complete');
+});
 
 // API functions
 async function apiCall(endpoint, method = 'GET', data = null) {
@@ -311,13 +374,38 @@ async function performAction(actionType, additionalData = {}) {
 
 // UI functions
 function showSetupScreen() {
-    setupScreen.classList.remove('hidden');
-    gameScreen.classList.add('hidden');
+    console.log('showSetupScreen called');
+    if (setupScreen) {
+        setupScreen.classList.remove('hidden');
+        console.log('Setup screen shown');
+    }
+    if (gameScreen) {
+        gameScreen.classList.add('hidden');
+        console.log('Game screen hidden');
+    }
+    // Reset game state
+    gameId = null;
+    gameState = null;
 }
 
 function showGameScreen() {
-    setupScreen.classList.add('hidden');
-    gameScreen.classList.remove('hidden');
+    console.log('showGameScreen called');
+    console.log('setupScreen element:', setupScreen);
+    console.log('gameScreen element:', gameScreen);
+    
+    if (setupScreen) {
+        setupScreen.classList.add('hidden');
+        console.log('Setup screen hidden, classes:', setupScreen.className);
+    } else {
+        console.error('setupScreen element not found!');
+    }
+    
+    if (gameScreen) {
+        gameScreen.classList.remove('hidden');
+        console.log('Game screen shown, classes:', gameScreen.className);
+    } else {
+        console.error('gameScreen element not found!');
+    }
 }
 
 function updatePhaseUI() {

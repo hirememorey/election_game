@@ -60,62 +60,42 @@
         <div id="game-screen" class="screen game-screen hidden">
             <!-- Simplified Header -->
             <header class="game-header">
-                <div class="header-content">
-                    <h1>Election</h1>
-                    <div class="header-actions">
-                        <button id="game-info-btn" class="btn-secondary btn-small">
-                            <span class="btn-icon">ℹ️</span>
-                            <span class="btn-text">Game Info</span>
-                        </button>
-                        <button id="new-game-btn" class="btn-secondary btn-small">
-                            <span class="btn-icon">↻</span>
-                            <span class="btn-text">New Game</span>
-                        </button>
-                    </div>
-                </div>
+                <span class="game-title">Election</span>
+                <button class="icon-btn" id="info-btn" aria-label="Game Info">ⓘ</button>
+                <button class="icon-btn" id="menu-btn" aria-label="Menu">☰</button>
             </header>
-
-            <!-- Phase-Based Game Content -->
-            <main class="game-content">
-                <!-- Current Phase Display -->
-                <section class="phase-display">
-                    <div id="phase-indicator" class="phase-indicator">
-                        <!-- Phase info will be populated by JavaScript -->
-                    </div>
-                </section>
-
-                <!-- Game Log -->
-                <section class="game-log-section">
-                    <div id="game-log" class="game-log">
-                        <!-- Game log will be populated -->
-                    </div>
-                </section>
-
-                <!-- Contextual Action Area -->
-                <section class="action-area">
-                    <div id="action-content" class="action-content">
-                        <!-- Contextual content will be populated by JavaScript -->
-                    </div>
-                </section>
-
-                <!-- Quick Access Panel (Swipe up) -->
-                <section class="quick-access-panel" id="quick-access-panel">
-                    <div class="panel-header">
-                        <h3>Game Info</h3>
-                        <button class="panel-close" onclick="hideQuickAccess()">×</button>
-                    </div>
-                    <div class="panel-content">
-                        <div id="identity-info" class="info-section">
-                            <!-- Identity info will be populated -->
-                        </div>
-                        <div id="quick-access-content" class="info-section">
-                            <!-- Game log will be populated -->
-                        </div>
-                    </div>
-                </section>
-
-
-            </main>
+            
+            <!-- Menu Dropdown -->
+            <div id="menu-dropdown" class="menu-dropdown hidden">
+                <button id="new-game-btn" class="menu-item">New Game</button>
+                <button class="menu-item" onclick="showIdentityInfo()">Game Info</button>
+            </div>
+            
+            <!-- Phase Indicator -->
+            <div id="phase-indicator" class="phase-indicator">
+                <!-- Phase content will be populated by JavaScript -->
+            </div>
+            
+            <!-- Action Content Area -->
+            <div id="action-content" class="action-content">
+                <!-- Action content will be populated by JavaScript -->
+            </div>
+            
+            <!-- Quick Access Panel -->
+            <div id="quick-access-panel" class="quick-access-panel">
+                <div class="quick-access-header">
+                    <h3>Game Information</h3>
+                    <button id="close-quick-access" class="close-btn" aria-label="Close">×</button>
+                </div>
+                <div id="quick-access-content" class="quick-access-content">
+                    <!-- Quick access content will be populated by JavaScript -->
+                </div>
+            </div>
+            
+            <!-- Game Log -->
+            <div id="game-log" class="game-log">
+                <!-- Game log content will be populated by JavaScript -->
+            </div>
 
             <!-- Bottom Action Bar -->
             <footer class="action-bar">
