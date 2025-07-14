@@ -222,6 +222,29 @@ def process_action(game_id):
         if legislation_id not in SECRET_COMMITMENTS[game_id]:
             SECRET_COMMITMENTS[game_id][legislation_id] = []
         
+        # Prevent multiple support/oppose commitments by the same player for the same bill
+        already_committed = any(
+            entry[0] == player_id and entry[1] == 'support'
+            for entry in SECRET_COMMITMENTS[game_id][legislation_id]
+        )
+        if already_committed:
+            return jsonify({'error': 'You have already committed support for this bill.'}), 400
+        
+        # Check if player has enough PC
+        player = state.get_player_by_id(player_id)
+        if not player:
+            return jsonify({'error': 'Player not found'}), 400
+        
+        print(f"[DEBUG] Server: Player {player.name} has {player.pc} PC, trying to commit {support_amount} PC")
+        
+        if player.pc < support_amount:
+            return jsonify({'error': f'Not enough PC. You have {player.pc}, need {support_amount}'}), 400
+        
+        # Deduct PC immediately
+        old_pc = player.pc
+        player.pc -= support_amount
+        print(f"[DEBUG] Server: Deducted {support_amount} PC from {player.name}. Old PC: {old_pc}, New PC: {player.pc}")
+        
         # Store the secret commitment
         SECRET_COMMITMENTS[game_id][legislation_id].append((player_id, 'support', support_amount))
         
@@ -237,6 +260,29 @@ def process_action(game_id):
             SECRET_COMMITMENTS[game_id] = {}
         if legislation_id not in SECRET_COMMITMENTS[game_id]:
             SECRET_COMMITMENTS[game_id][legislation_id] = []
+        
+        # Prevent multiple support/oppose commitments by the same player for the same bill
+        already_committed = any(
+            entry[0] == player_id and entry[1] == 'oppose'
+            for entry in SECRET_COMMITMENTS[game_id][legislation_id]
+        )
+        if already_committed:
+            return jsonify({'error': 'You have already committed opposition for this bill.'}), 400
+        
+        # Check if player has enough PC
+        player = state.get_player_by_id(player_id)
+        if not player:
+            return jsonify({'error': 'Player not found'}), 400
+        
+        print(f"[DEBUG] Server: Player {player.name} has {player.pc} PC, trying to commit {oppose_amount} PC")
+        
+        if player.pc < oppose_amount:
+            return jsonify({'error': f'Not enough PC. You have {player.pc}, need {oppose_amount}'}), 400
+        
+        # Deduct PC immediately
+        old_pc = player.pc
+        player.pc -= oppose_amount
+        print(f"[DEBUG] Server: Deducted {oppose_amount} PC from {player.name}. Old PC: {old_pc}, New PC: {player.pc}")
         
         # Store the secret commitment
         SECRET_COMMITMENTS[game_id][legislation_id].append((player_id, 'oppose', oppose_amount))
@@ -275,14 +321,24 @@ def process_action(game_id):
         return jsonify({'error': 'Invalid action type'}), 400
     
     try:
-        # Process the action
-        new_state = engine.process_action(state, action)
-        active_games[game_id] = new_state
-        
-        return jsonify({
-            'game_id': game_id,
-            'state': serialize_game_state(new_state)
-        })
+        # For support/oppose actions, we handle everything in the server
+        # For other actions, use the engine
+        if action_type in ['support_legislation', 'oppose_legislation']:
+            # PC deduction and secret commitment storage already handled above
+            # Just return the updated state
+            return jsonify({
+                'game_id': game_id,
+                'state': serialize_game_state(state)
+            })
+        else:
+            # Process the action through the engine
+            new_state = engine.process_action(state, action)
+            active_games[game_id] = new_state
+            
+            return jsonify({
+                'game_id': game_id,
+                'state': serialize_game_state(new_state)
+            })
     except Exception as e:
         return jsonify({'error': str(e)}), 400
 

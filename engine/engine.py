@@ -111,23 +111,30 @@ class GameEngine:
         # The resolver function will handle the logic and return the new state
         new_state = resolver(state, action)
         
+        # Always advance turn after ActionPassTurn
+        if action.__class__.__name__ == "ActionPassTurn":
+            return self._advance_turn(new_state)
+        
         return self._advance_turn(new_state)
 
     def _advance_turn(self, state: GameState) -> GameState:
         """Advances the turn to the next player or phase."""
-        # If we're in the action phase, move to the next player
+        print(f"[DEBUG] _advance_turn: current_phase={state.current_phase}, current_player_index={state.current_player_index}, APs={[state.action_points[p.id] for p in state.players]}")
+        # If we're in the action phase, only advance if current player's AP is 0 or less
         if state.current_phase == "ACTION_PHASE":
-            state.current_player_index = (state.current_player_index + 1) % len(state.players)
-            
-            # If we've gone through all players, check if we should end the round
-            if state.current_player_index == 0:
-                # End of round - run upkeep phase
-                state = self.run_upkeep_phase(state)
-            else:
-                # Grant action points to the next player
-                next_player = state.players[state.current_player_index]
-                state.action_points[next_player.id] = 2
-                state.add_log(f"\n{next_player.name}'s turn.")
+            current_player = state.players[state.current_player_index]
+            if state.action_points[current_player.id] <= 0:
+                state.current_player_index = (state.current_player_index + 1) % len(state.players)
+                print(f"[DEBUG] _advance_turn: advanced to player {state.current_player_index}")
+                # If we've gone through all players, check if we should end the round
+                if state.current_player_index == 0:
+                    # End of round - run upkeep phase
+                    state = self.run_upkeep_phase(state)
+                else:
+                    # Grant action points to the next player
+                    next_player = state.players[state.current_player_index]
+                    state.action_points[next_player.id] = 2
+                    state.add_log(f"\n{next_player.name}'s turn.")
         
         # If we're in the legislation phase, move to elections
         elif state.current_phase == "LEGISLATION_PHASE":
@@ -137,7 +144,7 @@ class GameEngine:
         elif state.current_phase == "ELECTION_PHASE":
             # This should not happen as run_election_phase handles the new term
             pass
-        
+        print(f"[DEBUG] _advance_turn: end state current_player_index={state.current_player_index}, APs={[state.action_points[p.id] for p in state.players]}")
         return state
 
     def run_upkeep_phase(self, state: GameState) -> GameState:
@@ -233,6 +240,7 @@ class GameEngine:
         new_state = resolvers.resolve_event_card(state)
         
         new_state.current_phase = "ACTION_PHASE"
+        new_state.current_player_index = 0  # Ensure first player can take actions
         return new_state
 
     def is_game_over(self, state: GameState) -> bool:
@@ -305,15 +313,11 @@ class GameEngine:
                         if player:
                             if stance == 'support':
                                 state.add_log(f"🎭 REVEAL: {player.name} secretly supported with {amount} PC!")
-                                # Apply PC deduction (if not already done)
-                                if player.pc >= amount:
-                                    player.pc -= amount
+                                # PC was already deducted when commitment was made
                                 legislation.support_players[player_id] = amount
                             else:  # oppose
                                 state.add_log(f"🎭 REVEAL: {player.name} secretly opposed with {amount} PC!")
-                                # Apply PC deduction (if not already done)
-                                if player.pc >= amount:
-                                    player.pc -= amount
+                                # PC was already deducted when commitment was made
                                 legislation.oppose_players[player_id] = amount
                 else:
                     state.add_log(f"No secret commitments found for {legislation_id}")

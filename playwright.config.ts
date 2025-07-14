@@ -29,7 +29,7 @@ export default defineConfig({
   ],
 
   webServer: {
-    command: 'python3 server.py',
+    command: 'PORT=5001 python3 server.py',
     url: 'http://localhost:5001',
     reuseExistingServer: !process.env.CI,
     timeout: 120 * 1000,

@@ -299,10 +299,13 @@ async function performAction(actionType, additionalData = {}) {
         };
         
         const result = await apiCall(`/game/${gameId}/action`, 'POST', data);
+        console.log('Action result:', result);
         gameState = result.state;
+        console.log('Updated game state PC:', gameState.players[gameState.current_player_index].pc);
         updatePhaseUI();
     } catch (error) {
         console.error('Failed to perform action:', error);
+        showMessage(`Action failed: ${error.message}`, 'error');
     }
 }
 

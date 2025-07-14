@@ -292,6 +292,8 @@ def resolve_support_legislation(state: GameState, action: ActionSupportLegislati
     player = state.get_player_by_id(action.player_id)
     if not player: return state
     
+    print(f"[DEBUG] resolve_support_legislation: Player {player.name} (ID: {player.id}) has {player.pc} PC, trying to commit {action.support_amount} PC")
+    
     # NEW: Secret Commitment System - only validate, don't update public state
     # The actual commitment is stored secretly on the server
     
@@ -331,8 +333,10 @@ def resolve_support_legislation(state: GameState, action: ActionSupportLegislati
         state.add_log(f"{player.name} doesn't have enough PC to provide that much support.")
         return state
     
-    # NEW: Don't deduct PC here - it will be deducted during the reveal
-    # Don't update the public legislation state - it will be updated during the reveal
+    # FIXED: Deduct PC immediately when commitment is made
+    old_pc = player.pc
+    player.pc -= action.support_amount
+    print(f"[DEBUG] resolve_support_legislation: Deducted {action.support_amount} PC from {player.name}. Old PC: {old_pc}, New PC: {player.pc}")
     
     # Provide confirmation feedback
     if is_sponsor:
@@ -345,6 +349,8 @@ def resolve_support_legislation(state: GameState, action: ActionSupportLegislati
 def resolve_oppose_legislation(state: GameState, action: ActionOpposeLegislation) -> GameState:
     player = state.get_player_by_id(action.player_id)
     if not player: return state
+    
+    print(f"[DEBUG] resolve_oppose_legislation: Player {player.name} (ID: {player.id}) has {player.pc} PC, trying to commit {action.oppose_amount} PC")
     
     # NEW: Secret Commitment System - only validate, don't update public state
     # The actual commitment is stored secretly on the server
@@ -371,7 +377,6 @@ def resolve_oppose_legislation(state: GameState, action: ActionOpposeLegislation
         for leg in state.term_legislation:
             if not leg.resolved:
                 available_legislation.append(f"term: {leg.legislation_id}")
-        
         error_msg = f"There's no legislation to oppose. Looking for: {action.legislation_id}"
         if available_legislation:
             error_msg += f". Available: {', '.join(available_legislation)}"
@@ -385,8 +390,10 @@ def resolve_oppose_legislation(state: GameState, action: ActionOpposeLegislation
         state.add_log(f"{player.name} doesn't have enough PC to provide that much opposition.")
         return state
     
-    # NEW: Don't deduct PC here - it will be deducted during the reveal
-    # Don't update the public legislation state - it will be updated during the reveal
+    # FIXED: Deduct PC immediately when commitment is made
+    old_pc = player.pc
+    player.pc -= action.oppose_amount
+    print(f"[DEBUG] resolve_oppose_legislation: Deducted {action.oppose_amount} PC from {player.name}. Old PC: {old_pc}, New PC: {player.pc}")
     
     # Provide confirmation feedback
     if is_sponsor:
@@ -1025,6 +1032,6 @@ def resolve_pass_turn(state: GameState, action: ActionPassTurn) -> GameState:
         return state
     
     state.add_log(f"{player.name} passes their turn.")
-    # Force turn advancement by setting action points to 0
-    state.action_points[player.id] = 0
+    # Force turn advancement by setting action points to -1
+    state.action_points[player.id] = -1
     return state

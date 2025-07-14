@@ -18,6 +18,7 @@
 ## Recent Issues & Next Steps
 - **Secret Commitment System:** **COMPLETED** - Players now make secret commitments to support/oppose legislation, revealed dramatically at term end
 - **Automated Frontend Testing:** **COMPLETED** - Playwright tests ensure game never gets stuck and all features work correctly
+- **PC Deduction Fix:** **COMPLETED** - Fixed critical issue where PC was not deducted immediately when committing to support or oppose legislation, allowing overcommitment. PC is now deducted immediately upon commitment, preventing players from committing more PC than they have available.
 - **Legislation Voting Fix:** Fixed critical backend bug where players couldn't vote on their own legislation, causing the game to get stuck. Backend now properly resets player index after voting completes.
 - **Frontend Voting UI:** Added "Pass Turn" button when players have no valid voting options during legislation sessions.
 - **Sponsor Support Enhancement:** **NEW** - Players who sponsor legislation can now commit additional PC to their own legislation throughout the rounds, providing more strategic control and agency.
