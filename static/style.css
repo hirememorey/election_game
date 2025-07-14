@@ -1438,6 +1438,32 @@ body {
   border-bottom: none;
 }
 
+.game-log-entry.single-line {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  width: 100%;
+  display: block;
+  font-weight: 500;
+}
+
+.more-log-btn {
+  margin-top: 6px;
+  display: block;
+  width: 100%;
+  font-size: 0.95rem;
+  padding: 6px 0;
+  border-radius: 8px;
+  background: #f0f0f0;
+  color: #007AFF;
+  border: 1px solid #e0e0e0;
+  cursor: pointer;
+}
+
+.more-log-btn:hover {
+  background: #e6f0ff;
+}
+
 /* Action Bar */
 .action-bar {
   background: #fff;

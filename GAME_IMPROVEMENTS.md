@@ -6,6 +6,23 @@ This document tracks the major improvements and features that have been implemen
 
 ## ✅ Recently Implemented Features
 
+### [2025-07-15] Event Log Collapse with 'More' Button (Mobile Usability)
+**Status:** Completed and deployed
+
+**What it does:**
+- Collapses the event log to a single line showing only the latest entry, with a 'More' button to view the full log in a modal.
+- Prevents the event log from covering or pushing down action buttons on mobile.
+- Dramatically improves mobile usability and declutters the main game screen.
+
+**Technical Implementation:**
+- Updated `static/script.js` to show only the latest log entry and a 'More' button.
+- Added `showFullGameLog()` to display all log entries in a modal using the existing modal system.
+- Updated `static/style.css` to style the single-line log and 'More' button for mobile.
+
+**Impact:**
+- Action buttons are always visible and accessible on mobile.
+- Players can still access the full event log at any time via the 'More' button.
+
 ### [2025-07-14] Mobile Swipe Gesture Fix (CRITICAL)
 **Status:** Completed and deployed
 

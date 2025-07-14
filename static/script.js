@@ -180,10 +180,25 @@ function updateGameLog() {
     if (log.length === 0) {
         gameLogDiv.innerHTML = '<div class="game-log-entry">No game events yet.</div>';
     } else {
-        // Show the last 20 log entries for context
-        const entries = log.slice(-20).map(entry => `<div class="game-log-entry">${entry}</div>`).join('');
-        gameLogDiv.innerHTML = entries;
+        // Show only the latest log entry and a 'More' button
+        const latestEntry = log[log.length - 1];
+        gameLogDiv.innerHTML = `
+            <div class="game-log-entry single-line">${latestEntry}</div>
+            <button class="btn-secondary btn-small more-log-btn" onclick="showFullGameLog()">More</button>
+        `;
     }
+}
+
+function showFullGameLog() {
+    if (!gameState) return;
+    const log = gameState.turn_log || [];
+    let content = '';
+    if (log.length === 0) {
+        content = '<div class="game-log-entry">No game events yet.</div>';
+    } else {
+        content = log.map(entry => `<div class="game-log-entry">${entry}</div>`).join('');
+    }
+    showModal('Game Log', `<div style='max-height:60vh;overflow-y:auto;'>${content}</div><div class='modal-actions'><button class='btn-secondary' onclick='closeModal()'>Close</button></div>`);
 }
 
 function updateQuickAccessContent() {

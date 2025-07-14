@@ -1,5 +1,17 @@
 # Mobile Improvements Summary
 
+## [2025-07-15] Event Log Collapse with 'More' Button (NEW)
+- **Problem:** Event log was covering or pushing down action buttons on mobile, making actions hard to access.
+- **Solution:** Event log now displays only the latest entry as a single line, with a 'More' button to view the full log in a modal.
+- **Implementation:**
+  - Updated `static/script.js` to show only the latest log entry and a 'More' button.
+  - Added `showFullGameLog()` to display all log entries in a modal using the existing modal system.
+  - Updated `static/style.css` to style the single-line log and 'More' button for mobile.
+- **Impact:**
+  - Action buttons are always visible and accessible on mobile.
+  - Players can still access the full event log at any time via the 'More' button.
+  - Dramatically improves mobile usability and declutters the main game screen.
+
 ## 🎯 Problem Solved
 
 **Issue**: On mobile devices, the swipe-up gesture to reveal identity and game log was interfering with the ability to view all available actions, making it impossible to see the complete action menu.
