@@ -43,20 +43,19 @@ def load_archetypes():
         PoliticalArchetype(id="ORATOR", title="The Orator", description="Once per Term, you may re-roll one failed legislation die roll."),
     ]
 
-# Appendix C: Personal Mandates
+# Appendix C: Personal Mandates (Re-themed as Hidden Funders)
 def load_personal_mandates():
     return [
-        PersonalMandate(id="PRINCIPLED_LEADER", title="The Principled Leader", description="Win the Presidency without ever having held a Governor office."),
-        PersonalMandate(id="ENVIRONMENTALIST", title="The Environmentalist", description="Ensure the Infrastructure Bill is successfully passed at least twice, and that you personally sponsored one of them."),
-        PersonalMandate(id="WAR_HAWK", title="The War Hawk", description="Ensure the Military Funding bill is passed with a Critical Success."),
-        PersonalMandate(id="KINGMAKER", title="The Kingmaker", description="Be allied with the player who wins the Presidency when the game ends."),
-        PersonalMandate(id="MASTER_LEGISLATOR", title="The Master Legislator", description="Personally sponsor and pass at least 3 different types of legislation."),
-        PersonalMandate(id="STATESMAN", title="The Statesman", description="At game end, hold a Governor or US Senator office."),
-        PersonalMandate(id="SHADOW_DONOR", title="The Shadow Donor", description="Ensure a player you supported (via Co-Sponsorship) wins the Presidency."),
-        PersonalMandate(id="UNPOPULAR_HERO", title="The Unpopular Hero", description="Pass the Healthcare Overhaul legislation."),
-        PersonalMandate(id="MINIMALIST", title="The Minimalist", description="Win the Presidency having committed 20 PC or less to the final election."),
-        PersonalMandate(id="PEOPLES_CHAMPION", title="The People's Champion", description="Ensure the Public Mood is +2 or +3 when the final Presidential election occurs."),
-        PersonalMandate(id="OPPORTUNIST", title="The Opportunist", description="Win the Presidency without ever having been an Incumbent before the final Election Phase."),
+        PersonalMandate(id="WAR_HAWK", title="The Defense Contractors Union", description="Ensure the Military Funding bill is passed with a Critical Success."),
+        PersonalMandate(id="ENVIRONMENTALIST", title="The Environmental Trust", description="Ensure the Infrastructure Bill is successfully passed at least twice, and that you personally sponsored one of them."),
+        PersonalMandate(id="PEOPLES_CHAMPION", title="The People's Alliance", description="Ensure the Public Mood is +2 or +3 when the final Presidential election occurs."),
+        PersonalMandate(id="KINGMAKER", title="The Kingmaker's Pact", description="You must have supported at least two pieces of legislation sponsored by the player who wins the Presidency. Your support must have been on successful legislation."),
+        PersonalMandate(id="UNPOPULAR_HERO", title="The Medical Advocacy Project", description="Pass the Healthcare Overhaul legislation."),
+        PersonalMandate(id="MINIMALIST", title="The Fiscal Watchdogs", description="Win the Presidency having committed 20 PC or less to the final election."),
+        PersonalMandate(id="STATESMAN", title="The Governor's Association", description="At game end, hold a Governor or US Senator office."),
+        PersonalMandate(id="OPPORTUNIST", title="The Outsider's Collective", description="Win the Presidency without ever having been an Incumbent before the final Election Phase."),
+        PersonalMandate(id="MASTER_LEGISLATOR", title="The Policy Wonk's Institute", description="Personally sponsor and pass at least 3 different types of legislation."),
+        PersonalMandate(id="PRINCIPLED_LEADER", title="The Grassroots Movement", description="Win the Presidency without ever having held a Governor office."),
     ]
 
 # Appendix D.1: Event Deck
