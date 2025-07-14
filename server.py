@@ -248,7 +248,7 @@ def process_action(game_id):
         # Store the secret commitment
         SECRET_COMMITMENTS[game_id][legislation_id].append((player_id, 'support', support_amount))
         
-        # Create a minimal action for validation only (no state changes)
+        # Create action for engine processing (will consume AP)
         action = ActionSupportLegislation(player_id=player_id, legislation_id=legislation_id, support_amount=support_amount)
         
     elif action_type == 'oppose_legislation':
@@ -287,7 +287,7 @@ def process_action(game_id):
         # Store the secret commitment
         SECRET_COMMITMENTS[game_id][legislation_id].append((player_id, 'oppose', oppose_amount))
         
-        # Create a minimal action for validation only (no state changes)
+        # Create action for engine processing (will consume AP)
         action = ActionOpposeLegislation(player_id=player_id, legislation_id=legislation_id, oppose_amount=oppose_amount)
     elif action_type == 'propose_trade':
         target_player_id = data.get('target_player_id')
@@ -321,24 +321,14 @@ def process_action(game_id):
         return jsonify({'error': 'Invalid action type'}), 400
     
     try:
-        # For support/oppose actions, we handle everything in the server
-        # For other actions, use the engine
-        if action_type in ['support_legislation', 'oppose_legislation']:
-            # PC deduction and secret commitment storage already handled above
-            # Just return the updated state
-            return jsonify({
-                'game_id': game_id,
-                'state': serialize_game_state(state)
-            })
-        else:
-            # Process the action through the engine
-            new_state = engine.process_action(state, action)
-            active_games[game_id] = new_state
-            
-            return jsonify({
-                'game_id': game_id,
-                'state': serialize_game_state(new_state)
-            })
+        # Process all actions through the engine to ensure AP validation
+        new_state = engine.process_action(state, action)
+        active_games[game_id] = new_state
+        
+        return jsonify({
+            'game_id': game_id,
+            'state': serialize_game_state(new_state)
+        })
     except Exception as e:
         return jsonify({'error': str(e)}), 400
 

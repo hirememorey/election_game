@@ -287,6 +287,24 @@ This document tracks the major improvements and features that have been implemen
 - The support/oppose legislation menus now always fetch the latest game state before displaying options, preventing bugs where players saw 'no pending legislation' due to stale state.
 - This ensures menus are always accurate and up-to-date.
 
+### [2025-07-14] Action Points Bugfix for Support/Oppose Legislation
+**Status:** Completed and tested
+
+**What it does:**
+- Fixes a bug where supporting or opposing legislation did not consume Action Points (AP), allowing players to exceed their per-turn AP limit.
+- Now, both support and oppose actions properly consume 1 AP each, and the turn advances to the next player when a player's AP reaches 0.
+- Test coverage improved: Automated tests now verify that AP is consumed and the turn advances as expected after these actions.
+
+**Technical Implementation:**
+- Updated `server.py` to ensure support/oppose actions are processed through the engine, which handles AP validation and deduction.
+- Confirmed in `engine/engine.py` that AP costs are correct and turn advancement is automatic when AP reaches 0.
+- Updated test script (`test_ap_fix.py`) to reflect the correct turn advancement behavior and AP consumption.
+
+**Impact:**
+- Prevents players from exceeding their AP limit per turn.
+- Ensures consistent and fair turn order and resource management.
+- Automated tests now pass for AP consumption and turn advancement for support/oppose legislation actions.
+
 ## 🎮 Gameplay Improvements
 
 ### Enhanced Strategic Depth
@@ -322,6 +340,7 @@ This document tracks the major improvements and features that have been implemen
 - **`test_mood_system.py`**: Mood system functionality
 - **`test_form_alliance_removal.py`**: Verifies Form Alliance removal
 - **`performance_test.py`**: Performance benchmarking
+- **`test_ap_fix.py`**: Action Points bugfix testing
 
 ### All Tests Passing
 - ✅ Trading mechanic works correctly
@@ -332,6 +351,7 @@ This document tracks the major improvements and features that have been implemen
 - ✅ PEEK_EVENT favor reveals top event card
 - ✅ No leftover legislation between terms
 - ✅ Player index properly reset between terms
+- ✅ AP consumption and turn advancement for support/oppose legislation actions are fixed
 
 ### 🧪 Automated Frontend Testing (COMPLETED)
 **Status**: **COMPLETED** - Comprehensive Playwright tests validate game playability
