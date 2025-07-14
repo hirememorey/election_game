@@ -23,6 +23,19 @@ This document tracks the major improvements and features that have been implemen
 - Action buttons are always visible and accessible on mobile.
 - Players can still access the full event log at any time via the 'More' button.
 
+### [2025-07-15] Modal Accessibility Fix for Mobile
+**Status:** Completed and deployed
+
+**What it does:**
+- Ensures modal content is scrollable and action buttons are always visible on mobile.
+- Resolves the issue where the submit button for supporting/opposing legislation was not accessible on small screens.
+
+**Technical Implementation:**
+- Updated `.modal-content` and `.modal-actions` styles in `static/style.css` to fit the viewport and keep buttons accessible.
+
+**Impact:**
+- Players can always submit their support/opposition on mobile, improving game flow and usability.
+
 ### [2025-07-14] Mobile Swipe Gesture Fix (CRITICAL)
 **Status:** Completed and deployed
 
