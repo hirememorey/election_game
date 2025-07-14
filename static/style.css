@@ -1650,8 +1650,18 @@ body {
     padding: 4px 8px;
   }
   .action-bar {
-    padding: 4px 0;
-    min-height: 56px;
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 1000;
+    background: #fff;
+    border-top: 1px solid #e0e0e0;
+    padding: 8px 0 12px 0;
+    box-shadow: 0 -2px 8px rgba(0,0,0,0.08);
+  }
+  .game-log {
+    padding-bottom: 60px; /* ensure log never overlaps action bar */
   }
 }
 
