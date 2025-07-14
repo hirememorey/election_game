@@ -4,11 +4,23 @@
 let gameId = null;
 let gameState = null;
 
-// Simplified API URL logic
-const API_BASE_URL = `${window.location.protocol}//${window.location.hostname}:5001/api`;
+// Simplified API URL logic - works for both local development and production
+function getApiBaseUrl() {
+    // If we're on the same hostname as the current page, use the same port
+    if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+        // Local development - use port 5001
+        return `${window.location.protocol}//${window.location.hostname}:5001/api`;
+    } else {
+        // Production (Render) - use the same hostname and port as the current page
+        return `${window.location.protocol}//${window.location.host}/api`;
+    }
+}
+
+const API_BASE_URL = getApiBaseUrl();
 
 // Debug logging
 console.log('API_BASE_URL:', API_BASE_URL);
+console.log('Current location:', window.location.href);
 
 // Accessibility helper
 function announceToScreenReader(message) {
