@@ -6,6 +6,30 @@ This document tracks the major improvements and features that have been implemen
 
 ## ✅ Recently Implemented Features
 
+### [2025-07-14] Mobile Swipe Gesture Fix (CRITICAL)
+**Status:** Completed and deployed
+
+**What it does:**
+- **Fixes critical mobile usability issue** where swipe-up gestures were interfering with action visibility
+- Disables swipe gestures on mobile devices (width ≤ 600px) to prevent interference with action buttons
+- Adds dedicated identity button (🎭) in header for easy access to player identity information
+- Replaces problematic quick access panel with modal-based identity display on mobile
+- Ensures all action buttons remain visible and accessible on mobile devices
+
+**Technical Implementation:**
+- Added `isMobileDevice()` function to detect mobile screens (width ≤ 600px)
+- Modified touch event listeners to return early on mobile devices
+- Added identity button to header in `static/index.html`
+- Enhanced `showIdentityInfo()` function to display comprehensive modal with identity and game log
+- Disabled quick access panel on mobile via CSS (`display: none !important`)
+- Added mobile-specific modal styles for better usability
+
+**Impact:**
+- **Resolves critical mobile usability issue** - all actions now clearly visible
+- **Improves mobile user experience** with dedicated identity access
+- **Maintains desktop/tablet functionality** - swipe gestures still work on larger screens
+- **Enhances accessibility** with clear, non-interfering mobile interface
+
 ### [2025-07-14] Mobile UI Optimization (CSS)
 **Status:** Completed and deployed
 

@@ -1585,12 +1585,34 @@ body {
   .game-log-entry {
     padding: 2px 0;
   }
+  /* Disable quick access panel on mobile to prevent interference with actions */
   .quick-access-panel {
-    width: 100vw;
+    display: none !important;
+  }
+  .quick-access-panel.show {
+    display: none !important;
+  }
+  /* Ensure identity info is shown in a modal instead */
+  .identity-modal {
+    position: fixed;
+    top: 0;
     left: 0;
-    border-radius: 16px 16px 0 0;
+    right: 0;
     bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: var(--z-modal);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+  }
+  .identity-modal .identity-card {
+    background: white;
+    border-radius: 12px;
+    padding: 20px;
+    max-width: 90vw;
     max-height: 80vh;
+    overflow-y: auto;
   }
   .quick-access-header h3 {
     font-size: 1.1rem;
@@ -1618,5 +1640,42 @@ body {
   }
   .game-header {
     font-size: 1rem;
+  }
+}
+
+/* Mobile-specific modal improvements */
+@media (max-width: 600px) {
+  .modal-content {
+    max-width: 95vw;
+    max-height: 90vh;
+    overflow-y: auto;
+    margin: 10px;
+    border-radius: 12px;
+  }
+  
+  .modal-header {
+    padding: 16px 20px 12px 20px;
+  }
+  
+  .modal-title {
+    font-size: 1.2rem;
+  }
+  
+  .identity-section {
+    margin-bottom: 20px;
+  }
+  
+  .identity-card {
+    margin-bottom: 12px;
+  }
+  
+  .log-section {
+    max-height: 40vh;
+    overflow-y: auto;
+  }
+  
+  .game-log-entry {
+    font-size: 0.9rem;
+    padding: 6px 0;
   }
 }

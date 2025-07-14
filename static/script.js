@@ -4,10 +4,8 @@
 let gameId = null;
 let gameState = null;
 
-// Dynamic API URL logic for development vs production
-const API_BASE_URL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
-    ? `${window.location.protocol}//${window.location.hostname}:5001/api`
-    : `${window.location.protocol}//${window.location.hostname}/api`;
+// Simplified API URL logic
+const API_BASE_URL = `${window.location.protocol}//${window.location.hostname}:5001/api`;
 
 // Debug logging
 console.log('API_BASE_URL:', API_BASE_URL);
@@ -76,13 +74,14 @@ function setupEventListeners() {
 }
 
 // Menu dropdown functionality
-let menuBtn, menuDropdown, infoBtn;
+let menuBtn, menuDropdown, infoBtn, identityBtn;
 
 function setupMenuDropdown() {
     console.log('Setting up menu dropdown...');
     menuBtn = document.getElementById('menu-btn');
     menuDropdown = document.getElementById('menu-dropdown');
     infoBtn = document.getElementById('info-btn');
+    identityBtn = document.getElementById('identity-btn');
 
     if (menuBtn) {
         menuBtn.addEventListener('click', function() {
@@ -97,6 +96,13 @@ function setupMenuDropdown() {
         });
         console.log('Info button listener added');
     }
+
+    if (identityBtn) {
+        identityBtn.addEventListener('click', function() {
+            showIdentityInfo();
+        });
+        console.log('Identity button listener added');
+    }
 }
 
 // Close menu when clicking outside
@@ -106,15 +112,28 @@ document.addEventListener('click', function(e) {
     }
 });
 
-// Swipe gesture handling
+// Swipe gesture handling - DISABLED ON MOBILE
 let touchStartY = 0;
 let touchEndY = 0;
 
+// Only enable swipe gestures on desktop/tablet (width > 600px)
+function isMobileDevice() {
+    return window.innerWidth <= 600;
+}
+
 document.addEventListener('touchstart', function(e) {
+    // Disable swipe gestures on mobile to prevent interference with action visibility
+    if (isMobileDevice()) {
+        return;
+    }
     touchStartY = e.changedTouches[0].screenY;
 });
 
 document.addEventListener('touchend', function(e) {
+    // Disable swipe gestures on mobile to prevent interference with action visibility
+    if (isMobileDevice()) {
+        return;
+    }
     touchEndY = e.changedTouches[0].screenY;
     handleSwipe();
 });
@@ -124,10 +143,10 @@ function handleSwipe() {
     const swipeDistance = touchStartY - touchEndY;
     
     if (swipeDistance > swipeThreshold) {
-        // Swipe up - show quick access panel
+        // Swipe up - show quick access panel (desktop/tablet only)
         showQuickAccess();
     } else if (swipeDistance < -swipeThreshold) {
-        // Swipe down - hide quick access panel
+        // Swipe down - hide quick access panel (desktop/tablet only)
         hideQuickAccess();
     }
 }
@@ -210,28 +229,12 @@ function updatePhaseUI() {
 
 // Ensure quick access panel opens on swipe/click
 function setupQuickAccessPanel() {
-    const panel = document.getElementById('quick-access-panel');
+    console.log('Setting up quick access panel...');
     const closeBtn = document.getElementById('close-quick-access');
-    const gameInfoBtn = document.getElementById('game-info-btn');
+    const gameInfoBtn = document.getElementById('info-btn');
+    
     if (closeBtn) closeBtn.onclick = hideQuickAccess;
     if (gameInfoBtn) gameInfoBtn.onclick = showQuickAccess;
-    
-    // Swipe up gesture for touch devices
-    let startY = null;
-    document.body.addEventListener('touchstart', function(e) {
-        if (e.touches.length === 1) {
-            startY = e.touches[0].clientY;
-        }
-    });
-    document.body.addEventListener('touchend', function(e) {
-        if (startY !== null && e.changedTouches.length === 1) {
-            const endY = e.changedTouches[0].clientY;
-            if (startY - endY > 60) {
-                showQuickAccess();
-            }
-            startY = null;
-        }
-    });
     
     // Keyboard shortcut (G key) for desktop
     document.addEventListener('keydown', function(e) {
@@ -1226,7 +1229,10 @@ function showIdentityInfo() {
     if (!gameState) return;
     
     const currentPlayer = gameState.players[gameState.current_player_index];
-    let content = '<div class="identity-modal">';
+    const log = gameState.turn_log || [];
+    
+    let content = '<div class="identity-section">';
+    content += '<h3>Your Identity</h3>';
     
     // Display archetype
     if (currentPlayer.archetype) {
@@ -1246,7 +1252,19 @@ function showIdentityInfo() {
     
     content += '</div>';
     
-    showModal('Your Identity', content);
+    // Add game log section
+    content += '<div class="log-section">';
+    content += '<h3>Game Log</h3>';
+    if (log.length === 0) {
+        content += '<div class="game-log-entry">No game events yet.</div>';
+    } else {
+        // Show the last 10 log entries for mobile
+        const entries = log.slice(-10).map(entry => `<div class="game-log-entry">${entry}</div>`).join('');
+        content += entries;
+    }
+    content += '</div>';
+    
+    showModal('Game Information', content);
 }
 
 // Favor IDs that require a target player

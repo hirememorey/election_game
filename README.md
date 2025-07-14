@@ -41,6 +41,24 @@ PORT=5001 python3 server.py
 open http://localhost:5001
 ```
 
+## 📱 Mobile Experience
+
+The game is fully optimized for mobile devices with a focus on usability and accessibility:
+
+### Mobile Features
+- **Touch-Friendly Interface**: All buttons sized for comfortable touch interaction
+- **No Gesture Conflicts**: Swipe gestures disabled on mobile to prevent interference with action visibility
+- **Dedicated Identity Button**: Easy access to player identity via 🎭 button in header
+- **Modal-Based Information**: Identity and game log displayed in clean, accessible modals
+- **Responsive Design**: Adapts beautifully to all screen sizes and orientations
+
+### Mobile Improvements (Latest)
+- **Fixed Swipe Gesture Interference**: Disabled swipe gestures on mobile (width ≤ 600px) to ensure all actions remain visible
+- **Added Identity Button**: Dedicated 🎭 button in header for easy identity access
+- **Enhanced Modal Display**: Comprehensive identity and game log information in mobile-optimized modals
+- **Improved Action Visibility**: All action buttons are always visible and accessible on mobile
+- **Better User Experience**: Clean, non-interfering mobile experience
+
 ## 📱 Mobile Testing
 
 The game includes comprehensive mobile testing to ensure optimal mobile experience:
@@ -63,10 +81,10 @@ npx playwright show-report test-results/mobile/usability-report
 - **Core game functionality working** across all devices
 - **Touch-friendly interface** with proper button sizes
 - **Responsive design** that works across orientations
-- **Intuitive gestures** (swipe up for game info)
-- **Fixed game screen transitions** and player setup flow
+- **Fixed action visibility** - all actions now clearly visible on mobile
+- **Enhanced identity access** via dedicated button and modal display
 
-The mobile UI redesign successfully resolved the core issues with game screen transitions and player setup, resulting in a dramatic improvement in test success rate.
+The mobile UI redesign successfully resolved the core issues with game screen transitions, player setup flow, and action visibility, resulting in a dramatic improvement in test success rate and user experience.
 
 ## 🎯 Game Features
 
@@ -130,6 +148,7 @@ The comprehensive mobile testing suite covers:
 - **Accessibility**: Keyboard navigation, screen readers, ARIA labels
 - **Performance**: Load times, responsiveness
 - **Cross-Device Testing**: iPhone, iPad, Samsung Galaxy across Chromium, Firefox, WebKit
+- **Action Visibility**: Ensures all actions remain accessible on mobile devices
 
 ### Running Tests
 ```bash
@@ -151,11 +170,13 @@ The game features **Apple-level design** with:
 - **Responsive layout** that adapts to any screen size
 - **Intuitive interactions** with natural gestures
 - **Accessible design** supporting keyboard and screen readers
+- **Non-interfering mobile experience** with clear action visibility
 
 ## 📚 Documentation
 
 - `MOBILE_TESTING_GUIDE.md` - Complete mobile testing documentation
 - `MOBILE_TEST_RESULTS.md` - Latest test results and analysis
+- `MOBILE_IMPROVEMENTS_SUMMARY.md` - Latest mobile improvements and fixes
 - `DEVELOPER_HANDOFF.md` - Technical implementation details
 - `GAME_IMPROVEMENTS.md` - Future enhancement plans
 
