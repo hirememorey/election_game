@@ -6,6 +6,26 @@ This document tracks the major improvements and features that have been implemen
 
 ## ✅ Recently Implemented Features
 
+### [2025-07-14] Mobile UI Optimization (CSS)
+**Status:** Completed and deployed
+
+**What it does:**
+- Adds new mobile-specific CSS for better spacing, button sizing, and log handling on small screens.
+- Prevents the game log from overlapping with action buttons.
+- Reduces excessive vertical spacing and scrolling.
+- Improves header icon sizing and spacing for touch.
+- Ensures the UI adapts well to both small and very small screens.
+
+**Technical Implementation:**
+- Added new `@media (max-width: 600px)` and `@media (max-width: 400px)` rules to `static/style.css`.
+- Action buttons/cards are more compact and easier to tap.
+- Game log is more readable and does not overlap with actions.
+- Header icons are easier to tap and not crowded.
+
+**Impact:**
+- Dramatically improves mobile usability and visual polish.
+- Reduces the need for scrolling and makes the UI feel more app-like.
+
 ### 1. **🤫 Secret Commitment Legislation System** - COMPLETED
 **Status**: **COMPLETED** - Fully implemented and tested, replaces previous "Gambling-Style" system.
 
