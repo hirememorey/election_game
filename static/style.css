@@ -1379,20 +1379,62 @@ body {
 /* Quick Access Panel */
 .quick-access-panel {
   position: fixed;
-  bottom: 0;
+  top: 0;
   left: 0;
   right: 0;
-  background: #fff;
-  border-top: 1px solid #e0e0e0;
-  transform: translateY(100%);
-  transition: transform 0.3s ease;
-  z-index: 1000;
-  max-height: 70vh;
-  overflow-y: auto;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: var(--z-modal);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity var(--transition-normal), visibility var(--transition-normal);
 }
 
 .quick-access-panel.show {
-  transform: translateY(0);
+  opacity: 1;
+  visibility: visible;
+}
+
+.quick-access-panel .quick-access-content {
+  background: var(--color-surface);
+  border-radius: var(--radius-lg);
+  padding: var(--spacing-6);
+  margin: var(--spacing-4);
+  max-width: 90vw;
+  max-height: 80vh;
+  overflow-y: auto;
+  box-shadow: var(--shadow-xl);
+}
+
+/* Fix identity cards visibility */
+.identity-section {
+  display: block !important;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: var(--z-modal);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--spacing-4);
+}
+
+.identity-card {
+  background: var(--color-surface);
+  border-radius: var(--radius-lg);
+  padding: var(--spacing-6);
+  margin: var(--spacing-4);
+  max-width: 90vw;
+  max-height: 80vh;
+  overflow-y: auto;
+  box-shadow: var(--shadow-xl);
+  display: block !important;
 }
 
 .quick-access-header {
@@ -1715,4 +1757,174 @@ body {
     font-size: 0.9rem;
     padding: 6px 0;
   }
+}
+
+/* ===== MOBILE USABILITY FIXES ===== */
+
+/* Ensure all buttons are touch-friendly (minimum 44px) */
+button, .btn-primary, .btn-secondary, .action-btn, .icon-btn {
+  min-height: 44px;
+  min-width: 44px;
+  padding: 12px 16px;
+  font-size: 16px; /* Prevent zoom on iOS */
+}
+
+/* Improve contrast ratios */
+body {
+  color: var(--color-text-primary);
+  background: var(--color-background);
+}
+
+/* Ensure text is never white on white */
+p, span, div, button, label, h1, h2, h3, h4, h5, h6 {
+  color: var(--color-text-primary) !important;
+}
+
+/* Fix overlapping elements */
+.game-header, .phase-indicator, .action-content, .action-bar {
+  position: relative;
+  z-index: 1;
+  margin-bottom: var(--spacing-4);
+}
+
+.game-header {
+  position: sticky;
+  top: 0;
+  background: var(--color-surface);
+  z-index: 10;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.phase-indicator {
+  position: sticky;
+  top: 60px;
+  background: var(--color-surface);
+  z-index: 9;
+  border-bottom: 1px solid var(--color-border-light);
+}
+
+.action-content {
+  flex: 1;
+  overflow-y: auto;
+  padding: var(--spacing-4);
+  min-height: 200px;
+}
+
+.action-bar {
+  position: sticky;
+  bottom: 0;
+  background: var(--color-surface);
+  z-index: 10;
+  border-top: 1px solid var(--color-border);
+  padding: var(--spacing-4);
+}
+
+/* Ensure proper spacing between action buttons */
+.action-btn {
+  margin: var(--spacing-2);
+  min-height: 44px;
+  min-width: 44px;
+  position: relative;
+  z-index: 1;
+}
+
+/* Fix mobile layout to prevent overlapping */
+@media (max-width: 600px) {
+  .game-screen {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    overflow: hidden;
+  }
+  
+  .game-header {
+    flex-shrink: 0;
+    padding: var(--spacing-3);
+  }
+  
+  .phase-indicator {
+    flex-shrink: 0;
+    padding: var(--spacing-3);
+  }
+  
+  .action-content {
+    flex: 1;
+    overflow-y: auto;
+    padding: var(--spacing-3);
+  }
+  
+  .action-bar {
+    flex-shrink: 0;
+    padding: var(--spacing-3);
+  }
+  
+  .action-grid {
+    grid-template-columns: 1fr;
+    gap: var(--spacing-3);
+  }
+  
+  .action-btn {
+    min-height: 48px;
+    min-width: 48px;
+    font-size: 16px;
+    padding: 12px 16px;
+    margin: var(--spacing-2);
+  }
+  
+  .icon-btn {
+    min-height: 44px;
+    min-width: 44px;
+    padding: 8px;
+  }
+  
+  /* Ensure no horizontal scrolling */
+  body {
+    overflow-x: hidden;
+  }
+  
+  /* Fix button spacing */
+  .primary-actions {
+    gap: var(--spacing-3);
+    display: flex;
+    flex-direction: column;
+  }
+  
+  .btn-primary, .btn-secondary {
+    min-height: 48px;
+    min-width: 48px;
+    font-size: 16px;
+    padding: 12px 16px;
+  }
+}
+
+/* ===== ACCESSIBILITY IMPROVEMENTS ===== */
+
+/* Ensure focus indicators are visible */
+button:focus, input:focus, select:focus, a:focus {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+/* Add ARIA labels for screen readers */
+.icon-btn[aria-label]::before {
+  content: attr(aria-label);
+  position: absolute;
+  left: -9999px;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+}
+
+/* Ensure color is not the only way to convey information */
+.action-btn {
+  position: relative;
+}
+
+.action-btn::after {
+  content: attr(data-action);
+  position: absolute;
+  left: -9999px;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
 }

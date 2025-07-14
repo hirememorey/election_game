@@ -61,32 +61,32 @@
             <!-- Simplified Header -->
             <header class="game-header">
                 <span class="game-title">Election</span>
-                <button class="icon-btn" id="identity-btn" aria-label="View Identity" title="View Identity">🎭</button>
-                <button class="icon-btn" id="info-btn" aria-label="Game Info">ⓘ</button>
-                <button class="icon-btn" id="menu-btn" aria-label="Menu">☰</button>
+                <button class="icon-btn" id="identity-btn" aria-label="View Identity Cards" title="View Identity Cards">🎭</button>
+                <button class="icon-btn" id="info-btn" aria-label="Game Information" title="Game Information">ⓘ</button>
+                <button class="icon-btn" id="menu-btn" aria-label="Game Menu" title="Game Menu">☰</button>
             </header>
             
             <!-- Menu Dropdown -->
             <div id="menu-dropdown" class="menu-dropdown hidden">
-                <button id="new-game-btn" class="menu-item">New Game</button>
-                <button class="menu-item" onclick="showIdentityInfo()">Game Info</button>
+                <button id="new-game-btn" class="menu-item" aria-label="Start New Game">New Game</button>
+                <button class="menu-item" onclick="showIdentityInfo()" aria-label="View Game Information">Game Info</button>
             </div>
             
             <!-- Phase Indicator -->
-            <div id="phase-indicator" class="phase-indicator">
+            <div id="phase-indicator" class="phase-indicator" role="status" aria-live="polite">
                 <!-- Phase content will be populated by JavaScript -->
             </div>
             
             <!-- Action Content Area -->
-            <div id="action-content" class="action-content">
+            <div id="action-content" class="action-content" role="main">
                 <!-- Action content will be populated by JavaScript -->
             </div>
             
             <!-- Quick Access Panel -->
-            <div id="quick-access-panel" class="quick-access-panel">
+            <div id="quick-access-panel" class="quick-access-panel" role="dialog" aria-labelledby="quick-access-title" aria-modal="true">
                 <div class="quick-access-header">
-                    <h3>Game Information</h3>
-                    <button id="close-quick-access" class="close-btn" aria-label="Close">×</button>
+                    <h3 id="quick-access-title">Game Information</h3>
+                    <button id="close-quick-access" class="close-btn" aria-label="Close Game Information">×</button>
                 </div>
                 <div id="quick-access-content" class="quick-access-content">
                     <!-- Quick access content will be populated by JavaScript -->
@@ -94,12 +94,12 @@
             </div>
             
             <!-- Game Log -->
-            <div id="game-log" class="game-log">
+            <div id="game-log" class="game-log" role="log" aria-live="polite">
                 <!-- Game log content will be populated by JavaScript -->
             </div>
 
             <!-- Bottom Action Bar -->
-            <footer class="action-bar">
+            <footer class="action-bar" role="toolbar" aria-label="Game Actions">
                 <div id="primary-actions" class="primary-actions">
                     <!-- Primary actions will be populated -->
                 </div>

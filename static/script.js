@@ -124,29 +124,25 @@ document.addEventListener('click', function(e) {
     }
 });
 
-// Swipe gesture handling - DISABLED ON MOBILE
+// Swipe gesture handling - ENABLED ON MOBILE
 let touchStartY = 0;
 let touchEndY = 0;
 
-// Only enable swipe gestures on desktop/tablet (width > 600px)
+// Enable swipe gestures on all devices
 function isMobileDevice() {
     return window.innerWidth <= 600;
 }
 
 document.addEventListener('touchstart', function(e) {
-    // Disable swipe gestures on mobile to prevent interference with action visibility
-    if (isMobileDevice()) {
-        return;
-    }
+    // Enable swipe gestures on all devices
     touchStartY = e.changedTouches[0].screenY;
+    console.log('Touch start:', touchStartY);
 });
 
 document.addEventListener('touchend', function(e) {
-    // Disable swipe gestures on mobile to prevent interference with action visibility
-    if (isMobileDevice()) {
-        return;
-    }
+    // Enable swipe gestures on all devices
     touchEndY = e.changedTouches[0].screenY;
+    console.log('Touch end:', touchEndY);
     handleSwipe();
 });
 
@@ -154,23 +150,55 @@ function handleSwipe() {
     const swipeThreshold = 50;
     const swipeDistance = touchStartY - touchEndY;
     
+    console.log('Swipe distance:', swipeDistance);
+    
     if (swipeDistance > swipeThreshold) {
-        // Swipe up - show quick access panel (desktop/tablet only)
+        // Swipe up - show quick access panel
+        console.log('Swipe up detected - showing quick access panel');
         showQuickAccess();
     } else if (swipeDistance < -swipeThreshold) {
-        // Swipe down - hide quick access panel (desktop/tablet only)
+        // Swipe down - hide quick access panel
+        console.log('Swipe down detected - hiding quick access panel');
         hideQuickAccess();
     }
 }
 
 function showQuickAccess() {
-    quickAccessPanel.classList.add('show');
-    updateQuickAccessContent();
+    console.log('showQuickAccess called');
+    if (quickAccessPanel) {
+        console.log('Quick access panel found, showing...');
+        quickAccessPanel.classList.add('show');
+        updateQuickAccessContent();
+    } else {
+        console.log('Quick access panel not found');
+    }
 }
 
 function hideQuickAccess() {
-    quickAccessPanel.classList.remove('show');
+    console.log('hideQuickAccess called');
+    if (quickAccessPanel) {
+        console.log('Quick access panel found, hiding...');
+        quickAccessPanel.classList.remove('show');
+    } else {
+        console.log('Quick access panel not found');
+    }
 }
+
+// Close quick access panel when clicking outside
+document.addEventListener('click', function(e) {
+    if (quickAccessPanel && quickAccessPanel.classList.contains('show') && 
+        !quickAccessPanel.contains(e.target) && 
+        infoBtn && !infoBtn.contains(e.target)) {
+        hideQuickAccess();
+    }
+});
+
+// Close quick access panel with escape key
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape' && quickAccessPanel && quickAccessPanel.classList.contains('show')) {
+        hideQuickAccess();
+    }
+});
 
 function updateGameLog() {
     if (!gameState) return;
@@ -202,47 +230,48 @@ function showFullGameLog() {
 }
 
 function updateQuickAccessContent() {
-    if (!gameState) return;
-    const quickAccessDiv = document.getElementById('quick-access-content');
-    if (!quickAccessDiv) return;
+    if (!gameState || !quickAccessPanel) return;
     
     const currentPlayer = gameState.players[gameState.current_player_index];
     const log = gameState.turn_log || [];
     
-    let html = '<div class="identity-section">';
-    html += '<h3>Your Identity</h3>';
+    let content = '<div class="identity-section">';
+    content += '<h3>Your Identity</h3>';
     
     // Display archetype
     if (currentPlayer.archetype) {
-        html += `<div class="identity-card archetype-card">`;
-        html += `<div class="card-header">🎭 ${currentPlayer.archetype.title}</div>`;
-        html += `<div class="card-description">${currentPlayer.archetype.description}</div>`;
-        html += '</div>';
+        content += `<div class="identity-card archetype-card">`;
+        content += `<div class="card-header">🎭 ${currentPlayer.archetype.title}</div>`;
+        content += `<div class="card-description">${currentPlayer.archetype.description}</div>`;
+        content += '</div>';
     }
     
     // Display mandate (mission)
     if (currentPlayer.mandate) {
-        html += `<div class="identity-card mandate-card">`;
-        html += `<div class="card-header">🎯 ${currentPlayer.mandate.title}</div>`;
-        html += `<div class="card-description">${currentPlayer.mandate.description}</div>`;
-        html += '</div>';
+        content += `<div class="identity-card mandate-card">`;
+        content += `<div class="card-header">🎯 ${currentPlayer.mandate.title}</div>`;
+        content += `<div class="card-description">${currentPlayer.mandate.description}</div>`;
+        content += '</div>';
     }
     
-    html += '</div>';
+    content += '</div>';
     
     // Add game log section
-    html += '<div class="log-section">';
-    html += '<h3>Game Log</h3>';
+    content += '<div class="log-section">';
+    content += '<h3>Game Log</h3>';
     if (log.length === 0) {
-        html += '<div class="game-log-entry">No game events yet.</div>';
+        content += '<div class="game-log-entry">No game events yet.</div>';
     } else {
-        log.forEach(entry => {
-            html += `<div class="game-log-entry">${entry}</div>`;
-        });
+        // Show the last 10 log entries for mobile
+        const entries = log.slice(-10).map(entry => `<div class="game-log-entry">${entry}</div>`).join('');
+        content += entries;
     }
-    html += '</div>';
+    content += '</div>';
     
-    quickAccessDiv.innerHTML = html;
+    const quickAccessContent = document.getElementById('quick-access-content');
+    if (quickAccessContent) {
+        quickAccessContent.innerHTML = content;
+    }
 }
 
 // Ensure log updates after every phase/action
@@ -257,19 +286,35 @@ function updatePhaseUI() {
 // Ensure quick access panel opens on swipe/click
 function setupQuickAccessPanel() {
     console.log('Setting up quick access panel...');
-    const closeBtn = document.getElementById('close-quick-access');
-    const gameInfoBtn = document.getElementById('info-btn');
     
-    if (closeBtn) closeBtn.onclick = hideQuickAccess;
-    if (gameInfoBtn) gameInfoBtn.onclick = showQuickAccess;
+    // Setup close button
+    const closeButton = document.getElementById('close-quick-access');
+    if (closeButton) {
+        closeButton.addEventListener('click', hideQuickAccess);
+        console.log('Close button listener added');
+    }
     
-    // Keyboard shortcut (G key) for desktop
-    document.addEventListener('keydown', function(e) {
-        if (e.key.toLowerCase() === 'g' && !e.ctrlKey && !e.altKey && !e.metaKey) {
-            e.preventDefault();
-            showQuickAccess();
-        }
-    });
+    // Setup info button to show quick access panel
+    const infoButton = document.getElementById('info-btn');
+    if (infoButton) {
+        infoButton.addEventListener('click', showQuickAccess);
+        console.log('Info button listener added');
+    }
+    
+    // Setup quick access panel click outside to close
+    if (quickAccessPanel) {
+        quickAccessPanel.addEventListener('click', function(e) {
+            if (e.target === quickAccessPanel) {
+                hideQuickAccess();
+            }
+        });
+        console.log('Quick access panel click outside listener added');
+    }
+    
+    // Ensure the panel is hidden initially
+    if (quickAccessPanel) {
+        quickAccessPanel.classList.remove('show');
+    }
 }
 
 // Initialize everything when DOM is loaded
@@ -528,34 +573,12 @@ function showEventPhaseUI() {
 }
 
 function showActionPhaseUI(currentPlayer) {
-    const availableActions = getAvailableActions(currentPlayer);
     const ap = gameState.action_points[currentPlayer.id.toString()] || 0;
-    
-    if (availableActions.length === 0) {
-        actionContent.innerHTML = `
-            <div class="text-center">
-                <h3>No Actions Available</h3>
-                <p>You have no action points remaining.</p>
-            </div>
-        `;
-        return;
-    }
-    
-    const actionGrid = availableActions.map(action => `
-        <button class="action-btn" onclick="handleActionClick('${action.type}')" ${action.disabled ? 'disabled' : ''}>
-            <div class="action-icon">${action.icon}</div>
-            <div class="action-label">${action.label}</div>
-            <div class="action-cost">${action.cost} AP</div>
-        </button>
-    `).join('');
     
     actionContent.innerHTML = `
         <div class="text-center">
-            <h3>Choose Your Action</h3>
+            <h3>Action Phase</h3>
             <p>You have ${ap} action points remaining.</p>
-            <div class="action-grid">
-                ${actionGrid}
-            </div>
             <div class="identity-button-container">
                 <button class="btn-secondary btn-small" onclick="showIdentityInfo()">
                     <span class="btn-icon">🎭</span>
@@ -780,49 +803,49 @@ function parseElectionResults() {
 }
 
 function updatePrimaryActions() {
-    if (!gameState) return;
+    if (!gameState || !primaryActions) return;
     
-    const phase = gameState.current_phase;
-    let actions = [];
+    const currentPlayer = gameState.players[gameState.current_player_index];
+    const availableActions = getAvailableActions(currentPlayer);
     
-    if (phase === 'EVENT_PHASE') {
-        actions.push({
-            label: 'Draw Event Card',
-            icon: '🎲',
-            action: 'runEventPhase'
-        });
-    } else if (phase === 'ACTION_PHASE') {
-        const currentPlayer = gameState.players[gameState.current_player_index];
-        const ap = gameState.action_points[currentPlayer.id.toString()] || 0;
-        if (ap === 0) {
-            actions.push({
-                label: 'Pass Turn',
-                icon: '⏭️',
-                action: 'passTurn'
-            });
-        }
-    } else if (gameState.awaiting_legislation_resolution) {
-        actions.push({
-            label: 'Resolve Legislation',
-            icon: '📋',
-            action: 'resolveLegislation'
-        });
-    } else if (gameState.awaiting_election_resolution) {
-        actions.push({
-            label: 'Resolve Elections',
-            icon: '🗳️',
-            action: 'resolveElections'
-        });
-    }
+    primaryActions.innerHTML = '';
     
-    const actionButtons = actions.map(action => `
-        <button class="btn-primary btn-large" onclick="${action.action}()">
-            <span class="btn-icon">${action.icon}</span>
-            <span class="btn-text">${action.label}</span>
-        </button>
-    `).join('');
+    // Add Pass Turn button
+    const passButton = document.createElement('button');
+    passButton.className = 'btn-secondary';
+    passButton.textContent = 'Pass Turn';
+    passButton.setAttribute('aria-label', 'Pass turn to next player');
+    passButton.onclick = passTurn;
+    primaryActions.appendChild(passButton);
     
-    primaryActions.innerHTML = actionButtons;
+    // Add action buttons
+    availableActions.forEach(action => {
+        const button = document.createElement('button');
+        button.className = 'action-btn';
+        button.setAttribute('data-action', action.type);
+        button.setAttribute('aria-label', `${action.label} - Cost: ${action.cost} Action Points`);
+        
+        const icon = document.createElement('span');
+        icon.className = 'action-icon';
+        icon.textContent = action.icon;
+        icon.setAttribute('aria-hidden', 'true');
+        
+        const label = document.createElement('span');
+        label.className = 'action-label';
+        label.textContent = action.label;
+        
+        const cost = document.createElement('span');
+        cost.className = 'action-cost';
+        cost.textContent = `${action.cost} AP`;
+        cost.setAttribute('aria-hidden', 'true');
+        
+        button.appendChild(icon);
+        button.appendChild(label);
+        button.appendChild(cost);
+        button.onclick = () => handleActionClick(action.type);
+        
+        primaryActions.appendChild(button);
+    });
 }
 
 function getAvailableActions(currentPlayer) {
@@ -1131,11 +1154,6 @@ async function showLegislationOpposeMenu() {
     const pendingLegislation = gameState.pending_legislation;
     const termLegislation = gameState.term_legislation || [];
     
-    console.log('DEBUG: showLegislationOpposeMenu called');
-    console.log('DEBUG: currentPlayer.id:', currentPlayer.id);
-    console.log('DEBUG: pendingLegislation:', pendingLegislation);
-    console.log('DEBUG: termLegislation:', termLegislation);
-    
     // Find legislation the current player can oppose (including their own)
     const availableLegislation = [];
     
@@ -1158,8 +1176,6 @@ async function showLegislationOpposeMenu() {
             isOwn: leg.sponsor_id === currentPlayer.id
         });
     });
-    
-    console.log('DEBUG: availableLegislation:', availableLegislation);
     
     if (availableLegislation.length === 0) {
         showMessage('No legislation available to oppose', 'info');
@@ -1291,7 +1307,18 @@ function showIdentityInfo() {
     }
     content += '</div>';
     
-    showModal('Game Information', content);
+    // Show in quick access panel instead of modal
+    if (quickAccessPanel) {
+        const quickAccessContent = document.getElementById('quick-access-content');
+        if (quickAccessContent) {
+            quickAccessContent.innerHTML = content;
+            showQuickAccess();
+        } else {
+            showModal('Game Information', content);
+        }
+    } else {
+        showModal('Game Information', content);
+    }
 }
 
 // Favor IDs that require a target player
@@ -1510,4 +1537,8 @@ function getMessageIcon(type) {
 // Initial setup
 document.addEventListener('DOMContentLoaded', () => {
     console.log('DOM loaded, simplified phase-based UI ready');
-}); 
+    initializeDOMElements();
+    setupEventListeners();
+    setupMenuDropdown();
+    setupQuickAccessPanel();
+});
