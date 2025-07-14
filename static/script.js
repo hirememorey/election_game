@@ -4,8 +4,10 @@
 let gameId = null;
 let gameState = null;
 
-// Simplified API URL logic
-const API_BASE_URL = `${window.location.protocol}//${window.location.hostname}:5001/api`;
+// Dynamic API URL logic for development vs production
+const API_BASE_URL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+    ? `${window.location.protocol}//${window.location.hostname}:5001/api`
+    : `${window.location.protocol}//${window.location.hostname}/api`;
 
 // Debug logging
 console.log('API_BASE_URL:', API_BASE_URL);
