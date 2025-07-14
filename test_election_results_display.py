@@ -67,31 +67,39 @@ def main():
         return None
     
     # Main loop: alternate actions until legislation session
-    max_actions = 30
-    actions_taken = 0
-    while not state.get('awaiting_legislation_resolution', False) and actions_taken < max_actions:
-        action = get_valid_action(state)
-        if not action:
-            print("No valid action found for current player.")
-            break
-        print(f"\n--- Action {actions_taken+1}: {action['action_type']} (Player {action['player_id']}) ---")
-        resp = requests.post(f"{BASE_URL}/game/{game_id}/action", json=action)
-        if resp.status_code != 200:
-            print(f"Failed to perform action: {resp.status_code} - {resp.text}")
-            break
-        state = resp.json()['state']
-        print(f"Action completed. Current phase: {state['current_phase']}, Round: {state['round_marker']}")
-        print_log(state['turn_log'])
-        actions_taken += 1
-        if state.get('awaiting_legislation_resolution', False):
-            print(f"\n✅ REACHED LEGISLATION RESOLUTION POINT!")
-            break
-    if not state.get('awaiting_legislation_resolution', False):
-        print("❌ Failed to reach legislation resolution point")
+    max_rounds = 4
+    ap_per_turn = 2
+    round_num = 1
+    legislation_session_triggered = False
+    while not legislation_session_triggered and round_num <= max_rounds:
+        print(f"\n--- Round {round_num} ---")
+        for _ in range(ap_per_turn):
+            for player_id in player_ids:
+                action = get_valid_action(state)
+                if not action:
+                    print("No valid action found for current player.")
+                    break
+                print(f"Action: {action['action_type']} (Player {action['player_id']})")
+                resp = requests.post(f"{BASE_URL}/game/{game_id}/action", json=action)
+                if resp.status_code != 200:
+                    print(f"Failed to perform action: {resp.status_code} - {resp.text}")
+                    break
+                state = resp.json()['state']
+                print_log(state['turn_log'])
+                # Check for legislation session in the log
+                if any('LEGISLATION SESSION' in entry for entry in state['turn_log']):
+                    legislation_session_triggered = True
+                    print("\n✅ Legislation session triggered!")
+                    break
+            if legislation_session_triggered:
+                break
+        round_num += 1
+    if not legislation_session_triggered:
+        print("❌ Failed to reach legislation session after 4 rounds")
         return
     # 4. Resolve legislation
     print("\n🔧 Resolving legislation session...")
-    resp = requests.post(f"{BASE_URL}/{game_id}/resolve_legislation")
+    resp = requests.post(f"{BASE_URL}/game/{game_id}/resolve_legislation")
     if resp.status_code != 200:
         print(f"Error resolving legislation: {resp.status_code} - {resp.text}")
         return
@@ -100,7 +108,7 @@ def main():
     print_log(state['turn_log'])
     # 5. Resolve elections
     print("\n🗳️ Resolving elections...")
-    resp = requests.post(f"{BASE_URL}/{game_id}/resolve_elections")
+    resp = requests.post(f"{BASE_URL}/game/{game_id}/resolve_elections")
     if resp.status_code != 200:
         print(f"Error resolving elections: {resp.status_code} - {resp.text}")
         return
@@ -109,7 +117,7 @@ def main():
     print_log(state['turn_log'])
     # 6. Test the election results display by checking the game state
     print("\n📊 Testing election results display...")
-    resp = requests.get(f"{BASE_URL}/{game_id}")
+    resp = requests.get(f"{BASE_URL}/game/{game_id}")
     if resp.status_code == 200:
         state = resp.json()['state']
         print("✅ Game state retrieved successfully")

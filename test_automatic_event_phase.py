@@ -31,51 +31,52 @@ def test_automatic_event_phase():
     print("📋 Test 1: First round event phase")
     print(f"After game start: Round {state.round_marker}, Phase {state.current_phase}")
     
+    # Run the event phase first to get to ACTION_PHASE
+    print("\nRunning event phase...")
+    state = engine.run_event_phase(state)
+    print(f"After event phase: Round {state.round_marker}, Phase {state.current_phase}")
+    
     # Complete first round
     print("\nCompleting first round...")
-    for player_id in range(len(state.players)):
-        action = ActionFundraise(player_id=player_id)
+    # Take actions for each player in turn order
+    for _ in range(len(state.players)):
+        current_player = state.current_player_index
+        action = ActionFundraise(player_id=current_player)
         state = engine.process_action(state, action)
-        print(f"Player {player_id} fundraises, PC: {state.players[player_id].pc}")
+        print(f"Player {current_player} fundraises, PC: {state.players[current_player].pc}")
     
     # This should trigger upkeep and automatically start round 2 with event phase
     print(f"After first round: Round {state.round_marker}, Phase {state.current_phase}")
     
     # Complete second round
     print("\nCompleting second round...")
-    for player_id in range(len(state.players)):
-        action = ActionFundraise(player_id=player_id)
+    for _ in range(len(state.players)):
+        current_player = state.current_player_index
+        action = ActionFundraise(player_id=current_player)
         state = engine.process_action(state, action)
-        print(f"Player {player_id} fundraises, PC: {state.players[player_id].pc}")
+        print(f"Player {current_player} fundraises, PC: {state.players[current_player].pc}")
     
     print(f"After second round: Round {state.round_marker}, Phase {state.current_phase}")
     
     # Complete third round
     print("\nCompleting third round...")
-    for player_id in range(len(state.players)):
-        action = ActionFundraise(player_id=player_id)
+    for _ in range(len(state.players)):
+        current_player = state.current_player_index
+        action = ActionFundraise(player_id=current_player)
         state = engine.process_action(state, action)
-        print(f"Player {player_id} fundraises, PC: {state.players[player_id].pc}")
+        print(f"Player {current_player} fundraises, PC: {state.players[current_player].pc}")
     
     print(f"After third round: Round {state.round_marker}, Phase {state.current_phase}")
     
     # Complete fourth round (end of term)
     print("\nCompleting fourth round (end of term)...")
-    for player_id in range(len(state.players)):
-        action = ActionFundraise(player_id=player_id)
+    for _ in range(len(state.players)):
+        current_player = state.current_player_index
+        action = ActionFundraise(player_id=current_player)
         state = engine.process_action(state, action)
-        print(f"Player {player_id} fundraises, PC: {state.players[player_id].pc}")
+        print(f"Player {current_player} fundraises, PC: {state.players[current_player].pc}")
     
     print(f"After fourth round: Round {state.round_marker}, Phase {state.current_phase}")
-    
-    # Complete legislation session
-    print("\nCompleting legislation session...")
-    while state.legislation_session_active:
-        action = ActionFundraise(player_id=state.current_player_index)
-        state = engine.process_action(state, action)
-        print(f"Player {state.current_player_index} advances legislation session")
-    
-    print(f"After legislation session: Round {state.round_marker}, Phase {state.current_phase}")
     
     # Complete election phase (should automatically start new term with event phase)
     print("\nCompleting election phase...")
@@ -88,10 +89,11 @@ def test_automatic_event_phase():
     
     # Complete first round of new term
     print("\nCompleting first round of new term...")
-    for player_id in range(len(state.players)):
-        action = ActionFundraise(player_id=player_id)
+    for _ in range(len(state.players)):
+        current_player = state.current_player_index
+        action = ActionFundraise(player_id=current_player)
         state = engine.process_action(state, action)
-        print(f"Player {player_id} fundraises, PC: {state.players[player_id].pc}")
+        print(f"Player {current_player} fundraises, PC: {state.players[current_player].pc}")
     
     print(f"After first round of new term: Round {state.round_marker}, Phase {state.current_phase}")
     
