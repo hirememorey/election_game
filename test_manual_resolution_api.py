@@ -53,12 +53,10 @@ def main():
                 # Fundraise to get more PC
                 action_type = 'fundraise'
             else:
-                # No AP left, skip this player (turn will advance automatically)
-                print(f"No AP left for {player_name}, skipping...")
-                # Just get the current state to see if it advanced
-                resp = requests.get(f"{BASE_URL}/{game_id}")
-                state = resp.json()['state']
-                continue
+                # No AP left, use pass_turn action instead of just getting state
+                print(f"No AP left for {player_name}, passing turn...")
+                action_type = 'pass_turn'
+                action_data = {'player_id': player_id}
         elif state['current_phase'] == 'LEGISLATION_PHASE':
             # During legislation session, just get current state
             print("In legislation phase, checking state...")

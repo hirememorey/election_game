@@ -25,7 +25,7 @@ test.describe('Election Game - Full Playability', () => {
         const fundraiseBtn = page.getByRole('button', { name: /fundraise/i });
         if (await fundraiseBtn.isVisible()) {
           await fundraiseBtn.click();
-          await expect(page.locator('#game-log').getByText(/gains/i)).toBeVisible();
+          await expect(page.locator('#game-log').getByText(/takes the Fundraise action and gains/i)).toBeVisible();
         }
 
         // Try Network
@@ -39,9 +39,35 @@ test.describe('Election Game - Full Playability', () => {
         const sponsorBtn = page.getByRole('button', { name: /sponsor legislation/i });
         if (await sponsorBtn.isVisible()) {
           await sponsorBtn.click();
-          // Pick first available bill
-          await page.getByRole('button', { name: /infrastructure/i }).click();
-          await expect(page.locator('#game-log').getByText(/sponsored/i)).toBeVisible();
+          // Wait for modal
+          await expect(page.getByText('Choose legislation to sponsor:')).toBeVisible();
+
+          // Parse available PC from the phase indicator
+          const phaseText = await page.locator('#phase-indicator').textContent();
+          const pcMatch = phaseText && phaseText.match(/PC: (\d+)/);
+          const availablePC = pcMatch ? parseInt(pcMatch[1], 10) : 0;
+
+          // Find all sponsorable bills and their costs
+          const billButtons = await page.locator('.action-btn').all();
+          let clicked = false;
+          for (const btn of billButtons) {
+            const text = await btn.textContent();
+            const costMatch = text && text.match(/Cost: (\d+) PC/);
+            if (costMatch) {
+              const cost = parseInt(costMatch[1], 10);
+              if (availablePC >= cost) {
+                await btn.click();
+                clicked = true;
+                break;
+              }
+            }
+          }
+          if (clicked) {
+            await expect(page.locator('#game-log').getByText(/sponsored/i)).toBeVisible();
+          } else {
+            // Close modal if nothing affordable
+            await page.keyboard.press('Escape');
+          }
         }
 
         // Try Support/Oppose (if available)

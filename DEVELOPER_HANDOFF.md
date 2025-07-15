@@ -1,3 +1,44 @@
+# Developer Handoff Document
+
+## 🔍 **CURRENT STATUS: Frontend-Backend Synchronization Issue (July 15, 2025)**
+
+### **Issue Summary**
+Playwright tests are failing due to a frontend-backend synchronization issue. The backend is working correctly (turn advancement functioning), but the frontend UI is not updating the phase indicator to show the correct current player.
+
+### **Technical Investigation Results**
+- **Backend**: ✅ Turn advancement working correctly (player 0 → player 1 → player 2)
+- **API Communication**: ✅ Frontend receiving correct game state via `getGameState()`
+- **Function Calls**: ✅ `updatePhaseDisplay()` function being called
+- **DOM Update**: ❌ `#phase-indicator .player-name` element not updating
+
+### **Test Failure**
+```
+Error: Timed out 10000ms waiting for expect(locator).toBeVisible()
+Locator: locator('#phase-indicator .player-name').getByText('Bob')
+Expected: visible
+Received: <element(s) not found>
+```
+
+### **Debug Logs Added**
+- Added debug logs to `getGameState()` to track current player index and name
+- Added debug logs to `updatePhaseDisplay()` to track DOM update attempts
+- Force `getGameState()` call after every action to ensure state synchronization
+
+### **Next Steps for Resolution**
+1. **Investigate DOM Selector**: Verify `#phase-indicator .player-name` selector is correct
+2. **Check DOM Timing**: Ensure DOM is ready when update is called
+3. **Add More Debugging**: Add console logs to see exact DOM manipulation
+4. **Test DOM Update**: Manually test the DOM update mechanism
+
+### **Files to Investigate**
+- `static/script.js` - `updatePhaseDisplay()` function
+- `static/index.html` - Phase indicator DOM structure
+- `tests/test_simple_flow.spec.ts` - Test that's failing
+
+---
+
+## Original Developer Handoff Content
+
 # Developer Handoff: Election Game Project
 
 ## 🎯 Project Status Summary

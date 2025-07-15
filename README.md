@@ -68,6 +68,39 @@ The application has been significantly improved with major fixes to core functio
 - ✅ **Specific Selectors** - All selectors now target specific containers
 - ✅ **Proper Error Handling** - Tests no longer hang indefinitely
 
+## 🔍 **CURRENT ISSUE: Frontend-Backend Synchronization (July 15, 2025)**
+
+### **Problem Description**
+Playwright tests are failing due to a frontend-backend synchronization issue where the UI phase indicator is not updating after turn advancement, even though the backend is working correctly.
+
+### **Technical Details**
+- **Backend Status**: ✅ Working correctly - turn advancement (player 0 → player 1 → player 2) functioning properly
+- **Frontend Status**: ❌ UI not updating - phase indicator still shows "Alice" instead of "Bob" after turn advancement
+- **API Communication**: ✅ Frontend receiving correct game state via `getGameState()`
+- **DOM Update**: ❌ `updatePhaseDisplay()` function not properly updating the DOM element
+
+### **Test Failure Details**
+```
+Error: Timed out 10000ms waiting for expect(locator).toBeVisible()
+Locator: locator('#phase-indicator .player-name').getByText('Bob')
+Expected: visible
+Received: <element(s) not found>
+```
+
+### **Debug Status**
+- ✅ Backend turn advancement working correctly
+- ✅ Frontend `getGameState()` receiving correct data  
+- ✅ `updatePhaseDisplay()` function being called
+- ❌ DOM element `#phase-indicator .player-name` not updating
+
+### **Next Steps**
+1. Investigate why `updatePhaseDisplay()` isn't properly updating the DOM element
+2. Add more detailed debugging to pinpoint the exact issue
+3. Fix the DOM update mechanism to ensure UI synchronization
+
+### **Files Modified for Debugging**
+- `static/script.js` - Added debug logs to `getGameState()` and `updatePhaseDisplay()`
+
 ## 📱 Mobile Experience
 
 The game is fully optimized for mobile devices with a focus on usability and accessibility:

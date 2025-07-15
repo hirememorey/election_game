@@ -135,6 +135,15 @@ class GameEngine:
                     next_player = state.players[state.current_player_index]
                     state.action_points[next_player.id] = 2
                     state.add_log(f"\n{next_player.name}'s turn.")
+            
+            # Additional check: if current player has no valid actions, auto-advance
+            elif state.action_points[current_player.id] > 0:
+                # Check if player has any valid actions they can take
+                has_valid_actions = self._player_has_valid_actions(state, current_player)
+                if not has_valid_actions:
+                    state.add_log(f"{current_player.name} has no valid actions available. Auto-advancing turn.")
+                    state.action_points[current_player.id] = 0  # Force turn advancement
+                    return self._advance_turn(state)  # Recursively advance
         
         # If we're in the legislation phase, move to elections
         elif state.current_phase == "LEGISLATION_PHASE":
@@ -146,6 +155,24 @@ class GameEngine:
             pass
         print(f"[DEBUG] _advance_turn: end state current_player_index={state.current_player_index}, APs={[state.action_points[p.id] for p in state.players]}")
         return state
+
+    def _player_has_valid_actions(self, state: GameState, player: Player) -> bool:
+        """Check if a player has any valid actions they can take."""
+        ap = state.action_points.get(player.id, 0)
+        
+        # Always allow pass turn (0 AP cost)
+        if ap >= 0:
+            return True
+            
+        # Check for 1 AP actions (fundraise, network, use favor, support/oppose legislation)
+        if ap >= 1:
+            return True
+            
+        # Check for 2 AP actions (sponsor legislation, campaign, declare candidacy)
+        if ap >= 2:
+            return True
+            
+        return False
 
     def run_upkeep_phase(self, state: GameState) -> GameState:
         """Runs the entire Upkeep Phase automatically."""
@@ -241,6 +268,11 @@ class GameEngine:
         
         new_state.current_phase = "ACTION_PHASE"
         new_state.current_player_index = 0  # Ensure first player can take actions
+        
+        # Grant action points to all players at the start of action phase
+        for player in new_state.players:
+            new_state.action_points[player.id] = 2
+        
         return new_state
 
     def is_game_over(self, state: GameState) -> bool:

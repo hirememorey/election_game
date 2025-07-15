@@ -1,5 +1,20 @@
 # Mobile Improvements Summary
 
+## [2025-07-15] Frontend-Backend Synchronization Issue (CURRENT)
+- **Problem:** Playwright tests are failing because the frontend UI is not updating the phase indicator after turn advancement, even though the backend is working correctly.
+- **Symptoms:** 
+  - Backend correctly advances turns (player 0 → player 1 → player 2)
+  - Frontend receives correct game state via `getGameState()`
+  - UI still shows "Alice" instead of "Bob" after turn advancement
+  - Test fails: `Timed out waiting for expect(locator).toBeVisible() - Locator: locator('#phase-indicator .player-name').getByText('Bob')`
+- **Debug Status:**
+  - ✅ Backend turn advancement working correctly
+  - ✅ Frontend `getGameState()` receiving correct data
+  - ✅ `updatePhaseDisplay()` function being called
+  - ❌ DOM element `#phase-indicator .player-name` not updating
+- **Next Steps:** Investigate why `updatePhaseDisplay()` isn't properly updating the DOM element
+- **Files Modified:** `static/script.js` - Added debug logs to `getGameState()` and `updatePhaseDisplay()`
+
 ## [2025-01-27] Modal Close Button Fix (NEW)
 - **Problem:** The "View Identity" modal close button (×) was not visible or clickable, making it impossible to exit the modal on both desktop and mobile.
 - **Solution:** Fixed pointer events and z-index issues to ensure the close button is always visible and clickable.

@@ -112,22 +112,22 @@ def resolve_network(state: GameState, action: ActionNetwork) -> GameState:
                 if other_players:
                     creditor = random.choice(other_players)
                     state.political_debts[player.id] = creditor.id
-                    state.add_log(f"{player.name} Networks, gaining 2 PC but incurs a political debt to {creditor.name}.")
+                    state.add_log(f"{player.name} networks, gaining 2 PC but incurs a political debt to {creditor.name}.")
                 else:
-                    state.add_log(f"{player.name} Networks, gaining 2 PC but incurs a political debt (no other players available).")
+                    state.add_log(f"{player.name} networks, gaining 2 PC but incurs a political debt (no other players available).")
             
             elif favor.id == "PUBLIC_GAFFE":
                 state.public_gaffe_players.add(player.id)
-                state.add_log(f"{player.name} Networks, gaining 2 PC but makes a public gaffe. Their next public action will cost +1 AP.")
+                state.add_log(f"{player.name} networks, gaining 2 PC but makes a public gaffe. Their next public action will cost +1 AP.")
             
             elif favor.id == "MEDIA_SCRUTINY":
                 state.media_scrutiny_players.add(player.id)
-                state.add_log(f"{player.name} Networks, gaining 2 PC but comes under media scrutiny. All PC gained from Fundraise actions this round will be halved.")
+                state.add_log(f"{player.name} networks, gaining 2 PC but comes under media scrutiny. All PC gained from Fundraise actions this round will be halved.")
             
             elif favor.id == "COMPROMISING_POSITION":
                 # Automatically reveal archetype since player wouldn't choose this
                 state.compromised_players.add(player.id)
-                state.add_log(f"{player.name} Networks, gaining 2 PC but is caught in a compromising position. Their archetype is revealed to all players.")
+                state.add_log(f"{player.name} networks, gaining 2 PC but is caught in a compromising position. Their archetype is revealed to all players.")
             
             elif favor.id == "POLITICAL_HOT_POTATO":
                 # Pass to a random other player
@@ -135,15 +135,15 @@ def resolve_network(state: GameState, action: ActionNetwork) -> GameState:
                 if other_players:
                     target = random.choice(other_players)
                     state.hot_potato_holder = target.id
-                    state.add_log(f"{player.name} Networks, gaining 2 PC but receives a politically toxic dossier, which they pass to {target.name}.")
+                    state.add_log(f"{player.name} networks, gaining 2 PC but receives a politically toxic dossier, which they pass to {target.name}.")
                 else:
-                    state.add_log(f"{player.name} Networks, gaining 2 PC but receives a politically toxic dossier (no other players available).")
+                    state.add_log(f"{player.name} networks, gaining 2 PC but receives a politically toxic dossier (no other players available).")
         else:
             # Positive favor - add to player's hand for later use
             player.favors.append(favor)
-            state.add_log(f"{player.name} Networks, gaining 2 PC and a Political Favor: '{favor.description}'")
+            state.add_log(f"{player.name} networks, gaining 2 PC and a Political Favor: '{favor.description}'")
     else:
-        state.add_log(f"{player.name} Networks, gaining 2 PC, but the favor supply is empty.")
+        state.add_log(f"{player.name} networks, gaining 2 PC, but the favor supply is empty.")
     return state
 
 def resolve_use_favor(state: GameState, action: ActionUseFavor) -> GameState:
@@ -271,7 +271,7 @@ def resolve_sponsor_legislation(state: GameState, action: ActionSponsorLegislati
         return state
     
     player.pc -= bill.cost
-    state.add_log(f"{player.name} pays {bill.cost} PC to sponsor the {bill.title}.")
+    state.add_log(f"{player.name} sponsored the {bill.title}.")
     state.add_log(f"This legislation will be voted on during the end-of-term legislation session.")
     
     # Create pending legislation for other players to respond to during the term
@@ -341,8 +341,10 @@ def resolve_support_legislation(state: GameState, action: ActionSupportLegislati
     # Provide confirmation feedback
     if is_sponsor:
         state.add_log(f"{player.name} secretly commits {action.support_amount} PC to support their own legislation.")
+        state.add_log(f"Secret commitment has been registered.")
     else:
         state.add_log(f"{player.name} secretly commits {action.support_amount} PC to support the legislation.")
+        state.add_log(f"Secret commitment has been registered.")
     
     return state
 
@@ -398,8 +400,10 @@ def resolve_oppose_legislation(state: GameState, action: ActionOpposeLegislation
     # Provide confirmation feedback
     if is_sponsor:
         state.add_log(f"{player.name} secretly commits {action.oppose_amount} PC to oppose their own legislation.")
+        state.add_log(f"Secret commitment has been registered.")
     else:
         state.add_log(f"{player.name} secretly commits {action.oppose_amount} PC to oppose the legislation.")
+        state.add_log(f"Secret commitment has been registered.")
     
     return state
 

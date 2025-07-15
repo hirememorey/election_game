@@ -80,8 +80,11 @@
             </div>
             
             <!-- Action Content Area -->
-            <div id="action-content" class="action-content" role="main">
-                <!-- Action content will be populated by JavaScript -->
+            <div id="action-area">
+                <div id="action-content">
+                    <!-- Action buttons will be injected here -->
+                </div>
+                <div id="resolution-controls" class="hidden"></div>
             </div>
             
             <!-- Quick Access Panel -->
@@ -107,11 +110,18 @@
                 </div>
             </footer>
         </div>
+
+        <div id="results-overlay" class="hidden">
+            <div class="modal-content-results">
+                <div id="results-content"></div>
+                <button id="close-results-btn" class="btn">Continue</button>
+            </div>
+        </div>
     </div>
 
     <!-- Screen Reader Only Content -->
     <div class="sr-only" aria-live="polite" id="sr-announcements"></div>
 
-    <script src="/static/script.js?v=13"></script>
+    <script src="/static/script.js?v=15"></script>
 </body>
 </html> 
