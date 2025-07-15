@@ -1270,13 +1270,13 @@ async function showLegislationSupportMenu() {
 
 function showIdentityInfo() {
     if (!gameState) return;
-    
+
     const currentPlayer = gameState.players[gameState.current_player_index];
     const log = gameState.turn_log || [];
-    
+
     let content = '<div class="identity-section">';
     content += '<h3>Your Identity</h3>';
-    
+
     // Display archetype
     if (currentPlayer.archetype) {
         content += `<div class="identity-card archetype-card">`;
@@ -1284,7 +1284,7 @@ function showIdentityInfo() {
         content += `<div class="card-description">${currentPlayer.archetype.description}</div>`;
         content += '</div>';
     }
-    
+
     // Display mandate (mission)
     if (currentPlayer.mandate) {
         content += `<div class="identity-card mandate-card">`;
@@ -1292,9 +1292,9 @@ function showIdentityInfo() {
         content += `<div class="card-description">${currentPlayer.mandate.description}</div>`;
         content += '</div>';
     }
-    
+
     content += '</div>';
-    
+
     // Add game log section
     content += '<div class="log-section">';
     content += '<h3>Game Log</h3>';
@@ -1306,17 +1306,22 @@ function showIdentityInfo() {
         content += entries;
     }
     content += '</div>';
-    
-    // Show in quick access panel instead of modal
-    if (quickAccessPanel) {
-        const quickAccessContent = document.getElementById('quick-access-content');
-        if (quickAccessContent) {
-            quickAccessContent.innerHTML = content;
-            showQuickAccess();
+
+    if (isMobileDevice()) {
+        // Show in quick access panel for mobile
+        if (quickAccessPanel) {
+            const quickAccessContent = document.getElementById('quick-access-content');
+            if (quickAccessContent) {
+                quickAccessContent.innerHTML = content;
+                showQuickAccess();
+            } else {
+                showModal('Game Information', content);
+            }
         } else {
             showModal('Game Information', content);
         }
     } else {
+        // Always use modal for desktop
         showModal('Game Information', content);
     }
 }
