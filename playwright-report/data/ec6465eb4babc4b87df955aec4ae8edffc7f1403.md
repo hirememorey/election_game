@@ -1,0 +1,21 @@
+# Page snapshot
+
+```yaml
+- banner:
+  - text: Election
+  - button "View Identity": 🎭
+  - button "Game Info": ⓘ
+  - button "Menu": ☰
+- text: "Action Phase Round 1 - Choose your actions T Test Player 1 PC: 10 | Office: None ⚡ 2 AP"
+- heading "Choose Your Action" [level=3]
+- paragraph: You have 2 action points remaining.
+- button "💰 Fundraise 1 AP"
+- button "🤝 Network 1 AP"
+- button "🎭 Use Favor 1 AP" [disabled]
+- button "📜 Sponsor Legislation 2 AP"
+- button "🎯 Campaign 2 AP"
+- button "🎭 View Identity"
+- text: "They must also face scrutiny: Internal Campaign Strife - Your team is in disarray. Lose 5 PC."
+- button "More"
+- contentinfo
+```

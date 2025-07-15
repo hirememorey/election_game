@@ -1,5 +1,36 @@
 import { test, expect } from '@playwright/test';
 
+test.describe('Modal Close Button', () => {
+  test('Identity modal has a visible and clickable close button', async ({ page }) => {
+    // Go to the game page (assume localhost:5001 for dev)
+    await page.goto('http://localhost:5001');
+
+    // Start a new game with two players (simulate setup)
+    await page.fill('#player1', 'Alice');
+    await page.fill('#player2', 'Bob');
+    await page.click('#start-game-btn');
+
+    // Wait for the game screen to load
+    await page.waitForSelector('#game-screen', { state: 'visible' });
+
+    // Click the View Identity button
+    await page.click('button:has-text("View Identity")');
+
+    // Wait for the modal to appear
+    const modal = page.locator('.modal-overlay');
+    await expect(modal).toBeVisible();
+
+    // Check for the close button in the modal header
+    const closeBtn = modal.locator('.modal-header .close-btn');
+    await expect(closeBtn).toBeVisible();
+    await expect(closeBtn).toBeEnabled();
+
+    // Click the close button and ensure the modal disappears
+    await closeBtn.click();
+    await expect(modal).toBeHidden();
+  });
+});
+
 test.describe('Mobile UI Elements', () => {
   test.use({
     viewport: { width: 390, height: 844 }, // iPhone 12

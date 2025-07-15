@@ -15,7 +15,7 @@
 - **Static File Serving**: Fixed from 404 issues, properly configured
 - **Comprehensive Testing**: 10+ test files covering all major functionality
 - **Production Deployment**: Successfully deployed to Render at https://election-game.onrender.com
-- **Recent Bug Fixes**: Trading action visibility fixed (frontend/backend phase name alignment), Media Scrutiny favor logic fixed, **Legislation voting fixes** (players cannot vote on own legislation, proper pass turn functionality)
+- **Recent Bug Fixes**: Trading action visibility fixed (frontend/backend phase name alignment), Media Scrutiny favor logic fixed, **Legislation voting fixes** (players cannot vote on own legislation, proper pass turn functionality), **Modal close button fix** (View Identity modal now has visible and clickable close button on all devices)
 - **🤫 Secret Commitment System**: **COMPLETED** - Replaced gambling-style legislation with strategic secret commitments
 - **🧪 Automated Testing**: **COMPLETED** - Comprehensive Playwright tests validate game playability
 

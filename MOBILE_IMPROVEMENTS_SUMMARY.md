@@ -1,5 +1,20 @@
 # Mobile Improvements Summary
 
+## [2025-01-27] Modal Close Button Fix (NEW)
+- **Problem:** The "View Identity" modal close button (×) was not visible or clickable, making it impossible to exit the modal on both desktop and mobile.
+- **Solution:** Fixed pointer events and z-index issues to ensure the close button is always visible and clickable.
+- **Implementation:**
+  - Added sticky positioning and higher z-index to `.modal-header` and `.close-btn`
+  - Set `pointer-events: none` on modal content (`.identity-section`, `.identity-card`) to prevent interference
+  - Set `pointer-events: auto` on `.modal-header` and `.close-btn` to ensure they remain clickable
+  - Added box-shadow and background to modal header for better visibility
+  - Added padding-top to modal content to prevent content from covering the sticky header
+- **Testing:** Created and ran Playwright test to verify close button visibility and clickability across all browsers
+- **Impact:**
+  - Close button is now always visible and clickable on all devices
+  - Modal can be properly closed on both desktop and mobile
+  - Improved user experience for identity modal access
+
 ## [2025-07-15] Event Log Collapse with 'More' Button (NEW)
 - **Problem:** Event log was covering or pushing down action buttons on mobile, making actions hard to access.
 - **Solution:** Event log now displays only the latest entry as a single line, with a 'More' button to view the full log in a modal.

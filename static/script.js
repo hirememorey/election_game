@@ -1493,6 +1493,7 @@ function showModal(title, content) {
         <div class="modal-content">
             <div class="modal-header">
                 <h3 class="modal-title">${title}</h3>
+                <button class="close-btn" aria-label="Close" onclick="closeModal()">×</button>
             </div>
             ${content}
         </div>

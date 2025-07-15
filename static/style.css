@@ -793,6 +793,20 @@ body {
     z-index: 1000;
 }
 
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 24px;
+  border-bottom: 1px solid #eee;
+  background: #fff;
+  position: sticky;
+  top: 0;
+  z-index: 1001;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+  pointer-events: auto;
+}
+
 .modal-content {
   background: #fff;
   border-radius: 16px;
@@ -803,11 +817,8 @@ body {
   overflow-y: auto;
   box-shadow: 0 8px 32px rgba(0,0,0,0.18);
   position: relative;
-}
-
-.modal-header {
-    margin-bottom: var(--spacing-4);
-    text-align: center;
+  padding-top: 64px; /* ensure content does not cover sticky header */
+  pointer-events: none;
 }
 
 .modal-title {
@@ -1456,6 +1467,9 @@ body {
   font-size: 1.5rem;
   cursor: pointer;
   color: #666;
+  z-index: 1002;
+  position: relative;
+  pointer-events: auto;
 }
 
 .quick-access-content {
@@ -1927,4 +1941,26 @@ button:focus, input:focus, select:focus, a:focus {
   width: 1px;
   height: 1px;
   overflow: hidden;
+}
+
+.identity-section,
+.identity-card {
+  pointer-events: none;
+}
+
+.modal-content {
+  max-height: 80vh;
+  overflow-y: auto;
+  padding-top: 64px;
+  pointer-events: auto;
+}
+
+.identity-section,
+.identity-card {
+  pointer-events: none;
+}
+
+.modal-header,
+.close-btn {
+  pointer-events: auto;
 }
