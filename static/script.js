@@ -212,7 +212,7 @@ function updateGameLog() {
         const latestEntry = log[log.length - 1];
         gameLogDiv.innerHTML = `
             <div class="game-log-entry single-line">${latestEntry}</div>
-            <button class="btn-secondary btn-small more-log-btn" onclick="showFullGameLog()">More</button>
+            <button class="btn-secondary btn-small more-log-btn" onclick="showFullGameLog()" aria-label="Show Full Game Log">More</button>
         `;
     }
 }
@@ -328,85 +328,83 @@ window.addEventListener('DOMContentLoaded', function() {
 });
 
 // API functions
+let isApiCallInProgress = false;
+
 async function apiCall(endpoint, method = 'GET', data = null) {
+    if (isApiCallInProgress) {
+        console.warn('API call already in progress. Ignoring new request.');
+        return null; // Or throw an error, or handle as needed
+    }
+
+    isApiCallInProgress = true;
+    console.log(`API Call Start: ${method} ${endpoint}`, data);
     try {
-        console.log(`API Call: ${method} ${API_BASE_URL}${endpoint}`);
-        if (data) {
-            console.log('Request data:', data);
-        }
-        
+        const url = `${API_BASE_URL}${endpoint}`;
         const options = {
             method,
             headers: {
                 'Content-Type': 'application/json',
             },
         };
-        
         if (data) {
             options.body = JSON.stringify(data);
         }
-        
-        const response = await fetch(`${API_BASE_URL}${endpoint}`, options);
-        console.log('Response status:', response.status);
-        
-        const result = await response.json();
-        console.log('Response data:', result);
-        
+        const response = await fetch(url, options);
         if (!response.ok) {
-            throw new Error(result.error || 'API call failed');
+            const errorData = await response.json().catch(() => ({ error: 'An unknown error occurred' }));
+            console.error('API Error:', response.status, errorData);
+            showMessage(errorData.error, 'error');
+            return null;
         }
-        
-        return result;
+        const responseData = await response.json();
+        console.log('API Response:', responseData);
+        return responseData;
     } catch (error) {
-        console.error('API Error:', error);
-        showMessage(error.message, 'error');
-        throw error;
+        console.error('Network or API call error:', error);
+        showMessage('Could not connect to the server. Please check your connection.', 'error');
+        return null;
+    } finally {
+        isApiCallInProgress = false;
+        console.log(`API Call End: ${method} ${endpoint}`);
     }
 }
 
 // Game functions
 async function startNewGame() {
-    console.log('startNewGame called');
-    
-    const playerNames = [];
-    const playerInputs = document.querySelectorAll('input[name^="player"]');
-    
-    playerInputs.forEach(input => {
-        if (input.value.trim()) {
-            playerNames.push(input.value.trim());
-        }
-    });
-    
-    console.log('Player names:', playerNames);
-    
+    console.log('Attempting to start a new game...');
+    const playerInputs = Array.from(document.querySelectorAll('.player-inputs input[type="text"]'));
+    const playerNames = playerInputs
+        .map(input => input.value.trim())
+        .filter(name => name.length > 0);
+
     if (playerNames.length < 2) {
-        showMessage('Please enter at least 2 player names', 'error');
+        showMessage('Please enter at least two player names.', 'error');
         return;
     }
-    
-    try {
-        if (startGameBtn) {
-            startGameBtn.disabled = true;
-            startGameBtn.textContent = 'Creating Game...';
-        }
-        
-        console.log('Making API call to create game...');
-        const result = await apiCall('/game', 'POST', { player_names: playerNames });
-        console.log('API call successful:', result);
-        
-        gameId = result.game_id;
-        gameState = result.state;
-        
+
+    // Disable the button to prevent multiple clicks
+    if(startGameBtn) {
+        startGameBtn.disabled = true;
+        startGameBtn.textContent = 'Starting...';
+    }
+
+    const data = await apiCall('/game', 'POST', { player_names: playerNames });
+
+    // Re-enable the button regardless of outcome
+    if(startGameBtn) {
+        startGameBtn.disabled = false;
+        startGameBtn.textContent = 'Start Game';
+    }
+
+    if (data && data.game_id) {
+        gameId = data.game_id;
+        gameState = data.state;
         showGameScreen();
         updatePhaseUI();
-    } catch (error) {
-        console.error('Failed to start game:', error);
-        showMessage(`Failed to start game: ${error.message}`, 'error');
-    } finally {
-        if (startGameBtn) {
-            startGameBtn.disabled = false;
-            startGameBtn.textContent = 'Start Game';
-        }
+        announceToScreenReader('Game started successfully. It is now ' + gameState.players[gameState.current_player_index].name + "'s turn.");
+    } else {
+        showMessage('Failed to start the game. Please try again.', 'error');
+        // Do not hide the setup screen if the game fails to start
     }
 }
 

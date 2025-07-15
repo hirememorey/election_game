@@ -18,7 +18,7 @@ test('Debug hang test - step by step with more granular debugging', async ({ pag
   await page.click('#start-game-btn');
   
   console.log('Step 5: Waiting for game screen...');
-  await page.waitForSelector('#game-screen', { timeout: 10000 });
+  await page.waitForSelector('#game-screen:not(.hidden)');
   await page.waitForSelector('text=Action Phase', { timeout: 10000 });
   
   console.log('Step 6: Getting initial PC...');
@@ -39,7 +39,8 @@ test('Debug hang test - step by step with more granular debugging', async ({ pag
   console.log('Legislation modal opened!');
   
   console.log('Step 10: Looking for MILITARY option...');
-  const militaryOption = page.locator('text=MILITARY');
+  // Make the selector more specific by targeting the action button
+  const militaryOption = page.locator('.action-btn:has-text("Military Funding")');
   await militaryOption.waitFor({ timeout: 10000 });
   console.log('MILITARY option found!');
   

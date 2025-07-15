@@ -1,18 +1,16 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
+<!DOCTYPE html><html lang="en"><head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="Election: The Political Strategy Game - A sophisticated political board game with Apple-level design">
     <meta name="theme-color" content="#007AFF">
     <title>Election: The Game</title>
     <link rel="stylesheet" href="/static/style.css">
-    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🗳️</text></svg>">
+    <link rel="icon" href="data:image/svg+xml,&lt;svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'&gt;&lt;text y='.9em' font-size='90'&gt;🗳️&lt;/text&gt;&lt;/svg&gt;">
 </head>
 <body>
     <div id="app">
         <!-- Game Setup Screen -->
-        <div id="setup-screen" class="screen setup-screen">
+        <div id="setup-screen" class="screen setup-screen hidden">
             <div class="setup-container">
                 <div class="setup-header">
                     <div class="logo">
@@ -27,29 +25,26 @@
                         <h2>Start New Game</h2>
                         <p class="setup-description">Enter player names to begin your political campaign.</p>
                         
-                        <form class="player-form" id="player-form" novalidate>
+                        <form class="player-form" id="player-form" novalidate="">
                             <div class="player-inputs">
                                 <div class="player-input">
                                     <label for="player1">Player 1</label>
-                                    <input type="text" id="player1" name="player1" placeholder="Enter name" required autocomplete="off">
+                                    <input type="text" id="player1" name="player1" placeholder="Enter name" required="" autocomplete="off" style="">
                                 </div>
                                 <div class="player-input">
                                     <label for="player2">Player 2</label>
-                                    <input type="text" id="player2" name="player2" placeholder="Enter name" required autocomplete="off">
+                                    <input type="text" id="player2" name="player2" placeholder="Enter name" required="" autocomplete="off" style="">
                                 </div>
                                 <div class="player-input optional">
                                     <label for="player3">Player 3 <span class="optional-text">(optional)</span></label>
-                                    <input type="text" id="player3" name="player3" placeholder="Enter name" autocomplete="off">
+                                    <input type="text" id="player3" name="player3" placeholder="Enter name" autocomplete="off" style="">
                                 </div>
                                 <div class="player-input optional">
                                     <label for="player4">Player 4 <span class="optional-text">(optional)</span></label>
-                                    <input type="text" id="player4" name="player4" placeholder="Enter name" autocomplete="off">
+                                    <input type="text" id="player4" name="player4" placeholder="Enter name" autocomplete="off" style="">
                                 </div>
                             </div>
-                            <button type="submit" id="start-game-btn" class="btn-primary btn-large">
-                                <span class="btn-text">Start Game</span>
-                                <span class="btn-icon" aria-hidden="true">→</span>
-                            </button>
+                            <button type="submit" id="start-game-btn" class="btn-primary btn-large">Start Game</button>
                         </form>
                     </div>
                 </div>
@@ -57,7 +52,7 @@
         </div>
 
         <!-- Game Screen -->
-        <div id="game-screen" class="screen game-screen hidden">
+        <div id="game-screen" class="screen game-screen">
             <!-- Simplified Header -->
             <header class="game-header">
                 <span class="game-title">Election</span>
@@ -113,5 +108,5 @@
     <div class="sr-only" aria-live="polite" id="sr-announcements"></div>
 
     <script src="/static/script.js?v=13"></script>
-</body>
-</html> 
+
+ </body></html>

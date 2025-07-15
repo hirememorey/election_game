@@ -13,26 +13,26 @@ test.describe('Election Game - Full Playability', () => {
     await page.getByRole('button', { name: /start game/i }).click();
 
     // Wait for game to start (game starts in Action Phase after automatic Event Phase)
-    await expect(page.getByText(/Action Phase/i)).toBeVisible();
+    await expect(page.locator('#phase-indicator').getByText(/Action Phase/i)).toBeVisible();
 
     // --- Action Phase: Each player takes actions ---
     for (let round = 1; round <= 2; round++) {
       for (const player of ['Alice', 'Bob', 'Charlie']) {
         // Wait for correct player turn
-        await expect(page.getByText(new RegExp(`Current player: ${player}`, 'i'))).toBeVisible();
+        await expect(page.locator('#phase-indicator .player-name').getByText(player)).toBeVisible();
 
         // Try Fundraise
         const fundraiseBtn = page.getByRole('button', { name: /fundraise/i });
         if (await fundraiseBtn.isVisible()) {
           await fundraiseBtn.click();
-          await expect(page.getByText(/gains/i)).toBeVisible();
+          await expect(page.locator('#game-log').getByText(/gains/i)).toBeVisible();
         }
 
         // Try Network
         const networkBtn = page.getByRole('button', { name: /network/i });
         if (await networkBtn.isVisible()) {
           await networkBtn.click();
-          await expect(page.getByText(/network/i)).toBeVisible();
+          await expect(page.locator('#game-log').getByText(/network/i)).toBeVisible();
         }
 
         // Try Sponsor Legislation (only once per round)
@@ -41,7 +41,7 @@ test.describe('Election Game - Full Playability', () => {
           await sponsorBtn.click();
           // Pick first available bill
           await page.getByRole('button', { name: /infrastructure/i }).click();
-          await expect(page.getByText(/sponsored/i)).toBeVisible();
+          await expect(page.locator('#game-log').getByText(/sponsored/i)).toBeVisible();
         }
 
         // Try Support/Oppose (if available)
@@ -51,7 +51,7 @@ test.describe('Election Game - Full Playability', () => {
           await page.getByLabel(/choose legislation/i).selectOption({ index: 1 });
           await page.getByLabel(/PC to Commit/i).fill('3');
           await page.getByRole('button', { name: /secretly support/i }).click();
-          await expect(page.getByText(/secret commitment/i)).toBeVisible();
+          await expect(page.locator('#game-log').getByText(/secret commitment/i)).toBeVisible();
         }
 
         const opposeBtn = page.getByRole('button', { name: /oppose/i });
@@ -60,7 +60,7 @@ test.describe('Election Game - Full Playability', () => {
           await page.getByLabel(/choose legislation/i).selectOption({ index: 1 });
           await page.getByLabel(/PC to Commit/i).fill('2');
           await page.getByRole('button', { name: /secretly oppose/i }).click();
-          await expect(page.getByText(/secret commitment/i)).toBeVisible();
+          await expect(page.locator('#game-log').getByText(/secret commitment/i)).toBeVisible();
         }
 
         // Pass Turn if no actions left
@@ -109,33 +109,33 @@ test.describe('Election Game - Full Playability', () => {
     await page.getByRole('button', { name: /start game/i }).click();
 
     // Wait for game to start (game starts in Action Phase after automatic Event Phase)
-    await expect(page.getByText(/Action Phase/i)).toBeVisible();
+    await expect(page.locator('#phase-indicator').getByText(/Action Phase/i)).toBeVisible();
 
     // Alice sponsors legislation
     await page.getByRole('button', { name: /sponsor legislation/i }).click();
     await page.getByRole('button', { name: /infrastructure/i }).click();
 
     // Bob secretly supports
-    await expect(page.getByText(/Current player: Bob/i)).toBeVisible();
+    await expect(page.locator('#phase-indicator .player-name').getByText('Bob')).toBeVisible();
     await page.getByRole('button', { name: /support/i }).click();
     await page.getByLabel(/choose legislation/i).selectOption({ index: 1 });
     await page.getByLabel(/PC to Commit/i).fill('5');
     await page.getByRole('button', { name: /secretly support/i }).click();
     
     // Check for secret commitment confirmation
-    await expect(page.getByText(/secret commitment/i)).toBeVisible();
-    await expect(page.getByText(/has been registered/i)).toBeVisible();
+    await expect(page.locator('#game-log').getByText(/secret commitment/i)).toBeVisible();
+    await expect(page.locator('#game-log').getByText(/has been registered/i)).toBeVisible();
 
     // Charlie secretly opposes
-    await expect(page.getByText(/Current player: Charlie/i)).toBeVisible();
+    await expect(page.locator('#phase-indicator .player-name').getByText('Charlie')).toBeVisible();
     await page.getByRole('button', { name: /oppose/i }).click();
     await page.getByLabel(/choose legislation/i).selectOption({ index: 1 });
     await page.getByLabel(/PC to Commit/i).fill('3');
     await page.getByRole('button', { name: /secretly oppose/i }).click();
     
     // Check for secret commitment confirmation
-    await expect(page.getByText(/secret commitment/i)).toBeVisible();
-    await expect(page.getByText(/has been registered/i)).toBeVisible();
+    await expect(page.locator('#game-log').getByText(/secret commitment/i)).toBeVisible();
+    await expect(page.locator('#game-log').getByText(/has been registered/i)).toBeVisible();
   });
 
   test('Game never gets stuck when players have no valid actions', async ({ page }) => {
@@ -147,13 +147,13 @@ test.describe('Election Game - Full Playability', () => {
     await page.getByRole('button', { name: /start game/i }).click();
 
     // Wait for game to start (game starts in Action Phase after automatic Event Phase)
-    await expect(page.getByText(/Action Phase/i)).toBeVisible();
+    await expect(page.locator('#phase-indicator').getByText(/Action Phase/i)).toBeVisible();
 
     // Simulate several rounds where players might have no actions
     for (let round = 1; round <= 3; round++) {
       for (const player of ['Alice', 'Bob']) {
         // Wait for player turn
-        await expect(page.getByText(new RegExp(`Current player: ${player}`, 'i'))).toBeVisible();
+        await expect(page.locator('#phase-indicator .player-name').getByText(player)).toBeVisible();
 
         // Try to take any available action
         const availableActions = [
@@ -178,8 +178,8 @@ test.describe('Election Game - Full Playability', () => {
         if (!actionTaken) {
           // Wait a bit and check if the game has advanced
           await page.waitForTimeout(2000);
-          const currentPlayerText = await page.textContent('body');
-          expect(currentPlayerText).not.toContain(`Current player: ${player}`);
+          const currentPlayerName = await page.locator('#phase-indicator .player-name').textContent();
+          expect(currentPlayerName).not.toBe(player);
         }
       }
     }
@@ -194,7 +194,7 @@ test.describe('Election Game - Full Playability', () => {
     await page.getByRole('button', { name: /start game/i }).click();
 
     // Wait for game to start (game starts in Action Phase after automatic Event Phase)
-    await expect(page.getByText(/Action Phase/i)).toBeVisible();
+    await expect(page.locator('#phase-indicator').getByText(/Action Phase/i)).toBeVisible();
 
     // Try to take action with insufficient PC
     await page.getByRole('button', { name: /sponsor legislation/i }).click();

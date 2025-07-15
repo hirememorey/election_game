@@ -166,14 +166,23 @@ def get_game_state(game_id):
     state = active_games[game_id]
     
     # Check if all players have 0 AP and automatically advance (loop until not stuck)
+    # ADDED: Safety break to prevent infinite loops
+    max_advances = len(state.players) + 2 
+    advances = 0
     while (state.current_phase == 'ACTION_PHASE' and 
            all(ap == 0 for ap in state.action_points.values())):
+        if advances >= max_advances:
+            print("[ERROR] Stuck in auto-advance loop, breaking.")
+            break # Prevent infinite loop
+            
         dummy_action = ActionPassTurn(player_id=state.current_player_index)
         try:
             new_state = engine.process_action(state, dummy_action)
             active_games[game_id] = new_state
             state = new_state
+            advances += 1
         except Exception as e:
+            print(f"[ERROR] Auto-advance failed: {e}")
             break  # Stop if advancement fails
     
     return jsonify({
