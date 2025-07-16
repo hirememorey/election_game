@@ -118,8 +118,9 @@ See `DEPLOYMENT.md` for detailed instructions on:
 - `script.js` → `/static/script.js`
 
 ### API Port Mismatch (RESOLVED)
-**Problem**: Frontend trying to connect to port 5000, server on 5001  
-**Solution**: Updated `API_BASE_URL` in `static/script.js` to use port 5001
+**Problem**: Frontend trying to connect to port 5000, server on 5001
+
+**Solution**: For local development, always use port 5001 for the backend server. Port 5000 is reserved by macOS AirPlay Receiver.
 
 ## 🎯 Next Steps
 

@@ -366,7 +366,7 @@ PORT=5001 python3 server.py
 - **Cache Busting**: Version parameters force browser cache updates
 
 ### Development Environment Notes
-- **Port Conflicts**: macOS AirPlay uses port 5000, so we use 5001
+- **Port Conflicts**: macOS AirPlay uses port 5000, so we use 5001 for local development. Production/Render uses the PORT env variable.
 - **Dependencies**: Minimal - just Flask and flask-cors
 - **Python Version**: Tested with Python 3.8+
 - **Browser Testing**: Chrome/Firefox recommended

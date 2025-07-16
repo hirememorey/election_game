@@ -492,7 +492,7 @@ git clone <repository>
 cd election
 pip install -r requirements.txt
 
-# Start server (note: port 5000 may be in use by macOS AirPlay)
+# Start server (note: port 5001 is recommended for local dev; port 5000 may be in use by macOS AirPlay)
 ./start_server.sh
 # or manually specify port
 PORT=5001 python3 server.py
@@ -501,7 +501,7 @@ PORT=5001 python3 server.py
 ```
 
 ### Development Environment Notes
-- **Port Conflicts**: macOS AirPlay Receiver uses port 5000 by default. Use port 5001 or disable AirPlay in System Preferences
+- **Port Conflicts**: macOS AirPlay Receiver uses port 5000 by default. Use port 5001 for local dev or disable AirPlay in System Preferences
 - **Dependencies**: Minimal - just Flask and flask-cors (see requirements.txt)
 - **Python Version**: Tested with Python 3.8+
 - **Browser Testing**: Chrome/Firefox recommended for development
@@ -667,7 +667,7 @@ PORT=5001 python3 server.py
 - **Frontend Implementation**: Action Points UI needs completion (see `FRONTEND_IMPLEMENTATION_GUIDE.md`)
 
 ### Potential Issues to Watch
-- **Port Conflicts**: macOS AirPlay can block port 5000
+- **Port Conflicts**: macOS AirPlay can block port 5000. Use port 5001 for local dev.
 - **Browser Compatibility**: Tested primarily on Chrome/Firefox
 - **Mobile Performance**: Large game states may impact mobile devices
 - **Concurrent Games**: Multiple simultaneous games may impact performance

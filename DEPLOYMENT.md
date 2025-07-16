@@ -17,7 +17,7 @@ This guide will help you deploy your game so it can be played on iPhone via a we
 3. **Access on iPhone:**
    - Make sure your iPhone and computer are on the same WiFi network
    - Find your computer's local IP address (e.g., 192.168.1.100)
-   - On your iPhone, open Safari and go to: `http://192.168.1.100:5000`
+   - On your iPhone, open Safari and go to: `http://192.168.1.100:5001`
 
 ## Option 2: Deploy to Render (Recommended for Production)
 
@@ -42,7 +42,7 @@ This guide will help you deploy your game so it can be played on iPhone via a we
 4. **Update server.py for Production:**
    ```python
    if __name__ == '__main__':
-       port = int(os.environ.get('PORT', 5000))
+       port = int(os.environ.get('PORT', 5001))
        app.run(host='0.0.0.0', port=port)
    ```
 

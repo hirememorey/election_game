@@ -165,25 +165,9 @@ def get_game_state(game_id):
     
     state = active_games[game_id]
     
-    # Check if all players have 0 AP and automatically advance (loop until not stuck)
-    # ADDED: Safety break to prevent infinite loops
-    max_advances = len(state.players) + 2 
-    advances = 0
-    while (state.current_phase == 'ACTION_PHASE' and 
-           all(ap == 0 for ap in state.action_points.values())):
-        if advances >= max_advances:
-            print("[ERROR] Stuck in auto-advance loop, breaking.")
-            break # Prevent infinite loop
-            
-        dummy_action = ActionPassTurn(player_id=state.current_player_index)
-        try:
-            new_state = engine.process_action(state, dummy_action)
-            active_games[game_id] = new_state
-            state = new_state
-            advances += 1
-        except Exception as e:
-            print(f"[ERROR] Auto-advance failed: {e}")
-            break  # Stop if advancement fails
+    # DISABLED: Auto-advancement to prevent legislation session from being automatically resolved
+    # Let the frontend handle phase transitions manually
+    pass
     
     return jsonify({
         'game_id': game_id,
@@ -415,6 +399,7 @@ def index():
     return send_from_directory('static', 'index.html')
 
 if __name__ == '__main__':
-    port = int(os.environ.get('PORT', 5000))
+    # Use port 5001 by default for local dev, but allow override for Render
+    port = int(os.environ.get('PORT', 5001))
     debug = os.environ.get('FLASK_ENV') == 'development'
     app.run(debug=debug, host='0.0.0.0', port=port) 
