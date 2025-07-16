@@ -1,100 +1,42 @@
 import { test, expect } from '@playwright/test';
+import { 
+  getCurrentPlayerInfo, 
+  isActionValid, 
+  waitForPlayerChange, 
+  performValidAction, 
+  createNewGame,
+  handleSponsorLegislationModal,
+  handleLegislationCommitmentModal
+} from './test-utils';
 
 test.describe('Election Game - Full Playability', () => {
+
   test('Full game flow is playable and never gets stuck', async ({ page }) => {
-    // Visit the game
-    await page.goto('http://localhost:5001');
-
-    // --- Game Creation ---
-    // Fill in player names directly (no "Create Game" button)
-    await page.getByLabel('Player 1').fill('Alice');
-    await page.getByLabel('Player 2').fill('Bob');
-    await page.getByLabel('Player 3').fill('Charlie');
-    await page.getByRole('button', { name: /start game/i }).click();
-
-    // Wait for game to start (game starts in Action Phase after automatic Event Phase)
-    await expect(page.locator('#phase-indicator').getByText(/Action Phase/i)).toBeVisible();
+    // Create new game
+    await createNewGame(page);
 
     // --- Action Phase: Each player takes actions ---
     for (let round = 1; round <= 2; round++) {
-      for (const player of ['Alice', 'Bob', 'Charlie']) {
-        // Wait for correct player turn
-        await expect(page.locator('#phase-indicator .player-name').getByText(player)).toBeVisible();
-
-        // Try Fundraise
-        const fundraiseBtn = page.getByRole('button', { name: /fundraise/i });
-        if (await fundraiseBtn.isVisible()) {
-          await fundraiseBtn.click();
-          await expect(page.locator('#game-log').getByText(/takes the Fundraise action and gains/i)).toBeVisible();
-        }
-
-        // Try Network
-        const networkBtn = page.getByRole('button', { name: /network/i });
-        if (await networkBtn.isVisible()) {
-          await networkBtn.click();
-          await expect(page.locator('#game-log').getByText(/network/i)).toBeVisible();
-        }
-
-        // Try Sponsor Legislation (only once per round)
-        const sponsorBtn = page.getByRole('button', { name: /sponsor legislation/i });
-        if (await sponsorBtn.isVisible()) {
-          await sponsorBtn.click();
-          // Wait for modal
-          await expect(page.getByText('Choose legislation to sponsor:')).toBeVisible();
-
-          // Parse available PC from the phase indicator
-          const phaseText = await page.locator('#phase-indicator').textContent();
-          const pcMatch = phaseText && phaseText.match(/PC: (\d+)/);
-          const availablePC = pcMatch ? parseInt(pcMatch[1], 10) : 0;
-
-          // Find all sponsorable bills and their costs
-          const billButtons = await page.locator('.action-btn').all();
-          let clicked = false;
-          for (const btn of billButtons) {
-            const text = await btn.textContent();
-            const costMatch = text && text.match(/Cost: (\d+) PC/);
-            if (costMatch) {
-              const cost = parseInt(costMatch[1], 10);
-              if (availablePC >= cost) {
-                await btn.click();
-                clicked = true;
-                break;
-              }
-            }
-          }
-          if (clicked) {
-            await expect(page.locator('#game-log').getByText(/sponsored/i)).toBeVisible();
-          } else {
-            // Close modal if nothing affordable
-            await page.keyboard.press('Escape');
-          }
-        }
-
-        // Try Support/Oppose (if available)
-        const supportBtn = page.getByRole('button', { name: /support/i });
-        if (await supportBtn.isVisible()) {
-          await supportBtn.click();
-          await page.getByLabel(/choose legislation/i).selectOption({ index: 1 });
-          await page.getByLabel(/PC to Commit/i).fill('3');
-          await page.getByRole('button', { name: /secretly support/i }).click();
-          await expect(page.locator('#game-log').getByText(/secret commitment/i)).toBeVisible();
-        }
-
-        const opposeBtn = page.getByRole('button', { name: /oppose/i });
-        if (await opposeBtn.isVisible()) {
-          await opposeBtn.click();
-          await page.getByLabel(/choose legislation/i).selectOption({ index: 1 });
-          await page.getByLabel(/PC to Commit/i).fill('2');
-          await page.getByRole('button', { name: /secretly oppose/i }).click();
-          await expect(page.locator('#game-log').getByText(/secret commitment/i)).toBeVisible();
-        }
-
-        // Pass Turn if no actions left
-        const passBtn = page.getByRole('button', { name: /pass turn/i });
-        if (await passBtn.isVisible()) {
-          await passBtn.click();
-        }
-      }
+      console.log(`\n=== Starting Round ${round} ===`);
+      
+      // Alice's turn
+      await waitForPlayerChange(page, 'Alice');
+      await performValidAction(page, 'fundraise', 1);
+      await performValidAction(page, 'network', 1);
+      
+      // Bob's turn
+      await waitForPlayerChange(page, 'Bob');
+      await performValidAction(page, 'sponsor legislation', 2);
+      
+      // Handle sponsor legislation modal if it appears
+      await handleSponsorLegislationModal(page);
+      
+      // Charlie's turn
+      await waitForPlayerChange(page, 'Charlie');
+      await performValidAction(page, 'pass turn', 0);
+      
+      // Back to Alice
+      await waitForPlayerChange(page, 'Alice');
     }
 
     // --- End of Term: Legislation Session ---
@@ -127,37 +69,33 @@ test.describe('Election Game - Full Playability', () => {
   });
 
   test('Secret commitment system works correctly', async ({ page }) => {
-    await page.goto('http://localhost:5001');
-
-    // Create game
-    await page.getByLabel('Player 1').fill('Alice');
-    await page.getByLabel('Player 2').fill('Bob');
-    await page.getByRole('button', { name: /start game/i }).click();
-
-    // Wait for game to start (game starts in Action Phase after automatic Event Phase)
-    await expect(page.locator('#phase-indicator').getByText(/Action Phase/i)).toBeVisible();
+    // Create new game
+    await createNewGame(page);
 
     // Alice sponsors legislation
-    await page.getByRole('button', { name: /sponsor legislation/i }).click();
-    await page.getByRole('button', { name: /infrastructure/i }).click();
+    await waitForPlayerChange(page, 'Alice');
+    await performValidAction(page, 'sponsor legislation', 2);
+    
+    // Handle sponsor legislation modal
+    await handleSponsorLegislationModal(page);
 
     // Bob secretly supports
-    await expect(page.locator('#phase-indicator .player-name').getByText('Bob')).toBeVisible();
-    await page.getByRole('button', { name: /support/i }).click();
-    await page.getByLabel(/choose legislation/i).selectOption({ index: 1 });
-    await page.getByLabel(/PC to Commit/i).fill('5');
-    await page.getByRole('button', { name: /secretly support/i }).click();
+    await waitForPlayerChange(page, 'Bob');
+    await performValidAction(page, 'support', 1, 5);
+    
+    // Handle support modal
+    await handleLegislationCommitmentModal(page, 'support', 5);
     
     // Check for secret commitment confirmation
     await expect(page.locator('#game-log').getByText(/secret commitment/i)).toBeVisible();
     await expect(page.locator('#game-log').getByText(/has been registered/i)).toBeVisible();
 
     // Charlie secretly opposes
-    await expect(page.locator('#phase-indicator .player-name').getByText('Charlie')).toBeVisible();
-    await page.getByRole('button', { name: /oppose/i }).click();
-    await page.getByLabel(/choose legislation/i).selectOption({ index: 1 });
-    await page.getByLabel(/PC to Commit/i).fill('3');
-    await page.getByRole('button', { name: /secretly oppose/i }).click();
+    await waitForPlayerChange(page, 'Charlie');
+    await performValidAction(page, 'oppose', 1, 3);
+    
+    // Handle oppose modal
+    await handleLegislationCommitmentModal(page, 'oppose', 3);
     
     // Check for secret commitment confirmation
     await expect(page.locator('#game-log').getByText(/secret commitment/i)).toBeVisible();
@@ -165,36 +103,35 @@ test.describe('Election Game - Full Playability', () => {
   });
 
   test('Game never gets stuck when players have no valid actions', async ({ page }) => {
-    await page.goto('http://localhost:5001');
-
-    // Create game
-    await page.getByLabel('Player 1').fill('Alice');
-    await page.getByLabel('Player 2').fill('Bob');
-    await page.getByRole('button', { name: /start game/i }).click();
-
-    // Wait for game to start (game starts in Action Phase after automatic Event Phase)
-    await expect(page.locator('#phase-indicator').getByText(/Action Phase/i)).toBeVisible();
+    // Create new game
+    await createNewGame(page);
 
     // Simulate several rounds where players might have no actions
     for (let round = 1; round <= 3; round++) {
+      console.log(`\n=== Round ${round} - Testing no valid actions scenario ===`);
+      
       for (const player of ['Alice', 'Bob']) {
         // Wait for player turn
-        await expect(page.locator('#phase-indicator .player-name').getByText(player)).toBeVisible();
+        await waitForPlayerChange(page, player);
+        
+        // Get current state
+        const { ap, pc } = await getCurrentPlayerInfo(page);
+        console.log(`${player} has ${ap} AP and ${pc} PC`);
 
         // Try to take any available action
         const availableActions = [
-          page.getByRole('button', { name: /fundraise/i }),
-          page.getByRole('button', { name: /network/i }),
-          page.getByRole('button', { name: /sponsor legislation/i }),
-          page.getByRole('button', { name: /support/i }),
-          page.getByRole('button', { name: /oppose/i }),
-          page.getByRole('button', { name: /pass turn/i })
+          { name: 'fundraise', ap: 1, pc: 0 },
+          { name: 'network', ap: 1, pc: 0 },
+          { name: 'sponsor legislation', ap: 2, pc: 0 },
+          { name: 'support', ap: 1, pc: 3 },
+          { name: 'oppose', ap: 1, pc: 2 },
+          { name: 'pass turn', ap: 0, pc: 0 }
         ];
 
         let actionTaken = false;
         for (const action of availableActions) {
-          if (await action.isVisible()) {
-            await action.click();
+          if (await isActionValid(page, action.name, action.ap, action.pc)) {
+            await performValidAction(page, action.name, action.ap, action.pc);
             actionTaken = true;
             break;
           }
@@ -202,38 +139,37 @@ test.describe('Election Game - Full Playability', () => {
 
         // If no action was taken, the game should still advance
         if (!actionTaken) {
+          console.log(`❌ No valid actions for ${player}, waiting for turn to advance...`);
           // Wait a bit and check if the game has advanced
           await page.waitForTimeout(2000);
           const currentPlayerName = await page.locator('#phase-indicator .player-name').textContent();
           expect(currentPlayerName).not.toBe(player);
+          console.log(`✅ Turn advanced from ${player} to ${currentPlayerName}`);
         }
       }
     }
   });
 
   test('Error handling works correctly', async ({ page }) => {
-    await page.goto('http://localhost:5001');
-
-    // Create game
-    await page.getByLabel('Player 1').fill('Alice');
-    await page.getByLabel('Player 2').fill('Bob');
-    await page.getByRole('button', { name: /start game/i }).click();
-
-    // Wait for game to start (game starts in Action Phase after automatic Event Phase)
-    await expect(page.locator('#phase-indicator').getByText(/Action Phase/i)).toBeVisible();
+    // Create new game
+    await createNewGame(page);
 
     // Try to take action with insufficient PC
-    await page.getByRole('button', { name: /sponsor legislation/i }).click();
-    await page.getByRole('button', { name: /infrastructure/i }).click();
+    await waitForPlayerChange(page, 'Alice');
+    await performValidAction(page, 'sponsor legislation', 2);
+    
+    // Handle sponsor legislation modal
+    await handleSponsorLegislationModal(page);
     
     // Check for error message
     await expect(page.getByText(/not enough/i)).toBeVisible();
 
     // Try to support legislation with insufficient PC
-    await page.getByRole('button', { name: /support/i }).click();
-    await page.getByLabel(/choose legislation/i).selectOption({ index: 1 });
-    await page.getByLabel(/PC to Commit/i).fill('999'); // More PC than player has
-    await page.getByRole('button', { name: /secretly support/i }).click();
+    await waitForPlayerChange(page, 'Bob');
+    await performValidAction(page, 'support', 1, 999);
+    
+    // Handle support modal
+    await handleLegislationCommitmentModal(page, 'support', 999);
     
     // Check for error message
     await expect(page.getByText(/not enough/i)).toBeVisible();

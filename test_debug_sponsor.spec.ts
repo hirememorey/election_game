@@ -1,31 +1,34 @@
 import { test, expect } from '@playwright/test';
+import { 
+  getCurrentPlayerInfo, 
+  performValidAction, 
+  createNewGame 
+} from './tests/test-utils';
 
 test('Debug sponsor legislation flow', async ({ page }) => {
-  await page.goto('http://localhost:5001');
+  // Create new game
+  await createNewGame(page);
 
-  // Create game
-  await page.getByLabel('Player 1').fill('Alice');
-  await page.getByLabel('Player 2').fill('Bob');
-  await page.getByLabel('Player 3').fill('Charlie');
-  await page.getByRole('button', { name: /start game/i }).click();
-
-  // Wait for game to start
-  await expect(page.locator('#phase-indicator').getByText(/Action Phase/i)).toBeVisible();
-
-  // Check current player
-  const currentPlayer = await page.locator('#phase-indicator .player-name').textContent();
+  // Check current player and state
+  console.log('=== Initial State ===');
+  const { playerName: currentPlayer, ap: currentAP, pc: currentPC } = await getCurrentPlayerInfo(page);
   console.log('Current player:', currentPlayer);
+  console.log('Current AP:', currentAP);
+  console.log('Current PC:', currentPC);
 
   // Wait a bit and check again
   await page.waitForTimeout(2000);
-  const currentPlayer2 = await page.locator('#phase-indicator .player-name').textContent();
+  const { playerName: currentPlayer2, ap: currentAP2, pc: currentPC2 } = await getCurrentPlayerInfo(page);
   console.log('Current player after 2s:', currentPlayer2);
+  console.log('Current AP after 2s:', currentAP2);
+  console.log('Current PC after 2s:', currentPC2);
 
-  // Try to sponsor legislation
-  const sponsorBtn = page.getByRole('button', { name: /sponsor legislation/i });
-  if (await sponsorBtn.isVisible()) {
-    console.log('Sponsor button is visible');
-    await sponsorBtn.click();
+  // Try to sponsor legislation with validation
+  console.log('=== Attempting Sponsor Legislation ===');
+  const sponsorSuccess = await performValidAction(page, 'sponsor legislation', 2);
+  
+  if (sponsorSuccess) {
+    console.log('✅ Sponsor legislation action was successful');
     
     // Wait for modal
     await expect(page.getByText('Choose legislation to sponsor:')).toBeVisible();
@@ -47,6 +50,6 @@ test('Debug sponsor legislation flow', async ({ page }) => {
       console.log('❌ "sponsored" not found in log');
     }
   } else {
-    console.log('Sponsor button not visible');
+    console.log('❌ Sponsor legislation action was not available or failed');
   }
 }); 

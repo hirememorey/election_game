@@ -303,11 +303,22 @@ function updateQuickAccessContent() {
 
 // Ensure log updates after every phase/action
 function updatePhaseUI() {
+    console.log('[updatePhaseUI] Starting updatePhaseUI');
+    console.log('[updatePhaseUI] gameState exists:', !!gameState);
+    console.log('[updatePhaseUI] phaseIndicator exists:', !!phaseIndicator);
+    
+    if (gameState) {
+        console.log('[updatePhaseUI] Current player index:', gameState.current_player_index);
+        console.log('[updatePhaseUI] Current player name:', gameState.players[gameState.current_player_index].name);
+    }
+    
     updatePhaseDisplay();
     updateGameLog();
     updateActionArea();
     updatePrimaryActions();
     updateQuickAccessContent();
+    
+    console.log('[updatePhaseUI] Completed updatePhaseUI');
 }
 
 // Ensure quick access panel opens on swipe/click
@@ -344,6 +355,51 @@ function setupQuickAccessPanel() {
     }
 }
 
+function setupMobileQuickActions() {
+    const mobileQuickActions = document.getElementById('mobile-quick-actions');
+    const closeQuickActions = document.querySelector('.close-quick-actions');
+    const quickActionBtns = document.querySelectorAll('.quick-action-btn');
+    
+    if (closeQuickActions) {
+        closeQuickActions.addEventListener('click', () => {
+            mobileQuickActions.classList.remove('show');
+        });
+    }
+    
+    quickActionBtns.forEach(btn => {
+        btn.addEventListener('click', () => {
+            const action = btn.dataset.action;
+            handleQuickAction(action);
+        });
+    });
+    
+    // Show quick actions panel on mobile after a short delay
+    if (isMobileDevice()) {
+        setTimeout(() => {
+            mobileQuickActions.classList.add('show');
+        }, 1000);
+    }
+}
+
+function handleQuickAction(action) {
+    switch (action) {
+        case 'fundraise':
+            performAction('fundraise');
+            break;
+        case 'network':
+            performAction('network');
+            break;
+        case 'sponsor_legislation':
+            showLegislationMenu();
+            break;
+        case 'pass_turn':
+            passTurn();
+            break;
+        default:
+            console.log('Unknown quick action:', action);
+    }
+}
+
 // Initialize everything when DOM is loaded
 window.addEventListener('DOMContentLoaded', function() {
     console.log('DOM loaded, initializing...');
@@ -351,6 +407,7 @@ window.addEventListener('DOMContentLoaded', function() {
     setupEventListeners();
     setupMenuDropdown();
     setupQuickAccessPanel();
+    setupMobileQuickActions();
     console.log('Initialization complete');
 });
 
@@ -439,10 +496,11 @@ async function getGameState() {
     if (!gameId) return;
     try {
         const result = await apiCall(`/game/${gameId}`);
+        
         if (result && result.state) {
             gameState = result.state;
-            console.log('[getGameState] Updated game state - current player index:', gameState.current_player_index);
             console.log('[getGameState] Updated game state - current player name:', gameState.players[gameState.current_player_index].name);
+            
             updatePhaseUI();
         } else {
             console.error('[getGameState] No valid result from API');
@@ -469,17 +527,32 @@ async function performAction(actionType, additionalData = {}) {
         };
         
         console.log('Performing action:', actionType, 'with data:', data);
+        console.log('Current player before action:', gameState.players[gameState.current_player_index].name);
+        console.log('Current player index before action:', gameState.current_player_index);
+        
         const result = await apiCall(`/game/${gameId}/action`, 'POST', data);
         console.log('Action result:', result);
         
         if (result && result.state) {
+            const oldPlayerIndex = gameState.current_player_index;
+            const oldPlayerName = gameState.players[gameState.current_player_index].name;
+            
             gameState = result.state;
             console.log('Updated game state - current player index:', gameState.current_player_index);
             console.log('Updated game state - current player name:', gameState.players[gameState.current_player_index].name);
-            console.log('Updated game state PC:', gameState.players[gameState.current_player_index].pc);
+            console.log('Updated game state PC:', gameState.players[gameState.current_player_index].name);
+            
+            // Check if the player actually changed
+            if (gameState.current_player_index !== oldPlayerIndex) {
+                console.log(`✅ Player changed from ${oldPlayerName} (${oldPlayerIndex}) to ${gameState.players[gameState.current_player_index].name} (${gameState.current_player_index})`);
+            } else {
+                console.log(`❌ Player did not change: still ${gameState.players[gameState.current_player_index].name} (${gameState.current_player_index})`);
+            }
+            
+            // Show mobile next steps indicator
+            showMobileNextSteps(actionType, gameState.players[gameState.current_player_index]);
+            
             updatePhaseUI();
-            // Always fetch the latest state from the backend to ensure sync
-            await getGameState();
         } else {
             console.error('No valid result from action');
         }
@@ -563,17 +636,32 @@ function updatePendingLegislationDisplay() {
 }
 
 function updatePhaseDisplay() {
-    if (!gameState) return;
+    if (!gameState) {
+        console.log('[updatePhaseDisplay] No game state available');
+        return;
+    }
+    
+    if (!phaseIndicator) {
+        console.log('[updatePhaseDisplay] phaseIndicator element not found');
+        return;
+    }
+    
     const currentPlayer = gameState.players[gameState.current_player_index];
     console.log('[updatePhaseDisplay] Showing player:', currentPlayer.name, 'at index', gameState.current_player_index);
+    
     const phase = gameState.current_phase;
     const round = gameState.round_marker;
     const ap = gameState.action_points[currentPlayer.id.toString()] || 0;
     const phaseTitle = getPhaseTitle(phase);
     const phaseSubtitle = getPhaseSubtitle(phase, round);
-    phaseIndicator.innerHTML = `
+    
+    // Add mobile-specific phase progress indicator
+    const phaseProgress = isMobileDevice() ? getPhaseProgressHTML(phase, round) : '';
+    
+    const newHTML = `
         <div class="phase-title">${phaseTitle}</div>
         <div class="phase-subtitle">${phaseSubtitle}</div>
+        ${phaseProgress}
         <div class="player-turn">
             <div class="player-avatar">${getPlayerAvatar(currentPlayer)}</div>
             <div class="player-info">
@@ -586,6 +674,52 @@ function updatePhaseDisplay() {
             <span>${ap} AP</span>
         </div>
     `;
+    
+    console.log('[updatePhaseDisplay] Setting new HTML:', newHTML);
+    phaseIndicator.innerHTML = newHTML;
+    
+    // Verify the update worked
+    const playerNameElement = phaseIndicator.querySelector('.player-name');
+    if (playerNameElement) {
+        console.log('[updatePhaseDisplay] Player name element after update:', playerNameElement.textContent);
+    } else {
+        console.log('[updatePhaseDisplay] Player name element not found after update');
+    }
+}
+
+function getPhaseProgressHTML(phase, round) {
+    if (phase === 'ACTION_PHASE') {
+        const roundsUntilLegislation = 5 - round;
+        const progressPercentage = (round / 4) * 100;
+        
+        return `
+            <div class="phase-progress">
+                <div class="progress-bar">
+                    <div class="progress-fill" style="width: ${progressPercentage}%"></div>
+                </div>
+                <div class="progress-text">
+                    ${roundsUntilLegislation} rounds until Legislation Phase
+                </div>
+            </div>
+        `;
+    } else if (phase === 'LEGISLATION_PHASE') {
+        return `
+            <div class="phase-progress">
+                <div class="progress-text">
+                    🗳️ Legislation voting in progress
+                </div>
+            </div>
+        `;
+    } else if (phase === 'ELECTION_PHASE') {
+        return `
+            <div class="phase-progress">
+                <div class="progress-text">
+                    🏛️ Elections being held
+                </div>
+            </div>
+        `;
+    }
+    return '';
 }
 
 function getPhaseTitle(phase) {
@@ -1071,7 +1205,15 @@ async function runEventPhase() {
 }
 
 async function passTurn() {
+    console.log('[passTurn] Starting pass turn action');
+    console.log('[passTurn] Current player before pass:', gameState.players[gameState.current_player_index].name);
+    console.log('[passTurn] Current player index before pass:', gameState.current_player_index);
+    
     await performAction('pass_turn');
+    
+    console.log('[passTurn] After performAction call');
+    console.log('[passTurn] Current player after pass:', gameState.players[gameState.current_player_index].name);
+    console.log('[passTurn] Current player index after pass:', gameState.current_player_index);
 }
 
 async function resolveLegislation() {
@@ -1447,7 +1589,24 @@ async function handleTargetFavorAction(favorId) {
 
 async function sponsorLegislation(legislationId) {
     closeModal();
+    
+    // Get legislation data for immediate feedback
+    const legislationData = gameState.legislation_options[legislationId];
+    
     await performAction('sponsor_legislation', { legislation_id: legislationId });
+    
+    // Show immediate feedback for mobile users
+    if (isMobileDevice() && legislationData) {
+        showMessage(`
+            📜 Legislation Sponsored Successfully!
+            
+            ${legislationData.title}
+            Cost: ${legislationData.cost} PC
+            Success Target: ${legislationData.success_target}+ PC
+            
+            Other players can now support or oppose this legislation.
+        `, 'success');
+    }
 }
 
 async function handleCampaignAction() {
@@ -1596,6 +1755,75 @@ function showMessage(message, type = 'success') {
     }, 3000);
 }
 
+// Mobile-specific next steps indicator
+function showMobileNextSteps(actionType, currentPlayer) {
+    if (!isMobileDevice()) return;
+    
+    const nextStepsMessages = {
+        'sponsor_legislation': `
+            📜 Legislation Sponsored!
+            
+            Next Steps:
+            • Other players can now support/oppose
+            • Legislation will be resolved in Legislation Phase
+            • Continue with your remaining actions
+        `,
+        'support_legislation': `
+            🤫 Secret Support Registered!
+            
+            Next Steps:
+            • Your stance is hidden until reveal
+            • Other players can continue voting
+            • Wait for Legislation Phase resolution
+        `,
+        'oppose_legislation': `
+            🤫 Secret Opposition Registered!
+            
+            Next Steps:
+            • Your stance is hidden until reveal
+            • Other players can continue voting
+            • Wait for Legislation Phase resolution
+        `,
+        'fundraise': `
+            💰 Fundraising Complete!
+            
+            Next Steps:
+            • You gained PC from fundraising
+            • Use your remaining AP for other actions
+            • Consider networking or sponsoring legislation
+        `,
+        'network': `
+            🤝 Networking Complete!
+            
+            Next Steps:
+            • You gained influence and favors
+            • Use your remaining AP for other actions
+            • Consider sponsoring legislation or campaigning
+        `,
+        'campaign': `
+            🏛️ Campaign Launched!
+            
+            Next Steps:
+            • You committed PC to the election
+            • Elections will be resolved at end of term
+            • Continue with your remaining actions
+        `,
+        'declare_candidacy': `
+            🎭 Candidacy Declared!
+            
+            Next Steps:
+            • You're now running for office
+            • Elections will be resolved at end of term
+            • Continue with your remaining actions
+        `
+    };
+    
+    const message = nextStepsMessages[actionType];
+    if (message) {
+        showMessage(message, 'info');
+    }
+}
+
 function getMessageIcon(type) {
     const icons = {
         success: '✅',
@@ -1612,6 +1840,7 @@ document.addEventListener('DOMContentLoaded', () => {
     setupEventListeners();
     setupMenuDropdown();
     setupQuickAccessPanel();
+    setupMobileQuickActions();
 });
 
 function displayResolutionControls() {
