@@ -54,7 +54,6 @@ class GameState:
     # State trackers for a single term/round
     turn_log: List[str] = field(default_factory=list)
     secret_candidacies: List[Candidacy] = field(default_factory=list)
-    campaign_influences: List[CampaignInfluence] = field(default_factory=list)  # Campaign influence for future elections
     
     # New: Track pending legislation and candidacy timing
     pending_legislation: Optional[PendingLegislation] = None
@@ -83,6 +82,8 @@ class GameState:
     # --- NEW: Manual phase resolution flags ---
     awaiting_legislation_resolution: bool = False
     awaiting_election_resolution: bool = False
+    awaiting_results_acknowledgement: bool = False
+    last_election_results: Optional[dict] = None
 
     def get_current_player(self) -> Player:
         """Returns the player whose turn it is."""

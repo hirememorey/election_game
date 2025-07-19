@@ -3,7 +3,7 @@ from flask_cors import CORS
 import json
 from engine.engine import GameEngine
 from game_data import load_game_data
-from engine.actions import ActionFundraise, ActionNetwork, ActionSponsorLegislation, ActionDeclareCandidacy, ActionUseFavor, ActionSupportLegislation, ActionOpposeLegislation, ActionProposeTrade, ActionAcceptTrade, ActionDeclineTrade, ActionCompleteTrading, ActionCampaign, ActionPassTurn
+from engine.actions import ActionFundraise, ActionNetwork, ActionSponsorLegislation, ActionDeclareCandidacy, ActionUseFavor, ActionSupportLegislation, ActionOpposeLegislation, ActionProposeTrade, ActionAcceptTrade, ActionDeclineTrade, ActionCompleteTrading, ActionPassTurn
 import uuid
 import os
 
@@ -118,13 +118,6 @@ def serialize_game_state(state):
         ],
         # Removed: 'legislation_session_active', 'current_trade_phase', 'active_trade_offers', 'trade_offers'
         'action_points': state.action_points,
-        'campaign_influences': [
-            {
-                'player_id': influence.player_id,
-                'office_id': influence.office_id,
-                'influence_amount': influence.influence_amount
-            } for influence in state.campaign_influences
-        ],
         # Negative favor effects
         'political_debts': state.political_debts,
         'hot_potato_holder': state.hot_potato_holder,
@@ -134,6 +127,8 @@ def serialize_game_state(state):
         # --- NEW: Manual phase resolution flags ---
         'awaiting_legislation_resolution': state.awaiting_legislation_resolution,
         'awaiting_election_resolution': state.awaiting_election_resolution,
+        'awaiting_results_acknowledgement': state.awaiting_results_acknowledgement,
+        'last_election_results': state.last_election_results
     }
 
 @app.route('/api/game', methods=['POST'])
@@ -304,10 +299,6 @@ def process_action(game_id):
         action = ActionDeclineTrade(player_id=player_id, trade_offer_id=trade_offer_id)
     elif action_type == 'complete_trading':
         action = ActionCompleteTrading(player_id=player_id)
-    elif action_type == 'campaign':
-        office_id = data.get('office_id')
-        influence_amount = data.get('influence_amount')
-        action = ActionCampaign(player_id=player_id, office_id=office_id, influence_amount=influence_amount)
     elif action_type == 'pass_turn':
         action = ActionPassTurn(player_id=player_id)
     else:
@@ -375,6 +366,28 @@ def resolve_elections(game_id):
         return jsonify({'error': 'Game not found'}), 404
     state = active_games[game_id]
     new_state = engine.resolve_elections_session(state)
+    active_games[game_id] = new_state
+    return jsonify({
+        'game_id': game_id,
+        'state': serialize_game_state(new_state)
+    })
+
+@app.route('/api/game/<game_id>/acknowledge_results', methods=['POST'])
+def acknowledge_results(game_id):
+    """Acknowledge the results of an election or legislation to proceed."""
+    if game_id not in active_games:
+        return jsonify({'error': 'Game not found'}), 404
+    
+    state = active_games[game_id]
+    
+    if not state.awaiting_results_acknowledgement:
+        return jsonify({'error': 'No results to acknowledge.'}), 400
+        
+    state.awaiting_results_acknowledgement = False
+    
+    # After acknowledgement, start the next term
+    new_state = engine.start_next_term(state)
+    
     active_games[game_id] = new_state
     return jsonify({
         'game_id': game_id,

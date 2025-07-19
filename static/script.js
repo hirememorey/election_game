@@ -552,7 +552,7 @@ async function performAction(actionType, additionalData = {}) {
             // Show mobile next steps indicator
             showMobileNextSteps(actionType, gameState.players[gameState.current_player_index]);
             
-            updatePhaseUI();
+            updateUI();
         } else {
             console.error('No valid result from action');
         }
@@ -1003,19 +1003,27 @@ function parseElectionResults() {
 
 function updatePrimaryActions() {
     if (!gameState || !primaryActions) return;
+    primaryActions.innerHTML = '';
+
+    // Do not show any actions if we are awaiting results or resolution.
+    if (gameState.awaiting_results_acknowledgement || 
+        gameState.awaiting_legislation_resolution || 
+        gameState.awaiting_election_resolution) {
+        return;
+    }
     
     const currentPlayer = gameState.players[gameState.current_player_index];
     const availableActions = getAvailableActions(currentPlayer);
     
-    primaryActions.innerHTML = '';
-    
-    // Add Pass Turn button (always available)
-    const passButton = document.createElement('button');
-    passButton.className = 'btn-secondary';
-    passButton.textContent = 'Pass Turn';
-    passButton.setAttribute('aria-label', 'Pass turn to next player');
-    passButton.onclick = passTurn;
-    primaryActions.appendChild(passButton);
+    // Add Pass Turn button (only if it's an action phase)
+    if (gameState.current_phase === 'ACTION_PHASE') {
+        const passButton = document.createElement('button');
+        passButton.className = 'btn-secondary';
+        passButton.textContent = 'Pass Turn';
+        passButton.setAttribute('aria-label', 'Pass turn to next player');
+        passButton.onclick = passTurn;
+        primaryActions.appendChild(passButton);
+    }
     
     // Add action buttons
     availableActions.forEach(action => {
@@ -1121,22 +1129,9 @@ function getAvailableActions(currentPlayer) {
             disabled: false
         });
         
-        actions.push({
-            type: 'campaign',
-            label: 'Campaign',
-            icon: '🎯',
-            cost: 2,
-            disabled: false
-        });
-        
-        if (gameState.round_marker === 4) {
-            actions.push({
-                type: 'declare_candidacy',
-                label: 'Declare Candidacy',
-                icon: '🏛️',
-                cost: 2,
-                disabled: false
-            });
+        // Add action buttons based on game state
+        if (gameState.current_phase === 'ACTION_PHASE') {
+            // No campaign button for now.
         }
     }
     
@@ -1877,6 +1872,8 @@ async function handleResolveAction(type) {
     isApiCallInProgress = true;
 
     try {
+        const legislationCount = type === 'legislation' ? (gameState.term_legislation || []).length : 0;
+
         const response = await fetch(`/api/game/${gameId}/resolve_${type}`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -1887,19 +1884,20 @@ async function handleResolveAction(type) {
             throw new Error(errorData.error || `Failed to resolve ${type}`);
         }
 
-        const newState = await response.json();
-        const previousLogLength = gameState ? gameState.turn_log.length : 0;
+        const result = await response.json();
         
-        gameState = newState;
-        
-        const newLogEntries = gameState.turn_log.slice(previousLogLength);
-        const results = parseResultsFromLog(newLogEntries);
-        
-        if (results.length > 0) {
-            displayResults(results);
+        if (result && result.state) {
+            gameState = result.state; // Correctly assign the nested state object
+            
+            // New robust results handling
+            if (gameState.last_election_results) {
+                displayResults([gameState.last_election_results]);
+            }
+    
+            updateUI();
+        } else {
+            throw new Error("Invalid state received from server.");
         }
-
-        updateUI();
 
     } catch (error) {
         console.error(`Error resolving ${type}:`, error);
@@ -1909,28 +1907,6 @@ async function handleResolveAction(type) {
     }
 }
 
-function parseResultsFromLog(logEntries) {
-    const results = [];
-    logEntries.forEach(entry => {
-        if (entry.startsWith("LEGISLATION_RESULT:")) {
-            try {
-                const data = JSON.parse(entry.substring("LEGISLATION_RESULT:".length));
-                results.push({ type: 'legislation', ...data });
-            } catch (e) {
-                console.error("Failed to parse legislation result log entry:", entry, e);
-            }
-        } else if (entry.startsWith("ELECTION_RESULT:")) {
-            try {
-                const data = JSON.parse(entry.substring("ELECTION_RESULT:".length));
-                results.push({ type: 'election', ...data });
-            } catch (e) {
-                console.error("Failed to parse election result log entry:", entry, e);
-            }
-        }
-    });
-    return results;
-}
-
 function displayResults(results) {
     if (!resultsContent || !resultsOverlay) return;
 
@@ -1938,19 +1914,8 @@ function displayResults(results) {
     results.forEach(result => {
         const card = document.createElement('div');
         card.className = 'result-card';
-        if (result.type === 'legislation') {
-            card.innerHTML = `
-                <h3>${result.title}</h3>
-                <p class="outcome ${result.outcome.toLowerCase()}">Outcome: ${result.outcome}</p>
-                <div class="details">
-                    <p><strong>Total Support:</strong> ${result.total_support} PC</p>
-                    <p><strong>Total Opposition:</strong> ${result.total_opposition} PC</p>
-                    <p><strong>Net Influence:</strong> ${result.net_influence}</p>
-                    <p><strong>Sponsor:</strong> ${result.sponsor_name}</p>
-                </div>
-                <p><em>${result.reward_log.replace(/'/g, '"')}</em></p>
-            `;
-        } else if (result.type === 'election') {
+
+        if (result.type === 'election') {
             let candidatesHtml = '<ul>';
             for (const [name, score] of Object.entries(result.scores)) {
                 candidatesHtml += `<li>${name}: ${score}</li>`;
@@ -1969,7 +1934,61 @@ function displayResults(results) {
                 </div>
             `;
         }
+        // Keep legislation result display for now, can be refactored similarly later
+        else if (result.type === 'legislation') {
+            card.innerHTML = `
+                <h3>${result.title}</h3>
+                <p class="outcome ${result.outcome.toLowerCase()}">Outcome: ${result.outcome}</p>
+                <div class="details">
+                    <p><strong>Total Support:</strong> ${result.total_support} PC</p>
+                    <p><strong>Total Opposition:</strong> ${result.total_opposition} PC</p>
+                    <p><strong>Net Influence:</strong> ${result.net_influence}</p>
+                    <p><strong>Sponsor:</strong> ${result.sponsor_name}</p>
+                </div>
+                <p><em>${result.reward_log.replace(/'/g, '"')}</em></p>
+            `;
+        }
         resultsContent.appendChild(card);
     });
+
+    const acknowledgeBtn = document.createElement('button');
+    acknowledgeBtn.textContent = 'Continue to Next Term';
+    acknowledgeBtn.className = 'btn btn-primary btn-lg acknowledge-btn';
+    acknowledgeBtn.onclick = acknowledgeResults;
+    resultsContent.appendChild(acknowledgeBtn);
+
     resultsOverlay.classList.remove('hidden');
+}
+
+async function acknowledgeResults() {
+    if (isApiCallInProgress) return;
+    isApiCallInProgress = true;
+
+    try {
+        const response = await fetch(`/api/game/${gameId}/acknowledge_results`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+        });
+
+        if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.error || 'Failed to acknowledge results');
+        }
+
+        const result = await response.json();
+        
+        if (result && result.state) {
+            gameState = result.state;
+            resultsOverlay.classList.add('hidden');
+            updateUI();
+        } else {
+            throw new Error("Invalid state received from server.");
+        }
+
+    } catch (error) {
+        console.error('Error acknowledging results:', error);
+        showMessage(`Could not acknowledge results: ${error.message}`, 'error');
+    } finally {
+        isApiCallInProgress = false;
+    }
 }

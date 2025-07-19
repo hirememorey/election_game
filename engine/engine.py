@@ -22,7 +22,6 @@ class GameEngine:
             "ActionAcceptTrade": 0,   # Free during trading phase
             "ActionDeclineTrade": 0,  # Free during trading phase
             "ActionCompleteTrading": 0,  # Free during trading phase
-            "ActionCampaign": 2,  # New action
             "ActionPassTurn": 0,  # Free action to pass turn
         }
         # A dispatch table to map action classes to their resolver functions
@@ -34,7 +33,6 @@ class GameEngine:
             "ActionUseFavor": resolvers.resolve_use_favor,
             "ActionSupportLegislation": resolvers.resolve_support_legislation,
             "ActionOpposeLegislation": resolvers.resolve_oppose_legislation,
-            "ActionCampaign": resolvers.resolve_campaign,
             "ActionPassTurn": resolvers.resolve_pass_turn,
             # Trading actions removed
         }
@@ -92,7 +90,7 @@ class GameEngine:
         
         # Apply public gaffe effect (increased AP cost for public actions)
         if player.id in state.public_gaffe_players:
-            if action.__class__.__name__ in ["ActionSponsorLegislation", "ActionDeclareCandidacy", "ActionCampaign"]:
+            if action.__class__.__name__ in ["ActionSponsorLegislation", "ActionDeclareCandidacy"]:
                 action_cost += 1
                 state.add_log(f"{player.name} must pay +1 AP due to public gaffe effect.")
                 # Remove the effect after it's applied
@@ -414,3 +412,20 @@ class GameEngine:
         new_state = self.run_event_phase(new_state)
         new_state.awaiting_election_resolution = False
         return new_state
+
+def start_next_term(self, state: GameState) -> GameState:
+    """Clears the board and starts the next term."""
+    # Reset term-specific state
+    state.term_legislation.clear()
+    state.secret_candidacies.clear()
+    state.round_marker = 1
+    
+    # Reset action points for all players
+    for p in state.players:
+        state.action_points[p.id] = 2
+        
+    # Start with a new event phase
+    state = self.run_event_phase(state)
+    
+    state.add_log("\n--- NEW TERM BEGINS ---")
+    return state

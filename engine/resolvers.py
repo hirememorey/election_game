@@ -7,13 +7,14 @@ import random
 from copy import deepcopy
 from models.game_state import GameState, PendingLegislation, TradeOffer
 from models.cards import AllianceCard, EventCard, ScrutinyCard
-from models.components import Player, Office, Legislation, PoliticalFavor, Candidacy, Pledge, CampaignInfluence
+from models.components import Player, Office, Legislation, PoliticalFavor, Candidacy, Pledge
 from engine.actions import (
     Action, ActionFundraise, ActionNetwork,
     ActionSponsorLegislation, ActionDeclareCandidacy, ActionUseFavor,
     ActionSupportLegislation, ActionOpposeLegislation,
-    ActionProposeTrade, ActionAcceptTrade, ActionDeclineTrade, ActionCompleteTrading, ActionCampaign, ActionPassTurn
+    ActionProposeTrade, ActionAcceptTrade, ActionDeclineTrade, ActionCompleteTrading, ActionPassTurn
 )
+import json
 
 #--- Action Resolvers ---
 
@@ -408,139 +409,45 @@ def resolve_oppose_legislation(state: GameState, action: ActionOpposeLegislation
     return state
 
 def resolve_declare_candidacy(state: GameState, action: ActionDeclareCandidacy) -> GameState:
-    from models.components import Candidacy
     player = state.get_player_by_id(action.player_id)
     if not player: return state
-    
-    # Check if candidacy has already been declared this round
-    # (Removed: allow multiple candidacies per round)
-    # if state.candidacy_declared_this_round:
-    #     state.add_log(f"A candidacy has already been declared this round. {player.name} must wait until next round.")
-    #     return state
-    
-    office = state.offices[action.office_id]
-    cost = office.candidacy_cost
-    if player.pc < cost + action.committed_pc:
-        state.add_log("Not enough PC to pay candidacy and commitment.")
-        return state
-    
-    player.pc -= (cost + action.committed_pc)
-    candidacy = Candidacy(player_id=player.id, office_id=action.office_id, committed_pc=action.committed_pc)
-    state.secret_candidacies.append(candidacy)
-    # state.candidacy_declared_this_round = True # This line is removed
-    
-    state.add_log(f"{player.name} pays {cost} PC to run for {office.title} and secretly commits additional funds.")
-    return state
 
-def resolve_campaign(state: GameState, action: ActionCampaign) -> GameState:
-    """Resolve campaign action - place influence on future election."""
-    from models.components import CampaignInfluence
-    player = state.get_player_by_id(action.player_id)
-    if not player: return state
-    
-    if player.pc < action.influence_amount:
-        state.add_log(f"{player.name} doesn't have enough PC to place that much influence.")
-        return state
-    
+    # Check if player has enough PC for candidacy cost
     office = state.offices.get(action.office_id)
     if not office:
-        state.add_log("Invalid office for campaigning.")
+        state.add_log(f"Office with ID {action.office_id} not found.")
         return state
-    
-    player.pc -= action.influence_amount
-    
-    # Create or update campaign influence
-    campaign_influence = CampaignInfluence(
-        player_id=player.id,
-        office_id=action.office_id,
-        influence_amount=action.influence_amount
-    )
-    
-    # Add to state
-    state.campaign_influences.append(campaign_influence)
-    
-    state.add_log(f"{player.name} campaigns for {office.title} with {action.influence_amount} PC influence.")
-    
-    return state
+        
+    candidacy_cost = office.candidacy_cost
+    if player.pc < candidacy_cost:
+        state.add_log(f"{player.name} does not have enough PC to run for {office.title} (needs {candidacy_cost}).")
+        return state
+        
+    # Deduct candidacy cost
+    player.pc -= candidacy_cost
 
-#--- Phase Resolvers ---
+    # Add candidacy to secret list
+    candidacy = Candidacy(player_id=player.id, office_id=action.office_id, committed_pc=action.committed_pc)
+    state.secret_candidacies.append(candidacy)
+    
+    state.add_log(f"{player.name} secretly declares candidacy for {office.title} and pays {candidacy_cost} PC.")
+    return state
 
 def resolve_upkeep(state: GameState) -> GameState:
     # Move any pending legislation to term legislation (will be resolved at end of term)
-    if state.pending_legislation and not state.pending_legislation.resolved:
+    if state.pending_legislation:
         state.term_legislation.append(state.pending_legislation)
         state.pending_legislation = None
     
-    # Reset candidacy flag for new round
-    # state.candidacy_declared_this_round = False # This line is removed
-    
-    # Reset action points for all players for the new round
-    for p in state.players:
-        state.action_points[p.id] = 2
-    
-    mood = state.public_mood
-    income_multiplier = 2 if "UNEXPECTED_SURPLUS" in state.active_effects else 1
-    if income_multiplier > 1:
-        state.add_log("EVENT: Unexpected Surplus provides double income for incumbents this turn.")
+    # Pay upkeep for allies
+    for player in state.players:
+        upkeep_cost = sum(ally.upkeep_cost for ally in player.allies)
+        if upkeep_cost > 0:
+            player.pc -= upkeep_cost
+            state.add_log(f"{player.name} pays {upkeep_cost} PC for ally upkeep.")
 
-    for p in state.players:
-        if p.is_incumbent:
-            p.pc += mood
-            state.add_log(f"Incumbent {p.name} {'gains' if mood >= 0 else 'loses'} {abs(mood)} PC from Public Mood.")
-        else:
-            p.pc -= mood
-            state.add_log(f"Outsider {p.name} {'gains' if mood <= 0 else 'loses'} {abs(mood)} PC from Public Mood.")
-        for ally in p.allies:
-            if ally.upkeep_cost > 0:
-                if p.pc >= ally.upkeep_cost:
-                    p.pc -= ally.upkeep_cost
-                    state.add_log(f"{p.name} pays {ally.upkeep_cost} PC for their ally, {ally.title}.")
-                else:
-                    p.allies.remove(ally)
-                    state.add_log(f"{p.name} cannot afford upkeep for {ally.title} and must discard them.")
-        if p.is_incumbent and p.current_office:
-            income = p.current_office.income * income_multiplier
-            p.pc += income
-            state.add_log(f"{p.name} collects {income} PC income from the {p.current_office.title} office.")
-
-    # Clear one-time effects after they've been applied
-    if "UNEXPECTED_SURPLUS" in state.active_effects:
-        state.active_effects.remove("UNEXPECTED_SURPLUS")
-    if "STOCK_CRASH" in state.active_effects:
-        state.active_effects.remove("STOCK_CRASH")
-    
-    # Clear negative favor effects that expire at end of round
-    if state.media_scrutiny_players:
-        state.add_log("Media scrutiny effects have cleared for the new round.")
-    state.media_scrutiny_players.clear()  # Media scrutiny expires at end of round
-    
-    # Handle hot potato effect
-    if state.hot_potato_holder is not None:
-        hot_potato_player = state.get_player_by_id(state.hot_potato_holder)
-        if hot_potato_player:
-            # Find the player's influence (campaign influences)
-            player_influences = [inf for inf in state.campaign_influences if inf.player_id == state.hot_potato_holder]
-            if player_influences:
-                # Remove 5 influence (or all if less than 5)
-                total_influence = sum(inf.influence_amount for inf in player_influences)
-                influence_to_remove = min(5, total_influence)
-                
-                # Remove influence from campaign influences
-                remaining_to_remove = influence_to_remove
-                for influence in player_influences:
-                    if remaining_to_remove <= 0:
-                        break
-                    if influence.influence_amount <= remaining_to_remove:
-                        state.campaign_influences.remove(influence)
-                        remaining_to_remove -= influence.influence_amount
-                    else:
-                        influence.influence_amount -= remaining_to_remove
-                        remaining_to_remove = 0
-                
-                state.add_log(f"{hot_potato_player.name} loses {influence_to_remove} Influence for holding the politically toxic dossier.")
-            
-            # Clear the hot potato
-            state.hot_potato_holder = None
+    # Reset fundraiser archetype bonus
+    state.fundraiser_first_fundraise_used.clear()
 
     return state
 
@@ -685,58 +592,78 @@ def resolve_pending_legislation(state: GameState) -> GameState:
     return state
 
 def resolve_elections(state: GameState) -> GameState:
-    offices_by_tier = sorted(state.offices.values(), key=lambda o: o.tier)
+    state.add_log("\n--- ELECTION RESULTS ---")
     
-    # Check for voter apathy effect
-    apathy_penalty = 0.5 if "VOTER_APATHY" in state.active_effects else 1.0
-    if apathy_penalty < 1.0:
-        state.add_log("Voter Apathy: Committed PC is only half as effective in this election.")
-    
-    for office in offices_by_tier:
+    # Process elections for each office
+    for office in state.offices.values():
         candidates = [c for c in state.secret_candidacies if c.office_id == office.id]
-        if not candidates: continue
-        state.add_log(f"\n--- Resolving Election for {office.title} ---")
-        if len(candidates) == 1:
-            player_cand = candidates[0]
-            player = state.get_player_by_id(player_cand.player_id)
-            if not player: continue
-            player_roll = random.randint(1, 6)
-            player_bonus = int((player_cand.committed_pc // 2) * apathy_penalty)
-            player_score = player_roll + player_bonus
-            state.add_log(f"{player.name} reveals {player_cand.committed_pc} committed PC.")
-            state.add_log(f"{player.name}'s Score: {player_roll} (d6) + {player_bonus} (PC bonus) = {player_score}")
-            npc_roll = random.randint(1, 6)
-            npc_score = npc_roll + office.npc_challenger_bonus
-            state.add_log(f"NPC Challenger's Score: {npc_roll} (d6) + {office.npc_challenger_bonus} (NPC bonus) = {npc_score}")
-            if player_score >= npc_score:
-                _award_office(state, player, office)
-            else:
-                state.add_log(f"{player.name} loses the election.")
+        
+        if not candidates:
+            continue  # No candidates for this office
+
+        scores = {}
+        for cand in candidates:
+            player = state.get_player_by_id(cand.player_id)
+            if player:
+                # Base score is committed PC
+                score = cand.committed_pc
+                scores[player.name] = score
+
+        # Add NPC challenger if there are candidates
+        if candidates:
+            scores["NPC Challenger"] = office.npc_challenger_bonus
+        
+        # Determine winner
+        if scores:
+            winner_name = max(scores, key=lambda k: scores[k])
+            winner_score = scores[winner_name]
         else:
-            scores = []
-            for cand in candidates:
-                player = state.get_player_by_id(cand.player_id)
-                if not player: continue
-                roll = random.randint(1, 6)
-                bonus = int((cand.committed_pc // 2) * apathy_penalty)
-                score = roll + bonus
-                scores.append({'player': player, 'score': score, 'committed_pc': cand.committed_pc})
-                state.add_log(f"{player.name} reveals {cand.committed_pc} committed PC.")
-                state.add_log(f"  {player.name}'s Score: {roll} (d6) + {bonus} (PC bonus) = {score}")
-            highest_score = max(s['score'] for s in scores)
-            winners = [s for s in scores if s['score'] == highest_score]
-            if len(winners) == 1:
-                winner = winners[0]['player']
-            else:
-                state.add_log("Tie in score! Checking committed PC...")
-                max_pc = max(w['committed_pc'] for w in winners)
-                pc_winners = [w for w in winners if w['committed_pc'] == max_pc]
-                if len(pc_winners) == 1:
-                    winner = pc_winners[0]['player']
-                else:
-                    state.add_log("Still tied! Re-rolling d6 until a winner emerges...")
-                    winner = random.choice(pc_winners)['player']
+            winner_name = "NPC Challenger" # Should not happen if candidates exist
+            winner_score = 0
+
+        winner = None
+        if winner_name != "NPC Challenger":
+            winner = next((p for p in state.players if p.name == winner_name), None)
+
+        if winner:
             _award_office(state, winner, office)
+            state.add_log(f"{winner.name} wins the election for {office.title}!")
+        else:
+            state.add_log(f"The NPC Challenger wins the election for {office.title}.")
+
+        # Always log the result for the frontend
+        result_data = {
+            "type": "election",
+            "office_name": office.title,
+            "scores": scores,
+            "winner_name": winner_name,
+            "winner_score": winner_score
+        }
+        state.last_election_results = result_data
+
+    # Clear candidacies after elections are resolved
+    state.secret_candidacies.clear()
+
+    # Transition to the next term
+    state = start_next_term(state)
+    
+    return state
+
+def start_next_term(state: GameState) -> GameState:
+    """Clears the board for the next term, but does not start any new phases."""
+    state.round_marker = 1
+    state.current_phase = "ACTION_PHASE"
+    state.secret_candidacies.clear()
+    state.term_legislation.clear()
+    state.pending_legislation = None
+    for p in state.players:
+        state.action_points[p.id] = 2
+    # Reset any term-based abilities or effects
+    for effect in list(state.active_effects):
+        if effect in ["WAR_BREAKS_OUT", "VOTER_APATHY"]:
+            state.active_effects.remove(effect)
+    state.fundraiser_first_fundraise_used.clear()
+    state.add_log("\n--- NEW TERM BEGINS ---")
     return state
 
 def _award_office(state: GameState, winner: Player, new_office: Office):

@@ -66,12 +66,6 @@ class ActionCompleteTrading(Action):
     pass
 
 @dataclass
-class ActionCampaign(Action):
-    """Campaign for a future office election by placing influence."""
-    office_id: str
-    influence_amount: int  # PC committed to future election
-
-@dataclass
 class ActionPassTurn(Action):
     """Pass the current turn and advance to the next player."""
     pass
