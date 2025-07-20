@@ -15,6 +15,9 @@ The simulation framework allows for headless execution of games without the web 
 ### Basic Usage
 
 ```bash
+# Run a single simulation with detailed analysis
+python3 run_single_simulation.py
+
 # Run a single simulation with random agents
 python simulation_harness.py
 
@@ -25,7 +28,10 @@ python test_simulation_framework.py
 ### Expected Output
 
 ```
-Testing Simulation Harness...
+🎮 ELECTION GAME - SINGLE SIMULATION
+==================================================
+
+🚀 Starting simulation...
 Starting simulation with 4 players: ['Alice', 'Bob', 'Charlie', 'Diana']
 
 --- Round 1 ---
@@ -35,11 +41,34 @@ Action Points: {0: 2, 1: 2, 2: 2, 3: 2}
 Alice chose: ActionFundraise
 ...
 
---- Simulation Complete ---
-Winner: Alice
-Rounds: 44, Terms: 3
-Final Scores: {...}
-Simulation Time: 0.002s
+🏆 WINNER ANALYSIS: Bob
+
+📊 FINAL SCORE: 7 influence points
+
+🎭 PLAYER IDENTITY:
+• Archetype: The Insider
+• Mandate: The Grassroots Movement
+
+💰 RESOURCES:
+• Political Capital: 21 PC
+• Current Office: State Senator
+
+🏛️ INFLUENCE BREAKDOWN:
+• +5 Influence from holding office: State Senator
+• +2 Influence from 21 PC remaining (1/10 conversion)
+
+🎯 VICTORY FACTORS:
+• Held the State Senator office
+• Converted 21 PC to 2 influence points
+
+📈 COMPARISON TO OTHER PLAYERS:
+• Alice: 6 points (winner by 1 points)
+• Charlie: 0 points (winner by 7 points)
+• Diana: 1 points (winner by 6 points)
+
+📊 GAME STATISTICS:
+• Game Length: 53 rounds, 3 terms
+• Simulation Time: 0.001 seconds
 ```
 
 ## Architecture
@@ -51,7 +80,7 @@ The main simulation engine that:
 - Manages game state without web interface
 - Handles all phase transitions automatically
 - Provides clean API for agent integration
-- Tracks comprehensive game metrics
+- **NEW**: Uses pluggable logging system for flexible data collection
 
 #### `GameEngine` (Enhanced)
 The engine now serves as the single source of truth for:
@@ -66,6 +95,21 @@ A new abstract base class that:
 - Ensures deterministic behavior
 - Simplifies agent development
 - Supports both simple and complex agent strategies
+- **NEW**: Receives comprehensive game state including game log for strategic decisions
+
+#### `MetricsLogger` (NEW)
+A pluggable logging system that:
+- **Separates Concerns**: Simulation logic is independent of data collection
+- **Flexible Output**: VerboseLogger for debugging, SilentLogger for speed
+- **Extensible**: Easy to add new loggers (database, file, etc.)
+- **Performance**: Can run thousands of simulations silently for analysis
+
+#### `ScriptedAgent` (NEW)
+A deterministic agent for testing that:
+- **Follows Predetermined Actions**: Executes a specific sequence of actions
+- **Validates Rules**: Ensures scripted actions are actually valid
+- **Enables Testing**: Perfect for testing specific game scenarios and edge cases
+- **Deterministic Results**: Same inputs always produce same outputs
 
 ### Game Flow
 
@@ -89,7 +133,7 @@ class CustomAgent(Agent):
         Choose an action for the given player in the current game state.
         
         Args:
-            state: Current game state
+            state: Current game state (includes game_log for strategic agents)
             valid_actions: List of valid actions from the engine
             
         Returns:
@@ -120,6 +164,7 @@ The `GameState` object provides access to:
 - `state.pending_legislation`: Currently active legislation
 - `state.public_mood`: Current public mood (-3 to +3)
 - `state.round_marker`: Current round number
+- `state.turn_log`: Complete game history for strategic agents
 
 ## Testing & Validation
 
@@ -180,7 +225,27 @@ The framework enables analysis of:
 
 ## Recent Improvements
 
-### Phase 1: Core Architecture Refinement
+### Phase 2: Architecture Refinement (Latest)
+
+#### Enhanced Separation of Concerns
+- **MetricsLogger Interface**: Separated simulation logic from data collection
+- **Pluggable Logging**: Can swap between verbose debugging and silent analysis
+- **Flexible Output**: Easy to add new loggers (database, file, etc.)
+- **Performance Optimization**: Silent logger enables thousands of simulations
+
+#### Improved Agent System
+- **ScriptedAgent**: New deterministic agent for precise testing
+- **Enhanced GameState**: Agents receive comprehensive game history
+- **Strategic Information**: Agents can access turn_log for pattern recognition
+- **Information Parity**: Agents have same information level as human players
+
+#### Better Testing Infrastructure
+- **Deterministic Testing**: ScriptedAgent enables precise scenario testing
+- **Rule Validation**: Can test specific edge cases and game rules
+- **Reproducible Results**: Same inputs always produce same outputs
+- **Comprehensive Coverage**: All critical paths tested including edge cases
+
+### Phase 1: Core Architecture Refinement (Previous)
 
 #### Enhanced Game Engine
 - **Single Source of Truth**: Engine now exclusively determines valid actions
@@ -205,12 +270,14 @@ The framework enables analysis of:
 The framework has been thoroughly tested using first principles and red-teaming methodology:
 
 #### Key Validations
-1. **Single Responsibility Principle**: Engine is the sole authority for valid actions
-2. **Deterministic Behavior**: Same inputs produce same outputs consistently
-3. **Resource Integrity**: All actions respect resource constraints
-4. **State Consistency**: Game state remains valid throughout simulation
-5. **Timing Rules**: Actions follow proper timing restrictions
-6. **System Integration**: All components work together seamlessly
+1. **Single Responsibility Principle**: Each component has one clear job
+2. **Separation of Concerns**: Simulation logic independent of data collection
+3. **Information Parity**: Agents have same information as human players
+4. **Deterministic Behavior**: Same inputs produce same outputs consistently
+5. **Resource Integrity**: All actions respect resource constraints
+6. **State Consistency**: Game state remains valid throughout simulation
+7. **Timing Rules**: Actions follow proper timing restrictions
+8. **System Integration**: All components work together seamlessly
 
 #### Performance Metrics
 - **Test Execution Time**: 0.255 seconds for 16 comprehensive tests
@@ -247,40 +314,4 @@ The framework has been thoroughly tested using first principles and red-teaming 
 The simulation framework is completely separate from the web version:
 - **No Impact**: Web game functionality unchanged
 - **Shared Engine**: Both use the same core game logic
-- **Independent Testing**: Can test balance without affecting live games
-- **Parallel Development**: Can develop new features in simulation first
-
-## Technical Details
-
-### Performance
-
-- **Speed**: ~0.002 seconds per complete game
-- **Scalability**: Can run thousands of games per minute
-- **Memory**: Minimal memory footprint for large-scale testing
-- **Reliability**: Deterministic results for reproducible analysis
-
-### Error Handling
-
-- **Action Validation**: Prevents invalid actions
-- **State Consistency**: Maintains game state integrity
-- **Graceful Degradation**: Handles edge cases without crashing
-- **Comprehensive Logging**: Detailed logs for debugging
-
-### Testing
-
-The framework includes:
-- **Unit Tests**: Individual component testing
-- **Integration Tests**: Full game flow testing
-- **Performance Tests**: Speed and memory testing
-- **Balance Tests**: Statistical analysis of game outcomes
-
-## Contributing
-
-To contribute to the simulation framework:
-
-1. **Create New Agents**: Implement new agent strategies
-2. **Add Analysis Tools**: Create new metrics and visualizations
-3. **Improve Performance**: Optimize simulation speed
-4. **Extend Capabilities**: Add new testing features
-
-See the main `README.md` for general contribution guidelines. 
+- **Independent Testing**: Can test balance without affecting live games 

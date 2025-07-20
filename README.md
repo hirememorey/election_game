@@ -33,14 +33,18 @@ A strategic political simulation game where players compete for influence throug
 The project now includes a comprehensive simulation framework for game balance analysis:
 
 ```bash
-# Run a single simulation
+# Run a single simulation with detailed winner analysis
+python3 run_single_simulation.py
+
+# Run a basic simulation with random agents
 python simulation_harness.py
 
-# The simulation harness supports:
+# The simulation framework supports:
 # - Headless game execution
 # - Agent-based testing
 # - Tournament systems
 # - Balance analysis
+# - Detailed winner analysis and reasoning
 ```
 
 ## Game Mechanics
@@ -75,6 +79,7 @@ Players earn influence through:
 ```
 election/
 ├── server.py              # Main web server
+├── run_single_simulation.py  # Single simulation with detailed analysis
 ├── simulation_harness.py  # Game balance analysis framework
 ├── engine/               # Core game logic
 ├── models/              # Data structures
@@ -86,7 +91,9 @@ election/
 ### Key Components
 
 - **GameEngine**: Core game state management
-- **SimulationHarness**: Automated testing framework
+- **SimulationHarness**: Automated testing framework with pluggable logging
+- **MetricsLogger**: Flexible data collection system
+- **ScriptedAgent**: Deterministic agent for precise testing
 - **Action System**: Modular action implementation
 - **Scoring System**: Influence calculation and victory determination
 
@@ -107,6 +114,7 @@ See `DEPLOYMENT.md` for detailed deployment instructions.
 - `MOBILE_IMPROVEMENTS_SUMMARY.md` - Mobile UX enhancements
 - `PHYSICAL_GAME_SPEC.md` - Original board game design
 - `DEPLOYMENT.md` - Production deployment guide
+- `SIMULATION_FRAMEWORK.md` - Comprehensive simulation framework documentation
 
 ## Contributing
 
