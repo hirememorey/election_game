@@ -5,6 +5,8 @@ from models.cards import Deck, PoliticalArchetype, PersonalMandate
 from engine import resolvers
 from engine.actions import Action
 from engine.scoring import calculate_final_scores
+from typing import List
+from engine.actions import ActionFundraise, ActionNetwork, ActionSponsorLegislation, ActionDeclareCandidacy, ActionUseFavor, ActionSupportLegislation, ActionOpposeLegislation, ActionPassTurn, ActionResolveLegislation, ActionResolveElections, ActionAcknowledgeResults
 
 class GameEngine:
     def __init__(self, game_data):
@@ -34,6 +36,9 @@ class GameEngine:
             "ActionSupportLegislation": resolvers.resolve_support_legislation,
             "ActionOpposeLegislation": resolvers.resolve_oppose_legislation,
             "ActionPassTurn": resolvers.resolve_pass_turn,
+            "ActionResolveLegislation": resolvers.resolve_resolve_legislation,
+            "ActionResolveElections": resolvers.resolve_resolve_elections,
+            "ActionAcknowledgeResults": resolvers.resolve_acknowledge_results,
             # Trading actions removed
         }
 
@@ -305,6 +310,136 @@ class GameEngine:
         
         return new_state
 
+    def get_valid_actions(self, state: GameState, player_id: int) -> List[Action]:
+        """
+        Get all valid actions a player can take in the current game state.
+        This is the single source of truth for valid actions.
+        
+        Args:
+            state: Current game state
+            player_id: ID of the player whose actions to check
+            
+        Returns:
+            List of valid Action objects
+        """
+        valid_actions = []
+        player = state.get_player_by_id(player_id)
+        
+        if not player:
+            return valid_actions
+            
+        # Check if it's the player's turn
+        if state.get_current_player().id != player_id:
+            return valid_actions
+            
+        # Check if player has action points
+        ap = state.action_points.get(player_id, 0)
+        if ap <= 0:
+            # Only Pass Turn is available
+            valid_actions.append(ActionPassTurn(player_id=player_id))
+            return valid_actions
+            
+        # Helper function to check if player can afford an action
+        def can_afford_action(action_class_name: str) -> bool:
+            base_cost = self.action_point_costs.get(action_class_name, 0)
+            # Apply public gaffe effect
+            if player.id in state.public_gaffe_players:
+                if action_class_name in ["ActionSponsorLegislation", "ActionDeclareCandidacy"]:
+                    base_cost += 1
+            return ap >= base_cost
+            
+        # Always available actions (1 AP each)
+        if can_afford_action("ActionFundraise"):
+            valid_actions.append(ActionFundraise(player_id=player_id))
+        if can_afford_action("ActionNetwork"):
+            valid_actions.append(ActionNetwork(player_id=player_id))
+        
+        # Sponsor Legislation (2 AP, if player has enough PC and AP)
+        if player.pc >= 5 and can_afford_action("ActionSponsorLegislation"):
+            for leg_id in state.legislation_options:
+                valid_actions.append(ActionSponsorLegislation(
+                    player_id=player_id, 
+                    legislation_id=leg_id
+                ))
+        
+        # Declare Candidacy (2 AP, only in round 4)
+        if state.round_marker == 4 and can_afford_action("ActionDeclareCandidacy"):
+            for office_id in state.offices:
+                office = state.offices[office_id]
+                if office.candidacy_cost <= player.pc:
+                    # Can declare with 0 PC commitment
+                    valid_actions.append(ActionDeclareCandidacy(
+                        player_id=player_id,
+                        office_id=office_id,
+                        committed_pc=0
+                    ))
+                    # Can also declare with additional PC commitment
+                    if player.pc > office.candidacy_cost:
+                        valid_actions.append(ActionDeclareCandidacy(
+                            player_id=player_id,
+                            office_id=office_id,
+                            committed_pc=min(10, player.pc - office.candidacy_cost)
+                        ))
+        
+        # Use Favor (1 AP, if player has favors)
+        if player.favors and can_afford_action("ActionUseFavor"):
+            for favor in player.favors:
+                valid_actions.append(ActionUseFavor(
+                    player_id=player_id,
+                    favor_id=favor.id
+                ))
+        
+        # Support/Oppose Legislation (1 AP each, if there's pending legislation)
+        if state.pending_legislation and not state.pending_legislation.resolved:
+            if can_afford_action("ActionSupportLegislation") and player.pc > 0:
+                # Can support with any amount of PC
+                for pc_amount in range(1, min(player.pc + 1, 21)):  # Cap at 20 PC
+                    valid_actions.append(ActionSupportLegislation(
+                        player_id=player_id,
+                        legislation_id=state.pending_legislation.legislation_id,
+                        support_amount=pc_amount
+                    ))
+            if can_afford_action("ActionOpposeLegislation") and player.pc > 0:
+                # Can oppose with any amount of PC
+                for pc_amount in range(1, min(player.pc + 1, 21)):  # Cap at 20 PC
+                    valid_actions.append(ActionOpposeLegislation(
+                        player_id=player_id,
+                        legislation_id=state.pending_legislation.legislation_id,
+                        oppose_amount=pc_amount
+                    ))
+        
+        # Pass Turn (always available)
+        valid_actions.append(ActionPassTurn(player_id=player_id))
+        
+        return valid_actions
+
+    def get_valid_system_actions(self, state: GameState) -> List[Action]:
+        """
+        Get system-level actions that need to be performed (e.g., resolution actions).
+        This handles non-player actions like legislation and election resolution.
+        
+        Args:
+            state: Current game state
+            
+        Returns:
+            List of valid system Action objects
+        """
+        system_actions = []
+        
+        # Check for legislation resolution
+        if state.awaiting_legislation_resolution:
+            system_actions.append(ActionResolveLegislation())
+            
+        # Check for election resolution
+        if state.awaiting_election_resolution:
+            system_actions.append(ActionResolveElections())
+            
+        # Check for results acknowledgement
+        if state.awaiting_results_acknowledgement:
+            system_actions.append(ActionAcknowledgeResults())
+            
+        return system_actions
+
     def is_game_over(self, state: GameState) -> bool:
         """Checks if the game has ended (after 3 terms)."""
         # The game ends after the election phase of the 3rd term.
@@ -423,6 +558,11 @@ class GameEngine:
         state.term_legislation.clear()
         state.secret_candidacies.clear()
         state.current_player_index = 0
+        
+        # Clear resolution flags
+        state.awaiting_legislation_resolution = False
+        state.awaiting_election_resolution = False
+        state.awaiting_results_acknowledgement = False
         
         # Reset action points for all players
         for p in state.players:

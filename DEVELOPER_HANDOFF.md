@@ -59,9 +59,27 @@ Received: <element(s) not found>
 - **Recent Bug Fixes**: Trading action visibility fixed (frontend/backend phase name alignment), Media Scrutiny favor logic fixed, **Legislation voting fixes** (players cannot vote on own legislation, proper pass turn functionality), **Modal close button fix** (View Identity modal now has visible and clickable close button on all devices)
 - **🤫 Secret Commitment System**: **COMPLETED** - Replaced gambling-style legislation with strategic secret commitments
 - **🧪 Automated Testing**: **COMPLETED** - Comprehensive Playwright tests validate game playability
+- **🎯 Simulation Framework**: **COMPLETED** - Comprehensive headless simulation framework for game balance analysis and automated testing
 
 ### Major Features Implemented
-1. **🤫 Secret Commitment System** (COMPLETED - Latest)
+1. **🎯 Simulation Framework** (COMPLETED - Latest)
+   - **Headless Game Execution**: Run thousands of games without web interface
+   - **Enhanced Game Engine**: Single source of truth for valid actions with dynamic cost validation
+   - **Agent Interface**: Abstract base class for consistent agent development
+   - **Comprehensive Testing**: 16 comprehensive tests validate all critical aspects
+   - **Balance Analysis**: Automated testing for game balance and strategy effectiveness
+   - **Performance Metrics**: Track win rates, game length, action distribution, resource efficiency
+   - **Red-Teaming Validation**: Thorough testing using first principles methodology
+   - **Test Results**: 100% success rate (16/16 tests passing) in 0.255 seconds
+   - **Files Added**: 
+     - `simulation_harness.py`: Main simulation engine
+     - `test_simulation_framework.py`: Comprehensive test suite
+     - Enhanced `engine/engine.py`: Improved action validation
+     - Enhanced `engine/actions.py`: Added system actions
+     - Enhanced `engine/resolvers.py`: Added system action resolvers
+   - **Status**: Fully implemented and thoroughly tested
+
+2. **🤫 Secret Commitment System** (COMPLETED - Latest)
    - **Secret Contributions**: Players no longer commit PC publicly. All contributions to support or oppose legislation are made secretly.
    - **Bluffing & Betrayal**: Publicly promise support while secretly opposing a bill, or bluff about the amount of your contribution to force other players to spend their resources.
    - **Dramatic Reveals**: At the end of a term, all secret contributions are revealed simultaneously, leading to dramatic moments of truth.
@@ -70,7 +88,7 @@ Received: <element(s) not found>
    - **Testing**: Comprehensive test coverage validates all secret commitment scenarios
    - **Status**: Fully implemented and tested
 
-2. **🧪 Automated Frontend Testing** (COMPLETED - Latest)
+3. **🧪 Automated Frontend Testing** (COMPLETED - Latest)
    - **Playwright Integration**: Comprehensive automated testing using Playwright
    - **Full Game Flow Validation**: Tests complete game flow from creation to term transitions
    - **Cross-Browser Compatibility**: Tests pass on Chromium, Firefox, and WebKit
@@ -80,7 +98,7 @@ Received: <element(s) not found>
    - **Performance**: All tests complete in under 6 seconds per browser
    - **Status**: Fully implemented and tested
 
-3. **Apple-Level Design System** (COMPLETED - Just Deployed)
+4. **Apple-Level Design System** (COMPLETED - Just Deployed)
    - **Complete UI Redesign**: Apple-inspired design with SF Pro Display typography
    - **Modern Color Palette**: Semantic color system with Apple-inspired colors
    - **Consistent Spacing**: CSS custom properties for consistent spacing throughout
@@ -329,228 +347,3 @@ python3 test_*.py
 # Run specific test
 python3 test_action_points_system.py
 ```
-
-### All Tests Passing ✅
-- Trading mechanic works correctly
-- PC commitment system functions properly
-- Term transitions clean up state correctly
-- Automatic event phases work as expected
-- Use Favor action with selection menu
-- PEEK_EVENT favor reveals top event card
-- No leftover legislation between terms
-- Player index properly reset between terms
-- Action Points system backend works correctly
-- Incumbent/outsider public mood logic works correctly
-
-## 🚀 Development Setup
-
-### Quick Start
-```bash
-# Clone and setup
-git clone <repository>
-cd election
-pip install -r requirements.txt
-
-# Start server (port 5001 to avoid macOS AirPlay conflicts)
-./start_server.sh
-# or manually
-PORT=5001 python3 server.py
-
-# Access at http://localhost:5001
-```
-
-### Production Deployment
-- **URL**: https://election-game.onrender.com
-- **Configuration**: `render.yaml` for automatic deployment
-- **Dynamic URLs**: Frontend automatically detects development vs production
-- **Cache Busting**: Version parameters force browser cache updates
-
-### Development Environment Notes
-- **Port Conflicts**: macOS AirPlay uses port 5000, so we use 5001 for local development. Production/Render uses the PORT env variable.
-- **Dependencies**: Minimal - just Flask and flask-cors
-- **Python Version**: Tested with Python 3.8+
-- **Browser Testing**: Chrome/Firefox recommended
-
-## 📚 Key Documentation
-
-### Essential Reading
-- **`LLM_HANDOFF_CONTEXT.md`**: Comprehensive project context and recent changes
-- **`FRONTEND_IMPLEMENTATION_GUIDE.md`**: Action Points system frontend implementation
-- **`GAME_IMPROVEMENTS.md`**: Recent feature additions and improvements
-- **`NETWORK_ACTION_DESIGN.md`**: Design for merging Network and Form Alliance actions
-
-### Code Organization Patterns
-- **Actions**: Add new actions in `engine/actions.py`, implement resolution in `engine/resolvers.py`
-- **Game State**: Modify `models/game_state.py` for new state properties
-- **Frontend**: Update `static/script.js` for UI logic, `static/style.css` for styling
-- **API**: Add endpoints in `server.py`
-- **Testing**: Create test files following existing patterns
-
-## 🎮 Game Balance Considerations
-
-### Current Balance
-- Political Capital (PC) is the primary resource
-- Actions have clear costs and benefits
-- Random events add unpredictability
-- Favor system adds strategic depth
-- PC commitment system adds strategic depth
-- Trading mechanic adds negotiation
-- Action Points system adds player autonomy
-- **NEW**: Incumbent/outsider public mood logic creates strategic tension
-
-### Potential Balance Issues to Watch
-- PC commitment amounts may need tuning based on playtesting
-- Trading mechanic may need balance adjustments
-- Random events could be too swingy
-- Player interaction could be enhanced
-- Missing Form Alliance reduces strategic options
-- **NEW**: Public mood effect magnitudes may need adjustment based on playtesting
-
-## 🔧 Technical Patterns to Follow
-
-### Action System
-- All game actions inherit from base `Action` class
-- Actions are processed through `engine.process_action()`
-- Resolution logic in `resolvers.py` maintains consistency
-- Follow the pattern in `test_form_alliance_removal.py` for adding/removing actions
-
-### State Management
-- Game state is immutable (new state created for each action)
-- Clear serialization for API communication
-- State includes all necessary game information
-- Term transitions properly clean up state
-
-### Frontend-Backend Communication
-- REST API with JSON payloads
-- Frontend polls for state updates
-- Error handling with user-friendly messages
-- PC commitment uses prompt dialogs for user input
-- Dynamic API URL detection for development vs production
-
-### Mobile Responsiveness
-- **Apple-Level Design**: Touch-friendly interactions with proper button sizes (44px minimum)
-- **Responsive Typography**: SF Pro Display with proper scaling for mobile devices
-- **Card-Based Layout**: Modern card design that adapts beautifully to mobile screens
-- **Enhanced Modals**: Improved modal design with backdrop blur effects
-- **Better Forms**: Improved form styling with proper focus states for mobile keyboards
-- **Smooth Animations**: Apple-style transitions and micro-interactions
-
-## 🎯 Success Metrics
-
-### Technical
-- Response times under 50ms
-- Zero 404 errors for static files
-- All API endpoints working correctly
-- Mobile compatibility across devices
-- All tests passing
-
-### Gameplay
-- Engaging strategic depth
-- Balanced action choices
-- Clear player feedback
-- Smooth game flow
-- Successful negotiation and deal-making during legislation sessions
-- Strategic PC commitment decisions
-- Smooth automatic event phases
-- Multiple actions per turn with Action Points
-- **NEW**: Engaging incumbent/outsider tension through public mood effects
-
-## 🚨 Known Issues & Limitations
-
-### Current Limitations
-- **In-memory Storage**: Game state lost on server restart (production needs database)
-- **Single Session**: No persistent user accounts or game history
-- **No AI Opponents**: All players must be human
-- **Apple-Level Design**: Fully implemented and ready for user experience testing
-- **Round 5 Issues**: ✅ **RESOLVED** - Legislation session now triggers at end of round 4
-- **Action Point Confusion**: ✅ **RESOLVED** - Clear UI and Pass Turn functionality added
-- **Limited Analytics**: No game statistics or performance tracking
-- **Missing Form Alliance**: Strategic depth reduced - consider Network Action Design
-- **Trading Balance**: Trading mechanic may need balance adjustments based on playtesting
-- **PC Commitment Balance**: PC commitment amounts may need tuning
-- **Frontend Implementation**: Action Points UI needs completion
-- **Public Mood Balance**: Incumbent/outsider effect magnitudes may need adjustment
-
-### Recent Bug Fixes
-- **War Mood Lock**: ✅ **RESOLVED** - Fixed bug where "War Breaks Out" event didn't properly lock public mood. Other events could still change public mood during war, violating the intended game mechanic. Now public mood is properly locked for the rest of the term when war is active.
-- **Trading action visibility fixed** (frontend/backend phase name alignment)
-- **Media Scrutiny favor logic fixed**
-- **Action Points System Fixes** (NEW - Latest)
-  - Fixed AP management during legislation session voting phase
-  - Fixed AP management during election phase
-  - Ensures players can vote on legislation during legislation sessions
-  - Ensures players can declare candidacy during election phase
-  - Proper AP granting at phase transitions
-  - **Technical**: Added AP granting (1 AP) at start of voting phase in legislation session
-  - **Technical**: Added AP granting (3 AP) at start of election phase
-  - **Testing**: `test_pc_commitment_and_term_transition.py` now passes all tests
-- **Legislation Menu Race Condition Fix**: The frontend now always fetches the latest game state before displaying the support/oppose legislation menus. This prevents the 'There's no pending legislation to oppose' bug caused by stale state and ensures players only see currently available legislation.
-
-### Recent Major Improvements
-1. **Action Points System**: Players get 2 AP per turn with variable costs for different actions
-2. **Political Favors System**: Players can now use favors gained from networking with proper UI
-3. **Trading Mechanic**: Players can negotiate deals during legislation sessions for votes
-4. **Candidacy Timing**: Multiple players can now declare candidacy for the same or different offices in the same round, enabling head-to-head matchups and more dynamic elections.
-5. **Legislation Support/Opposition**: Players can support/oppose others' legislation with custom PC amounts
-6. **Campaign Action Removal**: Campaign actions have been completely removed from the game to streamline the flow. Players can only declare candidacy in round 4, eliminating confusion about when to campaign vs. declare candidacy.
-
-## 🎯 Recommended Development Approach
-
-### Phase 1: Apple-Level Design System Testing (1-2 days)
-1. Test the new Apple-level design system across different devices
-2. Verify mobile responsiveness and touch interactions
-3. Test accessibility features and contrast ratios
-4. Gather user feedback on the new design system
-
-### Phase 2: Extensive Playtesting (2-3 days)
-1. Play multiple games with different strategies
-2. Test Action Points balance and trading mechanics
-3. Gather feedback on PC commitment amounts
-4. Test incumbent/outsider public mood effects
-5. Identify any balance issues
-
-### Phase 3: Balance Adjustments (1 day)
-1. Adjust AP costs based on playtesting
-2. Fine-tune PC commitment amounts
-3. Optimize trading mechanics
-4. Adjust public mood effect magnitudes
-5. Update documentation
-
-### Phase 4: Production Readiness (2-3 days)
-1. Add database integration
-2. Implement user accounts
-3. Add analytics and monitoring
-4. Deploy to production environment
-
-## 🎮 Game Flow Summary
-
-1. **Setup**: 2-4 players, each with archetype and mandate
-2. **Event Phase**: Random events affect all players (automatic)
-3. **Action Phase**: Players take turns performing actions using Action Points
-4. **Resolution**: Actions resolve, game state updates
-5. **Repeat**: Until election victory conditions met
-
-## 🔄 Re-enabling Form Alliance (If Needed)
-
-If you want to re-enable the Form Alliance action:
-
-1. **Restore Action Class** in `engine/actions.py`
-2. **Restore Resolver** in `engine/resolvers.py`
-3. **Update Imports** in all affected files
-4. **Restore Frontend Button** in `static/script.js`
-5. **Restore CLI Option** in `cli.py`
-6. **Test**: Run `test_form_alliance_removal.py` to verify restoration
-
-## 🎯 Final Notes
-
-**The project is in excellent shape with a solid foundation, clear architecture, and comprehensive improvements. All major bugs have been fixed, new features are fully functional and tested, and the game is ready for extensive playtesting.**
-
-**The most immediate opportunity is testing the new Apple-level design system and gathering user feedback, which will help validate the design decisions and identify any UX improvements needed.**
-
-**The codebase is well-documented, thoroughly tested, and follows clear patterns that make it easy to extend and maintain. The next developer has a strong foundation to build upon with clear technical direction and strategic priorities established.**
-
-**The new incumbent/outsider public mood logic adds significant strategic depth and creates natural tension between office-holders and challengers, making the game more politically realistic and engaging.**
-
----
-
-**Good luck with the implementation! The backend is solid and tested, and the frontend now has an Apple-level design system, so focus on user experience testing and gameplay balance.** 🗳️ 

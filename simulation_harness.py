@@ -9,8 +9,9 @@ simulation for game balance analysis.
 
 import random
 import time
-from typing import List, Dict, Any, Optional, Callable
+from typing import List, Dict, Any, Optional, Callable, Sequence
 from dataclasses import dataclass
+from abc import ABC, abstractmethod
 
 from engine.engine import GameEngine
 from models.game_state import GameState
@@ -18,9 +19,44 @@ from models.components import Player
 from engine.actions import (
     Action, ActionFundraise, ActionNetwork, ActionSponsorLegislation,
     ActionDeclareCandidacy, ActionUseFavor, ActionSupportLegislation,
-    ActionOpposeLegislation, ActionPassTurn
+    ActionOpposeLegislation, ActionPassTurn, ActionResolveLegislation,
+    ActionResolveElections, ActionAcknowledgeResults
 )
 from game_data import load_game_data
+
+
+class Agent(ABC):
+    """
+    Abstract base class for all game agents.
+    
+    Agents are pure decision-makers that choose actions from a pre-validated list.
+    They should not be responsible for figuring out what actions are possible.
+    """
+    
+    @abstractmethod
+    def choose_action(self, game_state: GameState, valid_actions: List[Action]) -> Action:
+        """
+        Choose an action from the list of valid actions.
+        
+        Args:
+            game_state: Current game state
+            valid_actions: List of valid actions to choose from
+            
+        Returns:
+            Action: The chosen action
+        """
+        pass
+
+
+class RandomAgent(Agent):
+    """
+    A simple agent that chooses actions randomly from available options.
+    Provides baseline performance for comparison.
+    """
+    
+    def choose_action(self, game_state: GameState, valid_actions: List[Action]) -> Action:
+        """Choose a random action from the valid actions list."""
+        return random.choice(valid_actions)
 
 
 @dataclass
@@ -72,96 +108,8 @@ class SimulationHarness:
         
         return game_state
     
-    def get_valid_actions(self, state: GameState, player_id: int) -> List[Action]:
-        """
-        Get all valid actions a player can take in the current game state.
-        
-        Args:
-            state: Current game state
-            player_id: ID of the player whose actions to check
-            
-        Returns:
-            List of valid Action objects
-        """
-        valid_actions = []
-        player = state.get_player_by_id(player_id)
-        
-        if not player:
-            return valid_actions
-            
-        # Check if it's the player's turn
-        if state.get_current_player().id != player_id:
-            return valid_actions
-            
-        # Check if player has action points
-        ap = state.action_points.get(player_id, 0)
-        if ap <= 0:
-            # Only Pass Turn is available
-            valid_actions.append(ActionPassTurn(player_id=player_id))
-            return valid_actions
-            
-        # Always available actions
-        valid_actions.append(ActionFundraise(player_id=player_id))
-        valid_actions.append(ActionNetwork(player_id=player_id))
-        
-        # Sponsor Legislation (if player has enough PC)
-        if player.pc >= 5:  # Minimum PC requirement for sponsoring
-            for leg_id in state.legislation_options:
-                valid_actions.append(ActionSponsorLegislation(
-                    player_id=player_id, 
-                    legislation_id=leg_id
-                ))
-        
-        # Declare Candidacy (only in round 4)
-        if state.round_marker == 4:
-            for office_id in state.offices:
-                office = state.offices[office_id]
-                if office.candidacy_cost <= player.pc:
-                    # Can declare with 0 PC commitment
-                    valid_actions.append(ActionDeclareCandidacy(
-                        player_id=player_id,
-                        office_id=office_id,
-                        committed_pc=0
-                    ))
-                    # Can also declare with additional PC commitment
-                    if player.pc > office.candidacy_cost:
-                        valid_actions.append(ActionDeclareCandidacy(
-                            player_id=player_id,
-                            office_id=office_id,
-                            committed_pc=min(10, player.pc - office.candidacy_cost)
-                        ))
-        
-        # Use Favor (if player has favors)
-        if player.favors:
-            for favor in player.favors:
-                valid_actions.append(ActionUseFavor(
-                    player_id=player_id,
-                    favor_id=favor.id
-                ))
-        
-        # Support/Oppose Legislation (if there's pending legislation)
-        if state.pending_legislation and not state.pending_legislation.resolved:
-            if player.pc > 0:
-                # Can support with any amount of PC
-                for pc_amount in range(1, min(player.pc + 1, 21)):  # Cap at 20 PC
-                    valid_actions.append(ActionSupportLegislation(
-                        player_id=player_id,
-                        legislation_id=state.pending_legislation.legislation_id,
-                        support_amount=pc_amount
-                    ))
-                    valid_actions.append(ActionOpposeLegislation(
-                        player_id=player_id,
-                        legislation_id=state.pending_legislation.legislation_id,
-                        oppose_amount=pc_amount
-                    ))
-        
-        # Pass Turn (always available)
-        valid_actions.append(ActionPassTurn(player_id=player_id))
-        
-        return valid_actions
-    
     def run_simulation(self, 
-                      player_agents: List[Callable[[GameState, int], Action]],
+                      player_agents: Sequence[Agent],
                       player_names: Optional[List[str]] = None,
                       max_rounds: int = 100,
                       verbose: bool = False) -> SimulationResult:
@@ -169,7 +117,7 @@ class SimulationHarness:
         Run a complete game simulation with the specified agents.
         
         Args:
-            player_agents: List of agent functions, one per player
+            player_agents: List of agent objects, one per player
             player_names: Optional list of player names (defaults to Agent 0, Agent 1, etc.)
             max_rounds: Maximum number of rounds to prevent infinite loops
             verbose: Whether to print detailed game progress
@@ -202,14 +150,30 @@ class SimulationHarness:
                 print(f"Phase: {state.current_phase}")
                 print(f"Action Points: {state.action_points}")
             
-            # Handle different phases
+            # Check for system actions first
+            system_actions = self.engine.get_valid_system_actions(state)
+            if system_actions:
+                # Process the first system action
+                action = system_actions[0]
+                if verbose:
+                    print(f"System action: {action.__class__.__name__}")
+                
+                # Handle system actions directly
+                if isinstance(action, ActionResolveLegislation):
+                    state = self.engine.resolve_legislation_session(state)
+                elif isinstance(action, ActionResolveElections):
+                    state = self.engine.resolve_elections_session(state)
+                elif isinstance(action, ActionAcknowledgeResults):
+                    state = self.engine.start_next_term(state)
+                continue
+            
+            # Handle player actions
             if state.current_phase == "ACTION_PHASE":
-                # Let the current player's agent choose an action
                 current_player_id = state.get_current_player().id
                 agent = player_agents[current_player_id]
                 
-                # Get valid actions
-                valid_actions = self.get_valid_actions(state, current_player_id)
+                # Get valid actions from the engine
+                valid_actions = self.engine.get_valid_actions(state, current_player_id)
                 
                 if not valid_actions:
                     if verbose:
@@ -218,165 +182,72 @@ class SimulationHarness:
                     action = ActionPassTurn(player_id=current_player_id)
                 else:
                     # Let the agent choose an action
-                    action = agent(state, current_player_id)
+                    action = agent.choose_action(state, valid_actions)
                     
-                    # Validate the chosen action
+                    # Validate the chosen action is in the valid list
                     if action not in valid_actions:
                         if verbose:
                             print(f"Agent chose invalid action: {action}")
-                        # Fall back to pass turn
-                        action = ActionPassTurn(player_id=current_player_id)
-                    
-                    # Additional validation: check if player has enough AP for the action
-                    action_cost = 0
-                    if isinstance(action, ActionSponsorLegislation):
-                        action_cost = 2
-                    elif isinstance(action, ActionDeclareCandidacy):
-                        action_cost = 2
-                    elif isinstance(action, (ActionFundraise, ActionNetwork, ActionUseFavor, 
-                                           ActionSupportLegislation, ActionOpposeLegislation)):
-                        action_cost = 1
-                    elif isinstance(action, ActionPassTurn):
-                        action_cost = 0
-                    
-                    if state.action_points.get(current_player_id, 0) < action_cost:
-                        if verbose:
-                            print(f"Agent chose action requiring {action_cost} AP but only has {state.action_points.get(current_player_id, 0)}")
                         # Fall back to pass turn
                         action = ActionPassTurn(player_id=current_player_id)
                 
                 if verbose:
                     print(f"{state.get_current_player().name} chose: {action.__class__.__name__}")
                 
-                # Process the action
-                try:
-                    state = self.engine.process_action(state, action)
-                except Exception as e:
-                    if verbose:
-                        print(f"Error processing action: {e}")
-                    # Force pass turn on error
-                    state = self.engine.process_action(state, ActionPassTurn(player_id=current_player_id))
-                    
-            elif state.current_phase == "LEGISLATION_PHASE":
-                # Handle legislation phase - auto-resolve
-                if state.awaiting_legislation_resolution:
-                    state = self.engine.resolve_legislation_session(state)
-                else:
-                    # If not awaiting resolution, advance to next player
-                    state.current_player_index = (state.current_player_index + 1) % len(state.players)
-                    if state.current_player_index == 0:
-                        # All players have had a chance to act, resolve
-                        state = self.engine.resolve_legislation_session(state)
-                    
-            elif state.awaiting_election_resolution:
-                # Handle election phase - auto-resolve
-                state = self.engine.resolve_elections_session(state)
-                    
-            elif state.current_phase == "UPKEEP_PHASE":
-                # Handle upkeep phase - auto-advance
-                state = self.engine.run_upkeep_phase(state)
+                # Process the action through the engine
+                state = self.engine.process_action(state, action)
+            
+            # Track term transitions
+            if state.round_marker == 1 and round_count > 1:
                 term_count += 1
-                
-            elif state.awaiting_results_acknowledgement:
-                # Handle results acknowledgement phase - auto-acknowledge
-                state.awaiting_results_acknowledgement = False
-                # Start next term
-                state = self.engine.start_next_term(state)
-                term_count += 1
-                
-            else:
-                # Unknown phase - try to advance
                 if verbose:
-                    print(f"Unknown phase: {state.current_phase}")
-                break
+                    print(f"\n--- Term {term_count} Complete ---")
         
         # Calculate final results
         simulation_time = time.time() - start_time
+        final_scores_data = self.engine.get_final_scores(state)
         
-        winner_id = None
-        winner_name = None
-        final_scores = {}
+        # Determine winner
+        winner_id = final_scores_data.get('winner_id')
+        winner_name = final_scores_data.get('winner_name')
+        final_scores = final_scores_data.get('scores', {})
         
-        if self.engine.is_game_over(state):
-            final_scores = self.engine.get_final_scores(state)
-            # Find the winner (highest score)
-            if final_scores:
-                print(f"DEBUG: final_scores structure: {final_scores}")
-                # Check if final_scores has the expected nested structure
-                if 'scores' in final_scores and 'winner_id' in final_scores:
-                    # Use the winner_id from the engine's calculation
-                    winner_id = final_scores['winner_id']
-                elif all(isinstance(score, dict) and 'total_influence' in score for score in final_scores.values()):
-                    winner_id = max(final_scores.keys(), key=lambda k: final_scores[k]['total_influence'])
-                else:
-                    print(f"DEBUG: Unexpected final_scores structure, using first player as winner")
-                    winner_id = list(final_scores.keys())[0] if final_scores else None
-            
-            winner = state.get_player_by_id(winner_id) if winner_id is not None else None
-            winner_name = winner.name if winner else "Unknown"
-        
-        result = SimulationResult(
+        return SimulationResult(
             winner_id=winner_id,
             winner_name=winner_name,
             game_length_rounds=round_count,
             game_length_terms=term_count,
             final_scores=final_scores,
-            game_log=state.turn_log.copy(),
+            game_log=state.turn_log,
             simulation_time_seconds=simulation_time
         )
-        
-        if verbose:
-            print(f"\n--- Simulation Complete ---")
-            print(f"Winner: {winner_name}")
-            print(f"Rounds: {round_count}, Terms: {term_count}")
-            print(f"Final Scores: {final_scores}")
-            print(f"Simulation Time: {simulation_time:.3f}s")
-        
-        return result
 
 
-def create_random_agent() -> Callable[[GameState, int], Action]:
-    """
-    Create a simple random agent for testing.
-    
-    Returns:
-        Agent function that chooses random valid actions
-    """
-    def random_agent(state: GameState, player_id: int) -> Action:
-        valid_actions = SimulationHarness().get_valid_actions(state, player_id)
-        if valid_actions:
-            return random.choice(valid_actions)
-        else:
-            return ActionPassTurn(player_id=player_id)
-    
-    return random_agent
+def create_random_agent() -> Agent:
+    """Create a random agent for testing."""
+    return RandomAgent()
 
 
 def test_simulation_harness():
     """Test the simulation harness with random agents."""
     print("Testing Simulation Harness...")
     
+    # Create agents
+    agents = [RandomAgent() for _ in range(4)]
+    player_names = ['Alice', 'Bob', 'Charlie', 'Diana']
+    
+    # Create harness and run simulation
     harness = SimulationHarness()
+    result = harness.run_simulation(agents, player_names, verbose=True)
     
-    # Create 4 random agents
-    agents = [create_random_agent() for _ in range(4)]
-    player_names = ["Alice", "Bob", "Charlie", "Diana"]
-    
-    # Run a test simulation
-    result = harness.run_simulation(
-        player_agents=agents,
-        player_names=player_names,
-        verbose=True
-    )
-    
-    print(f"\nTest completed successfully!")
+    print(f"\n--- Simulation Complete ---")
     print(f"Winner: {result.winner_name}")
-    print(f"Game length: {result.game_length_rounds} rounds, {result.game_length_terms} terms")
-    print(f"Simulation time: {result.simulation_time_seconds:.3f} seconds")
+    print(f"Rounds: {result.game_length_rounds}, Terms: {result.game_length_terms}")
+    print(f"Final Scores: {result.final_scores}")
+    print(f"Simulation Time: {result.simulation_time_seconds:.3f}s")
     
     return result
 
 
 if __name__ == "__main__":
-    # Run a test simulation when executed directly
     test_simulation_harness() 

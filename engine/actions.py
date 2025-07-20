@@ -69,3 +69,18 @@ class ActionCompleteTrading(Action):
 class ActionPassTurn(Action):
     """Pass turn without taking any action."""
     pass
+
+@dataclass
+class ActionResolveLegislation(Action):
+    """System action to resolve pending legislation."""
+    player_id: int = -1  # System action, no specific player
+
+@dataclass
+class ActionResolveElections(Action):
+    """System action to resolve elections."""
+    player_id: int = -1  # System action, no specific player
+
+@dataclass
+class ActionAcknowledgeResults(Action):
+    """System action to acknowledge results and start new term."""
+    player_id: int = -1  # System action, no specific player

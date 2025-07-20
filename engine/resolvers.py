@@ -984,12 +984,30 @@ def _event_celeb_politician(state: GameState) -> GameState:
     return state
 
 def resolve_pass_turn(state: GameState, action: ActionPassTurn) -> GameState:
-    """Simply advance to the next player's turn without any other effects."""
+    """Resolve a pass turn action."""
     player = state.get_player_by_id(action.player_id)
-    if not player:
-        return state
+    if not player: return state
     
     state.add_log(f"{player.name} passes their turn.")
-    # Force turn advancement by setting action points to -1
-    state.action_points[player.id] = -1
+    return state
+
+def resolve_resolve_legislation(state: GameState, action) -> GameState:
+    """System action to resolve pending legislation."""
+    # This will be handled by the engine's resolve_legislation_session method
+    # The harness will call the engine method directly
+    state.add_log("System: Resolving legislation session.")
+    return state
+
+def resolve_resolve_elections(state: GameState, action) -> GameState:
+    """System action to resolve elections."""
+    # This will be handled by the engine's resolve_elections_session method
+    # The harness will call the engine method directly
+    state.add_log("System: Resolving elections.")
+    return state
+
+def resolve_acknowledge_results(state: GameState, action) -> GameState:
+    """System action to acknowledge results and start new term."""
+    # This will be handled by the engine's start_next_term method
+    # The harness will call the engine method directly
+    state.add_log("System: Acknowledging results and starting new term.")
     return state
