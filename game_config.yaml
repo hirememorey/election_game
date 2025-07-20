@@ -1,0 +1,145 @@
+# Election Game Configuration
+# This file contains all game parameters that can be tuned for balance and gameplay
+
+# Game Structure
+game:
+  rounds_per_term: 4
+  max_players: 4
+  min_players: 2
+
+# Action Points System
+action_points:
+  base_ap_per_turn: 2
+  max_ap_per_turn: 4
+  ap_cost_fundraise: 1
+  ap_cost_network: 1
+  ap_cost_sponsor_legislation: 1
+  ap_cost_declare_candidacy: 1
+  ap_cost_use_favor: 1
+  ap_cost_support_legislation: 1
+  ap_cost_oppose_legislation: 1
+  ap_cost_pass_turn: 0
+
+# Political Capital (PC) Economy
+political_capital:
+  base_fundraise_pc: 5
+  base_network_pc: 2
+  network_favor_chance: 0.3  # 30% chance to get a favor from networking
+  
+  # PC costs for actions
+  sponsor_legislation_cost_multiplier: 1.0  # Base cost multiplier
+  declare_candidacy_cost_multiplier: 1.0   # Base cost multiplier
+  
+  # PC commitment limits
+  max_support_commitment: 20
+  max_oppose_commitment: 20
+  min_commitment: 1
+
+# Legislation System
+legislation:
+  # Success thresholds
+  base_success_target: 15
+  base_crit_target: 25
+  
+  # Rewards and penalties
+  success_reward_multiplier: 1.0
+  crit_reward_multiplier: 2.0
+  failure_penalty_multiplier: 0.5
+  
+  # Mood changes
+  success_mood_change: 1
+  failure_mood_change: -1
+  crit_mood_change: 2
+
+# Election System
+elections:
+  # Dice roll modifiers
+  base_dice_bonus: 0
+  pc_per_dice_bonus: 0.1  # Each PC committed gives +0.1 to dice roll
+  
+  # Office tier effects
+  tier_bonus_multiplier: 1.0
+  
+  # NPC challenger strength
+  npc_challenger_base_strength: 10
+  npc_challenger_variance: 5
+
+# Event System
+events:
+  # Event frequency
+  event_chance_per_round: 0.3  # 30% chance of event per round
+  
+  # Event effects
+  stock_market_crash_pc_penalty: 0.5  # 50% reduction in PC gain
+  scandal_ap_penalty: 1  # Lose 1 AP
+  windfall_pc_bonus: 3  # Gain 3 PC
+
+# Favor System
+favors:
+  # Favor effects
+  political_debt_duration: 2  # Rounds
+  hot_potato_damage: 2  # PC damage per round
+  media_scrutiny_ap_penalty: 1  # AP penalty
+  compromised_pc_penalty: 0.5  # 50% PC penalty
+
+# AI Behavior Tuning
+ai:
+  # Decision weights
+  fundraise_weight: 1.0
+  network_weight: 1.0
+  sponsor_legislation_weight: 1.0
+  declare_candidacy_weight: 1.0
+  use_favor_weight: 1.0
+  support_legislation_weight: 1.0
+  oppose_legislation_weight: 1.0
+  
+  # Risk tolerance
+  conservative_threshold: 0.3
+  aggressive_threshold: 0.7
+  
+  # PC management
+  min_pc_reserve: 5
+  max_pc_commitment_ratio: 0.8  # Use up to 80% of PC
+
+# Game Balance Targets
+balance:
+  # Target win rates (for AI personas)
+  random_win_rate: 0.25  # 25% win rate for random AI
+  heuristic_win_rate: 0.46  # 46% win rate for heuristic AI (current)
+  
+  # Game length targets
+  target_game_duration_rounds: 4
+  target_action_per_turn: 2
+  
+  # Engagement metrics
+  target_decision_points_per_game: 16  # 4 rounds * 2 players * 2 AP
+  target_strategic_depth_score: 7.0  # 1-10 scale
+
+# UI/UX Settings
+interface:
+  # CLI display
+  show_progress_bar: true
+  show_colors: true
+  clear_screen_between_turns: true
+  
+  # Game flow
+  ai_thinking_delay: 1.0  # seconds
+  show_detailed_ai_actions: true
+  
+  # Help system
+  show_tips: true
+  detailed_action_descriptions: true
+
+# Development/Testing
+development:
+  # Debug settings
+  verbose_logging: false
+  show_ai_decision_process: false
+  
+  # Testing
+  rapid_test_mode: false  # Faster games for testing
+  skip_ai_thinking_delay: false
+  
+  # Simulation settings
+  simulation_games_per_experiment: 300
+  simulation_timeout_seconds: 120 
