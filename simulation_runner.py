@@ -45,7 +45,7 @@ class GameStateEncoder(json.JSONEncoder):
 
 from simulation_harness import SimulationHarness, SimulationResult, SilentLogger
 from personas import (
-    RandomPersona, EconomicPersona, LegislativePersona, BalancedPersona
+    RandomPersona, EconomicPersona, LegislativePersona, BalancedPersona, HeuristicPersona
 )
 
 
@@ -132,7 +132,8 @@ class SimulationRunner:
             'random': RandomPersona,
             'economic': EconomicPersona,
             'legislative': LegislativePersona,
-            'balanced': BalancedPersona
+            'balanced': BalancedPersona,
+            'heuristic': HeuristicPersona
         }
         
         if persona_type not in persona_map:
@@ -251,6 +252,15 @@ class SimulationRunner:
             results = []
             start_time = time.time()
             
+            # Check for disable_dice_roll setting in experiment config
+            disable_dice_roll = experiment.get('disable_dice_roll', False)
+            if disable_dice_roll:
+                print(f"  Dice rolls disabled for this experiment")
+                # Create a new harness with dice rolls disabled
+                experiment_harness = SimulationHarness(disable_dice_roll=True)
+            else:
+                experiment_harness = self.harness
+            
             for game_id in range(num_games):
                 if game_id % 100 == 0 and game_id > 0:
                     elapsed = time.time() - start_time
@@ -261,7 +271,7 @@ class SimulationRunner:
                     # Get tracing setting from config
                     enable_tracing = self.config['data_collection'].get('enable_tracing', False)
                     
-                    result = self.harness.run_simulation(
+                    result = experiment_harness.run_simulation(
                         agents, player_names, max_rounds, SilentLogger(), enable_tracing
                     )
                     results.append(result)

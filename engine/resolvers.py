@@ -638,7 +638,7 @@ def resolve_pending_legislation(state: GameState) -> GameState:
     
     return state
 
-def resolve_elections(state: GameState) -> GameState:
+def resolve_elections(state: GameState, disable_dice_roll: bool = False) -> GameState:
     state.add_log("\n--- ELECTION RESULTS ---")
     
     # Process elections for each office
@@ -649,16 +649,48 @@ def resolve_elections(state: GameState) -> GameState:
             continue  # No candidates for this office
 
         scores = {}
+        dice_rolls = {}
+        
         for cand in candidates:
             player = state.get_player_by_id(cand.player_id)
             if player:
-                # Base score is committed PC (campaign influences removed)
-                score = cand.committed_pc
-                scores[player.name] = score
+                # Base score is committed PC
+                base_score = cand.committed_pc
+                
+                if disable_dice_roll:
+                    # Deterministic mode: no dice roll
+                    final_score = base_score
+                    dice_roll = 0
+                else:
+                    # Dice roll mode: add random element
+                    dice_roll = random.randint(1, 6)
+                    final_score = base_score + dice_roll
+                
+                scores[player.name] = final_score
+                dice_rolls[player.name] = dice_roll
+                
+                if disable_dice_roll:
+                    state.add_log(f"{player.name}: {base_score} PC (no dice roll)")
+                else:
+                    state.add_log(f"{player.name}: {base_score} PC + {dice_roll} (dice) = {final_score}")
 
         # Add NPC challenger if there are candidates
         if candidates:
-            scores["NPC Challenger"] = office.npc_challenger_bonus
+            npc_base = office.npc_challenger_bonus
+            if disable_dice_roll:
+                npc_score = npc_base
+                npc_dice = 0
+            else:
+                npc_dice = random.randint(1, 6)
+                npc_score = npc_base + npc_dice
+            
+            scores["NPC Challenger"] = npc_score
+            dice_rolls["NPC Challenger"] = npc_dice
+            
+            if disable_dice_roll:
+                state.add_log(f"NPC Challenger: {npc_base} (no dice roll)")
+            else:
+                state.add_log(f"NPC Challenger: {npc_base} + {npc_dice} (dice) = {npc_score}")
         
         # Determine winner
         if scores:
@@ -683,6 +715,7 @@ def resolve_elections(state: GameState) -> GameState:
             "type": "election",
             "office_name": office.title,
             "scores": scores,
+            "dice_rolls": dice_rolls,
             "winner_name": winner_name,
             "winner_score": winner_score
         }

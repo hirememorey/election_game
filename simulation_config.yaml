@@ -141,4 +141,47 @@ experiments:
         persona: "legislative"
         
       - name: "Random Bot"
-        persona: "random" 
+        persona: "random"
+
+  # Experiment 7: Skill Delta Test (Heuristic vs Random)
+  - name: "skill_delta_test"
+    description: "Test skill advantage with 1 Heuristic vs 3 Random players"
+    num_games: 1000
+    players:
+      - name: "Heuristic Bot"
+        persona: "heuristic"
+        description: "Basic strategic player"
+        
+      - name: "Random Bot 1"
+        persona: "random"
+        description: "Random decision maker"
+        
+      - name: "Random Bot 2"
+        persona: "random"
+        description: "Random decision maker"
+        
+      - name: "Random Bot 3"
+        persona: "random"
+        description: "Random decision maker"
+
+  # Experiment 8: Skill Delta Test with No Dice Rolls
+  - name: "skill_delta_test_no_dice"
+    description: "Test skill advantage with dice rolls disabled"
+    num_games: 1000
+    disable_dice_roll: true
+    players:
+      - name: "Heuristic Bot"
+        persona: "heuristic"
+        description: "Basic strategic player"
+        
+      - name: "Random Bot 1"
+        persona: "random"
+        description: "Random decision maker"
+        
+      - name: "Random Bot 2"
+        persona: "random"
+        description: "Random decision maker"
+        
+      - name: "Random Bot 3"
+        persona: "random"
+        description: "Random decision maker" 

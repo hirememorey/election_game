@@ -10,11 +10,13 @@ from .economic_persona import EconomicPersona
 from .legislative_persona import LegislativePersona
 from .balanced_persona import BalancedPersona
 from .random_persona import RandomPersona
+from .heuristic_persona import HeuristicPersona
 
 __all__ = [
     'BasePersona',
     'EconomicPersona', 
     'LegislativePersona',
     'BalancedPersona',
-    'RandomPersona'
+    'RandomPersona',
+    'HeuristicPersona'
 ] 

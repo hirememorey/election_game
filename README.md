@@ -2,49 +2,45 @@
 
 A strategic political simulation game where players compete for influence through legislation, elections, and political maneuvering.
 
+The game is currently in a rapid development phase. The primary focus is on refining the core gameplay loop and developing AI opponents for a compelling single-player experience.
+
+Our current development strategy is outlined in the [Player-First Refactor Plan](PLAYER_FIRST_REFACTOR_PLAN.md).
+
 ## Features
 
-- **Secret Commitment System**: Players secretly commit Political Capital to support or oppose legislation
-- **Action Points System**: Strategic resource management with limited actions per turn
-- **Multiple Office Types**: President, Senators, Governors, and more with different influence values
-- **Hidden Funder Mandates**: Unique victory conditions for each player
-- **Event Cards**: Dynamic events that affect gameplay
-- **Mobile-Optimized**: Responsive design with touch-friendly controls
+*   **Dynamic Turn-based Gameplay**: Each turn, players choose from a set of actions like fundraising, declaring candidacy, or influencing legislation.
+*   **Secret Bidding**: Use your political capital to secretly support or oppose legislation.
+*   **Multiple Paths to Victory**: Win by holding office, passing legislation aligned with your archetype, or accumulating the most influence.
+*   **Sophisticated Simulation Framework**: A powerful tool for game balance analysis and AI persona development.
+*   **Web-based Interface**: Play the game in your browser.
 
-## Quick Start
+## Getting Started
 
 ### Web Version (Recommended for Players)
 
-1. **Install Dependencies**:
-   ```bash
-   pip install -r requirements.txt
-   ```
+1.  **Install Dependencies**:
+    ```bash
+    pip install -r requirements.txt
+    ```
 
-2. **Run the Server**:
-   ```bash
-   python server.py
-   ```
+2.  **Run the Server**:
+    ```bash
+    python server.py
+    ```
 
-3. **Open in Browser**:
-   Navigate to `http://localhost:5000`
+3.  **Open in Browser**:
+    Navigate to `http://localhost:5000`
 
 ### Simulation Framework (For Developers/Analysis)
 
-The project now includes a comprehensive simulation framework for game balance analysis:
+The project includes a comprehensive simulation framework for game balance analysis:
 
 ```bash
-# Run a single simulation with detailed winner analysis
-python3 run_single_simulation.py
+# Run all experiments defined in simulation_config.yaml
+python3 simulation_runner.py
 
-# Run a basic simulation with random agents
-python simulation_harness.py
-
-# The simulation framework supports:
-# - Headless game execution
-# - Agent-based testing
-# - Tournament systems
-# - Balance analysis
-# - Detailed winner analysis and reasoning
+# Run a test of the simulation framework
+python3 test_skill_vs_luck_implementation.py
 ```
 
 ## Game Mechanics
@@ -127,3 +123,14 @@ See `DEPLOYMENT.md` for detailed deployment instructions.
 ## License
 
 This project is licensed under the MIT License.
+
+## Development Focus
+
+The project is currently focused on implementing the plan outlined in [`PLAYER_FIRST_REFACTOR_PLAN.md`](PLAYER_FIRST_REFACTOR_PLAN.md). This involves:
+1.  **Rule Parity:** Ensuring the web version uses the same dice-roll mechanics proven effective in simulation.
+2.  **UI Simplification:** Moving to a developer-focused, command-line-style web UI to accelerate iteration on gameplay.
+3.  **AI Opponents:** Implementing server-side AI to allow for robust single-player testing.
+
+## Simulation Framework
+
+The simulation framework is a key part of this project, designed for automated testing and balancing.

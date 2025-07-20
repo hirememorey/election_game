@@ -531,7 +531,7 @@ class GameEngine:
         # Transition to election phase
         return self.run_election_phase(state)
 
-    def resolve_elections_session(self, state: GameState) -> GameState:
+    def resolve_elections_session(self, state: GameState, disable_dice_roll: bool = False) -> GameState:
         """Resolves elections and transitions to the next term."""
         if not state.awaiting_election_resolution:
             return state
@@ -540,7 +540,7 @@ class GameEngine:
         state.current_phase = "ELECTION_PHASE"
         state.add_log("\n--- ELECTION PHASE ---")
         
-        state = resolvers.resolve_elections(state)
+        state = resolvers.resolve_elections(state, disable_dice_roll=disable_dice_roll)
         
         # Instead of advancing to the next term, set a flag
         state.awaiting_election_resolution = False

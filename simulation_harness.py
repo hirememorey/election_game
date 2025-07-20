@@ -252,10 +252,11 @@ class SimulationHarness:
     quickly for balance analysis and agent testing.
     """
     
-    def __init__(self):
+    def __init__(self, disable_dice_roll: bool = False):
         """Initialize the simulation harness with game data and engine."""
         self.game_data = load_game_data()
         self.engine = GameEngine(self.game_data)
+        self.disable_dice_roll = disable_dice_roll
         
     def create_game(self, player_names: List[str]) -> GameState:
         """
@@ -347,7 +348,7 @@ class SimulationHarness:
                         if isinstance(action, ActionResolveLegislation):
                             state = self.engine.resolve_legislation_session(state)
                         elif isinstance(action, ActionResolveElections):
-                            state = self.engine.resolve_elections_session(state)
+                            state = self.engine.resolve_elections_session(state, disable_dice_roll=self.disable_dice_roll)
                         elif isinstance(action, ActionAcknowledgeResults):
                             state = self.engine.start_next_term(state)
                         
