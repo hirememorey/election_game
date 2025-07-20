@@ -1,73 +1,259 @@
-# "Player-First" Refactor Implementation Plan
+# Player-First Refactor Plan
 
-## Guiding Principle
-Our primary goal is to test and refine the core gameplay experience. This means ruthlessly simplifying the interface to focus our development effort on game mechanics and AI opponents. We are moving from building a *product* to tuning an *experience*.
+## Vision Statement
 
-This plan is broken into three phases designed to incrementally achieve this vision.
+**Guiding Principle:** Our primary goal is to test and refine the core gameplay experience. This means ruthlessly simplifying the interface to focus our development effort on game mechanics and AI opponents. We are moving from building a *product* to tuning an *experience*.
 
----
+## Current State Analysis
 
-### Phase 1: Implement Election Dice Rolls (Rule Parity)
+### What We Have
+- ✅ Robust simulation framework with skill/luck analysis
+- ✅ Working game engine with all core mechanics
+- ✅ Web deployment infrastructure
+- ✅ Multiple AI personas (Random, Economic, Legislative, Balanced, Heuristic)
+- ✅ Comprehensive test suite
 
-**First Principle:** The live game must operate under the same rules as our successful simulations. The most critical missing piece is the element of luck in elections.
+### What's Blocking Us
+- ❌ Complex UI with frontend-backend sync issues
+- ❌ Election dice rolls not implemented in web version
+- ❌ No way for humans to play against AI opponents
+- ❌ UI complexity preventing rapid gameplay iteration
 
-**Tasks:**
+## Implementation Roadmap
 
-1.  **The Goal:** Implement the d6 dice roll in the web version's election phase. Our simulations proved this is a key factor in the skill/luck balance.
-2.  **Backend Verification (Minor Change):**
-    *   **File to Check:** `server.py`.
-    *   **Endpoint:** The `resolve_elections` function, which handles the `POST /api/game/<game_id>/resolve_elections` call.
-    *   **Action:** Verify that this endpoint calls the engine's election resolution session *without* disabling the dice roll. The default behavior (`disable_dice_roll=False`) is what we want.
-3.  **State Management (Already Done):**
-    *   The `resolve_elections` function in `engine/resolvers.py` has already been updated to include `dice_rolls` and final scores in the `last_election_results` dictionary within the `GameState`. This data should be ready for the frontend.
-4.  **Frontend (Visual Feedback):**
-    *   **Files to Check:** The JavaScript file responsible for rendering the election results screen (likely in `static/js/`).
-    *   **Action:** Modify the UI to display the full election calculation: `[Player Name]: [PC Committed] PC + [Dice Roll] (dice) = [Final Score]`. This makes the luck element transparent and exciting for the player.
+### Phase 1: Strip Down to Command-Line Interface (Week 1)
 
----
+**Goal:** Create a minimal, functional interface that allows human players to play against AI opponents.
 
-### Phase 2: The "Dev-Focused" UI (Radical Simplification)
+#### 1.1 Create Command-Line Game Interface
+- **File:** `cli_game.py`
+- **Purpose:** Minimal text-based interface for human vs AI gameplay
+- **Features:**
+  - Display current game state in text format
+  - List available actions for human player
+  - Accept simple text commands (e.g., "fundraise", "support healthcare 20")
+  - Show AI opponent actions
+  - Display election results and game outcomes
 
-**First Principle:** The simplest interface that allows for gameplay is the best interface for rapid tuning. We will trade graphical complexity for development speed.
+#### 1.2 Implement Election Dice Rolls in Web Version
+- **Files to Modify:**
+  - `engine/resolvers.py` (already done in simulation)
+  - `cli.py` (web API endpoints)
+  - Frontend JavaScript (election resolution)
+- **Goal:** Ensure web version matches simulation behavior
 
-**Tasks:**
+#### 1.3 Create Human vs AI Game Mode
+- **File:** `human_vs_ai.py`
+- **Purpose:** Orchestrate games between human players and AI opponents
+- **Features:**
+  - Configurable AI persona selection
+  - Game state management
+  - Turn-by-turn gameplay
+  - Result tracking
 
-1.  **The Goal:** Replace the current complex UI with a minimal, text-based "command-line" style interface that is still deployed on the web.
-2.  **The Vision:** Imagine a single web page with two main elements:
-    *   A **Game Log:** A simple, scrolling text area that displays the `game_state.turn_log`.
-    *   An **Action Prompt:** When it's the human player's turn, this area displays a numbered list of valid actions and a simple input box. The player types a number and hits "Enter" to take their turn.
-3.  **Implementation Steps:**
-    *   **Create New UI:** Create a new, minimal `index_dev.html` and a corresponding `main_dev.js`. This is simpler than modifying the existing complex UI.
-    *   **JavaScript Logic:**
-        1.  On page load, and after every action, fetch the full game state from the `GET /api/game/<game_id>` endpoint.
-        2.  Render the `game_state.turn_log` into the Game Log `<div>`.
-        3.  If it's the human player's turn, render the `valid_actions` as a numbered list in the Action Prompt.
-        4.  When the player submits a number, find the corresponding action in the `valid_actions` array, construct the action payload, and `POST` it to the `/api/game/<game_id>/action` endpoint.
-4.  **The Benefit:** This eliminates nearly all frontend dependencies and state management bugs, allowing us to focus 100% of our effort on the game engine and AI.
+### Phase 2: Web-Based Minimal Interface (Week 2)
 
----
+**Goal:** Create a web-deployed version that maintains the simplicity of command-line but adds visual clarity.
 
-### Phase 3: Introduce AI Opponents (The "Playtest" Feature)
+#### 2.1 Create Minimal Web UI
+- **Files:** `static/minimal.html`, `static/minimal.js`, `static/minimal.css`
+- **Design Principles:**
+  - Single-page interface
+  - Large, clear text
+  - Minimal animations
+  - Focus on readability over aesthetics
+  - Mobile-responsive but desktop-optimized
 
-**First Principle:** To test if a game is fun, a human must be able to play it against a competent opponent. We will bring our simulated personas to life.
+#### 2.2 Implement Core Game Flow
+- **Features:**
+  - Display current player and phase
+  - Show available actions as large buttons
+  - Display game state in clear text format
+  - Show AI opponent actions
+  - Display results and outcomes
 
-**Tasks:**
+#### 2.3 Add AI Opponent Selection
+- **Interface:** Dropdown to select AI persona
+- **Options:** Random, Economic, Legislative, Balanced, Heuristic
+- **Default:** Heuristic (represents basic skill level)
 
-1.  **The Goal:** Allow a human to start a game and play against AI-controlled opponents that use the personas from our simulation framework (e.g., `HeuristicPersona`).
-2.  **Implementation Steps:**
-    1.  **Designate AI Players:**
-        *   Modify the `Player` model in `models/player.py` to include a boolean `is_ai` flag.
-        *   On the new simplified "New Game" page, allow the user to designate which players will be human and which will be AI.
-    2.  **Instantiate AI "Brains":**
-        *   When a new game is created in `server.py`, if a player has `is_ai=True`, create an instance of the chosen persona (e.g., `HeuristicPersona()`) and associate it with that player's ID in a server-side dictionary.
-    3.  **Create the Server-Side AI Loop:**
-        *   This is the most critical part. The logic must live in `server.py`, right after an action is processed.
-        *   After any turn (human or AI), check if the *new* `current_player` is an AI.
-        *   If it is, **enter a loop that runs on the server**:
-            a. Get valid actions for the AI player: `engine.get_valid_actions()`.
-            b. Use the AI's persona to choose an action: `action = persona.choose_action(...)`.
-            c. Process that action: `engine.process_action(action)`.
-            d. Add a message to the game log showing the AI's action.
-            e. Check the new `current_player`. If they are *also* an AI, the loop continues.
-        *   The loop only breaks when the `current_player` is human.
-        *   Finally, the server sends the complete, updated `GameState` back to the human player's browser, showing the result of their action and all subsequent AI actions. 
+### Phase 3: Gameplay Testing and Iteration (Week 3-4)
+
+**Goal:** Use the minimal interface to test and refine the core gameplay experience.
+
+#### 3.1 Create Testing Framework
+- **File:** `gameplay_testing.py`
+- **Purpose:** Automated testing of human vs AI gameplay
+- **Features:**
+  - Record game outcomes
+  - Track win rates by AI persona
+  - Identify gameplay issues
+  - Measure game length and engagement
+
+#### 3.2 Implement Feedback Collection
+- **Features:**
+  - Simple rating system (1-5 stars)
+  - Text feedback collection
+  - Gameplay metrics tracking
+  - Issue reporting system
+
+#### 3.3 Create Iteration Cycle
+- **Process:**
+  1. Play games with different AI opponents
+  2. Identify gameplay issues
+  3. Make quick adjustments to game mechanics
+  4. Re-test with updated mechanics
+  5. Repeat until gameplay feels satisfying
+
+## Technical Requirements
+
+### Backend Changes
+
+#### 1. Election Dice Roll Implementation
+```python
+# In engine/resolvers.py - already implemented for simulation
+def resolve_elections(state: GameState, disable_dice_roll: bool = False) -> GameState:
+    # ... existing code ...
+    if not disable_dice_roll:
+        # Add dice roll logic here
+        for candidate in candidates:
+            dice_roll = random.randint(1, 6)
+            scores[candidate.name] += dice_roll
+```
+
+#### 2. CLI Game Interface
+```python
+# New file: cli_game.py
+class CLIGame:
+    def __init__(self, ai_persona: str = "heuristic"):
+        self.harness = SimulationHarness()
+        self.ai_persona = get_persona_class(ai_persona)()
+    
+    def display_game_state(self):
+        # Show current state in text format
+    
+    def get_available_actions(self):
+        # Return list of valid actions for human player
+    
+    def execute_action(self, action_text: str):
+        # Parse text command and execute action
+```
+
+#### 3. Human vs AI Game Mode
+```python
+# New file: human_vs_ai.py
+class HumanVsAIGame:
+    def __init__(self, ai_persona: str = "heuristic"):
+        self.cli_game = CLIGame(ai_persona)
+    
+    def play_game(self):
+        # Main game loop
+        while not game_over:
+            if current_player == human:
+                self.handle_human_turn()
+            else:
+                self.handle_ai_turn()
+```
+
+### Frontend Changes
+
+#### 1. Minimal Web Interface
+```html
+<!-- static/minimal.html -->
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Election Game - Minimal</title>
+    <link rel="stylesheet" href="minimal.css">
+</head>
+<body>
+    <div id="game-container">
+        <div id="game-state"></div>
+        <div id="actions"></div>
+        <div id="game-log"></div>
+    </div>
+    <script src="minimal.js"></script>
+</body>
+</html>
+```
+
+#### 2. Simplified JavaScript
+```javascript
+// static/minimal.js
+class MinimalGame {
+    constructor() {
+        this.gameId = null;
+        this.currentState = null;
+    }
+    
+    async startGame(aiPersona) {
+        // Initialize game with selected AI
+    }
+    
+    displayGameState() {
+        // Update UI with current game state
+    }
+    
+    async executeAction(action) {
+        // Send action to backend and update UI
+    }
+}
+```
+
+## Success Metrics
+
+### Phase 1 Success Criteria
+- [ ] Human can play complete game against AI opponent
+- [ ] Election dice rolls work in web version
+- [ ] Game state is clearly displayed
+- [ ] Actions are easy to understand and execute
+
+### Phase 2 Success Criteria
+- [ ] Web interface loads and functions correctly
+- [ ] Gameplay is smooth and responsive
+- [ ] AI opponent selection works
+- [ ] Interface is mobile-friendly
+
+### Phase 3 Success Criteria
+- [ ] Gameplay feels engaging and balanced
+- [ ] Win rates are reasonable (not too one-sided)
+- [ ] Game length is appropriate (15-30 minutes)
+- [ ] Players want to play again
+
+## Risk Mitigation
+
+### Technical Risks
+1. **Backend Complexity:** Keep changes minimal and focused
+2. **Frontend Bugs:** Use simple, tested patterns
+3. **Performance Issues:** Monitor game speed and responsiveness
+
+### Design Risks
+1. **Interface Too Simple:** Balance clarity with functionality
+2. **Gameplay Imbalance:** Use simulation data to guide adjustments
+3. **User Engagement:** Focus on core gameplay loop
+
+## Next Steps for Developers
+
+1. **Start with Phase 1:** Implement the command-line interface first
+2. **Test Election Dice Rolls:** Ensure web version matches simulation
+3. **Create Human vs AI Mode:** Build the core gameplay experience
+4. **Iterate Rapidly:** Make small changes and test frequently
+5. **Focus on Feel:** Prioritize gameplay experience over features
+
+## Files to Create/Modify
+
+### New Files
+- `cli_game.py` - Command-line game interface
+- `human_vs_ai.py` - Human vs AI game orchestration
+- `gameplay_testing.py` - Testing and feedback framework
+- `static/minimal.html` - Minimal web interface
+- `static/minimal.js` - Minimal web JavaScript
+- `static/minimal.css` - Minimal web styling
+
+### Modified Files
+- `cli.py` - Add election dice roll support
+- `engine/resolvers.py` - Ensure dice rolls work in web version
+- `simulation_harness.py` - Add human player support
+- `models/game_state.py` - Add human player tracking
+
+This plan provides a clear roadmap for implementing the player-first refactor while maintaining the robust simulation framework we've built. 

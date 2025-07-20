@@ -1,136 +1,173 @@
 # Election Game
 
-A strategic political simulation game where players compete for influence through legislation, elections, and political maneuvering.
+A digital adaptation of a political strategy board game, featuring AI opponents and comprehensive simulation capabilities.
 
-The game is currently in a rapid development phase. The primary focus is on refining the core gameplay loop and developing AI opponents for a compelling single-player experience.
+## Current Status
 
-Our current development strategy is outlined in the [Player-First Refactor Plan](PLAYER_FIRST_REFACTOR_PLAN.md).
+### ✅ Completed Features
+- **Robust Game Engine**: Complete implementation of all game mechanics
+- **AI Opponents**: Multiple AI personas (Random, Economic, Legislative, Balanced, Heuristic)
+- **Simulation Framework**: Comprehensive testing with 300+ games per experiment
+- **Skill vs Luck Analysis**: Quantified game balance (similar to Texas Hold 'Em)
+- **Web Deployment**: Functional web interface with backend API
 
-## Features
+### 🔄 Current Development Phase
+We are transitioning to a **Player-First Refactor** to focus on gameplay experience and human vs AI gameplay.
 
-*   **Dynamic Turn-based Gameplay**: Each turn, players choose from a set of actions like fundraising, declaring candidacy, or influencing legislation.
-*   **Secret Bidding**: Use your political capital to secretly support or oppose legislation.
-*   **Multiple Paths to Victory**: Win by holding office, passing legislation aligned with your archetype, or accumulating the most influence.
-*   **Sophisticated Simulation Framework**: A powerful tool for game balance analysis and AI persona development.
-*   **Web-based Interface**: Play the game in your browser.
+## Quick Start
 
-## Getting Started
+### For Players
+1. Visit the deployed web application
+2. Start a new game
+3. Play against AI opponents
+4. Experience the strategic depth of political campaigning
 
-### Web Version (Recommended for Players)
+### For Developers
+1. Clone the repository
+2. Install dependencies: `pip install -r requirements.txt`
+3. Run the simulation framework: `python simulation_runner.py`
+4. Start the web server: `python cli.py`
 
-1.  **Install Dependencies**:
-    ```bash
-    pip install -r requirements.txt
-    ```
-
-2.  **Run the Server**:
-    ```bash
-    python server.py
-    ```
-
-3.  **Open in Browser**:
-    Navigate to `http://localhost:5000`
-
-### Simulation Framework (For Developers/Analysis)
-
-The project includes a comprehensive simulation framework for game balance analysis:
-
-```bash
-# Run all experiments defined in simulation_config.yaml
-python3 simulation_runner.py
-
-# Run a test of the simulation framework
-python3 test_skill_vs_luck_implementation.py
-```
-
-## Game Mechanics
-
-### Core Systems
-
-- **Political Capital (PC)**: Primary resource used for actions and commitments
-- **Action Points (AP)**: Limited actions per turn (2 AP per player per round)
-- **Influence**: Victory is determined by total influence points
-- **Offices**: Holding political offices grants influence bonuses
-
-### Actions Available
-
-- **Fundraise**: Gain Political Capital
-- **Network**: Build connections and gain advantages
-- **Sponsor Legislation**: Create bills for voting
-- **Support/Oppose Legislation**: Commit PC to influence outcomes
-- **Declare Candidacy**: Run for political office
-- **Use Favor**: Leverage political connections
-
-### Victory Conditions
-
-Players earn influence through:
-- **Office Bonuses**: President (25), US Senator (15), Governor (10), etc.
-- **PC Conversion**: Remaining PC converts to influence (10:1 ratio)
-- **Hidden Funder Mandates**: Unique objectives worth 15 influence each
-
-## Development
-
-### Project Structure
+## Project Structure
 
 ```
 election/
-├── server.py              # Main web server
-├── run_single_simulation.py  # Single simulation with detailed analysis
-├── simulation_harness.py  # Game balance analysis framework
-├── engine/               # Core game logic
-├── models/              # Data structures
-├── resolvers/           # Game event resolution
-├── static/             # Frontend assets
-└── templates/          # HTML templates
+├── engine/                 # Game engine and mechanics
+├── models/                 # Game state and data models
+├── personas/              # AI opponent implementations
+├── static/                # Web interface files
+├── simulation_results/     # Analysis and testing data
+├── tests/                 # Automated test suite
+└── docs/                  # Documentation
 ```
 
-### Key Components
+## Key Features
 
-- **GameEngine**: Core game state management
-- **SimulationHarness**: Automated testing framework with pluggable logging
-- **MetricsLogger**: Flexible data collection system
-- **ScriptedAgent**: Deterministic agent for precise testing
-- **Action System**: Modular action implementation
-- **Scoring System**: Influence calculation and victory determination
+### Game Mechanics
+- **Action Points System**: Strategic resource management
+- **Secret Commitments**: Hidden bidding mechanics
+- **Legislation Voting**: Political influence simulation
+- **Election Resolution**: Dice-based outcome determination
+- **Event Cards**: Dynamic game events
 
-## Deployment
+### AI Opponents
+- **Random**: Pure chance-based play
+- **Economic**: Focuses on fundraising and economic actions
+- **Legislative**: Prioritizes legislation and voting
+- **Balanced**: Mixed strategic approach
+- **Heuristic**: Basic strategic thinking (46.1% win rate vs random)
 
-### Local Development
+### Simulation Framework
+- **Configurable Experiments**: YAML-based testing setup
+- **Statistical Analysis**: Automated result processing
+- **Performance Testing**: 300+ games in under 2 minutes
+- **Balance Analysis**: Skill vs luck quantification
+
+## Development Roadmap
+
+### Phase 1: Command-Line Interface (Current)
+- [ ] Implement election dice rolls in web version
+- [ ] Create CLI game interface for human vs AI
+- [ ] Build human vs AI game orchestration
+- [ ] Add comprehensive testing framework
+
+### Phase 2: Minimal Web Interface
+- [ ] Create simplified web UI
+- [ ] Implement AI opponent selection
+- [ ] Add real-time game state display
+- [ ] Ensure mobile compatibility
+
+### Phase 3: Gameplay Iteration
+- [ ] Test and refine gameplay balance
+- [ ] Collect player feedback
+- [ ] Implement rapid iteration cycle
+- [ ] Optimize for engagement
+
+## Technical Details
+
+### Backend Architecture
+- **Game Engine**: Python-based with clean action/resolver pattern
+- **API**: Flask-based REST endpoints
+- **State Management**: Immutable game state with clear transitions
+- **AI System**: Extensible persona-based AI opponents
+
+### Frontend Architecture
+- **Interface**: HTML/CSS/JavaScript
+- **Communication**: REST API calls
+- **State Management**: Real-time updates via polling
+- **Responsive Design**: Mobile and desktop compatible
+
+### Simulation Framework
+- **Configuration**: YAML-based experiment setup
+- **Execution**: Automated game running with logging
+- **Analysis**: Statistical processing and visualization
+- **Performance**: Optimized for rapid iteration
+
+## Getting Started for New Developers
+
+### 1. Understand the Vision
+Read the following documents:
+- `PLAYER_FIRST_REFACTOR_PLAN.md` - Detailed implementation roadmap
+- `DEVELOPER_HANDOFF_V2.md` - Current state and next steps
+- `IMPLEMENTATION_CHECKLIST.md` - Task tracking and success criteria
+
+### 2. Set Up Development Environment
 ```bash
-python server.py
+# Clone the repository
+git clone <repository-url>
+cd election
+
+# Install dependencies
+pip install -r requirements.txt
+
+# Run tests
+python -m pytest tests/
+
+# Start development server
+python cli.py
 ```
 
-### Production Deployment
-See `DEPLOYMENT.md` for detailed deployment instructions.
+### 3. Start with Phase 1
+1. **Implement Election Dice Rolls**: Update `engine/resolvers.py` for web version
+2. **Create CLI Interface**: Build `cli_game.py` for human vs AI gameplay
+3. **Test Thoroughly**: Use the simulation framework to validate changes
 
-## Documentation
-
-- `DEVELOPER_HANDOFF.md` - Development context and recent changes
-- `GAME_IMPROVEMENTS.md` - Feature evolution and improvements
-- `MOBILE_IMPROVEMENTS_SUMMARY.md` - Mobile UX enhancements
-- `PHYSICAL_GAME_SPEC.md` - Original board game design
-- `DEPLOYMENT.md` - Production deployment guide
-- `SIMULATION_FRAMEWORK.md` - Comprehensive simulation framework documentation
+### 4. Follow Development Guidelines
+- **Start Simple**: Begin with command-line interface
+- **Test Frequently**: Use the robust simulation framework
+- **Iterate Rapidly**: Make small, focused changes
+- **Focus on Feel**: Prioritize gameplay experience
 
 ## Contributing
 
-1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Test thoroughly (both web and simulation)
-5. Submit a pull request
+### Development Process
+1. **Read the Documentation**: Understand the current state and vision
+2. **Follow the Checklist**: Use `IMPLEMENTATION_CHECKLIST.md` for guidance
+3. **Test Thoroughly**: Leverage the simulation framework
+4. **Document Changes**: Update relevant documentation
+
+### Code Standards
+- **Python**: Follow PEP 8 guidelines
+- **JavaScript**: Use consistent formatting
+- **Testing**: Maintain comprehensive test coverage
+- **Documentation**: Keep docs updated with changes
+
+## Key Documents
+
+- `PLAYER_FIRST_REFACTOR_PLAN.md` - Implementation roadmap
+- `DEVELOPER_HANDOFF_V2.md` - Current state and next steps
+- `IMPLEMENTATION_CHECKLIST.md` - Task tracking
+- `SKILL_VS_LUCK_IMPLEMENTATION_SUMMARY.md` - Analysis results
+- `SIMULATION_FRAMEWORK.md` - Testing framework documentation
 
 ## License
 
-This project is licensed under the MIT License.
+This project is licensed under the MIT License - see the LICENSE file for details.
 
-## Development Focus
+## Support
 
-The project is currently focused on implementing the plan outlined in [`PLAYER_FIRST_REFACTOR_PLAN.md`](PLAYER_FIRST_REFACTOR_PLAN.md). This involves:
-1.  **Rule Parity:** Ensuring the web version uses the same dice-roll mechanics proven effective in simulation.
-2.  **UI Simplification:** Moving to a developer-focused, command-line-style web UI to accelerate iteration on gameplay.
-3.  **AI Opponents:** Implementing server-side AI to allow for robust single-player testing.
-
-## Simulation Framework
-
-The simulation framework is a key part of this project, designed for automated testing and balancing.
+For questions or issues:
+1. Check the documentation in the `docs/` directory
+2. Review the implementation checklist
+3. Run the simulation framework to validate behavior
+4. Create an issue with detailed information
