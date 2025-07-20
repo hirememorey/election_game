@@ -285,7 +285,8 @@ class SimulationHarness:
                       player_agents: Sequence[Agent],
                       player_names: Optional[List[str]] = None,
                       max_rounds: int = 100,
-                      logger: Optional[MetricsLogger] = None) -> SimulationResult:
+                      logger: Optional[MetricsLogger] = None,
+                      enable_tracing: bool = False) -> SimulationResult:
         """
         Run a complete game simulation with the specified agents.
         
@@ -315,54 +316,142 @@ class SimulationHarness:
         round_count = 0
         term_count = 0
         
+        # Initialize tracing if enabled
+        trace_log = []
+        if enable_tracing:
+            trace_log.append(f"=== GAME START ===")
+            trace_log.append(f"Players: {[p.name for p in state.players]}")
+            trace_log.append(f"Initial state: {state.current_phase}, Round {state.round_marker}")
+        
         # Main game loop
-        while not self.engine.is_game_over(state) and round_count < max_rounds:
-            round_count += 1
-            logger.log_round_end(state, round_count)
-            
-            # Check for system actions first
-            system_actions = self.engine.get_valid_system_actions(state)
-            if system_actions:
-                # Process the first system action
-                action = system_actions[0]
+        try:
+            while not self.engine.is_game_over(state) and round_count < max_rounds:
+                round_count += 1
+                logger.log_round_end(state, round_count)
                 
-                # Handle system actions directly
-                if isinstance(action, ActionResolveLegislation):
-                    state = self.engine.resolve_legislation_session(state)
-                elif isinstance(action, ActionResolveElections):
-                    state = self.engine.resolve_elections_session(state)
-                elif isinstance(action, ActionAcknowledgeResults):
-                    state = self.engine.start_next_term(state)
-                continue
-            
-            # Handle player actions
-            if state.current_phase == "ACTION_PHASE":
-                current_player_id = state.get_current_player().id
-                agent = player_agents[current_player_id]
+                if enable_tracing:
+                    trace_log.append(f"=== ROUND {round_count} START ===")
+                    trace_log.append(f"Phase: {state.current_phase}, Current player: {state.get_current_player().name}")
                 
-                # Get valid actions from the engine
-                valid_actions = self.engine.get_valid_actions(state, current_player_id)
-                
-                if not valid_actions:
-                    # Force pass turn
-                    action = ActionPassTurn(player_id=current_player_id)
-                else:
-                    # Let the agent choose an action
-                    action = agent.choose_action(state, valid_actions)
+                # Check for system actions first
+                system_actions = self.engine.get_valid_system_actions(state)
+                if system_actions:
+                    # Process the first system action
+                    action = system_actions[0]
                     
-                    # Validate the chosen action is in the valid list
-                    if action not in valid_actions:
-                        # Fall back to pass turn
-                        action = ActionPassTurn(player_id=current_player_id)
+                    if enable_tracing:
+                        trace_log.append(f"System action: {action.__class__.__name__}")
+                    
+                    try:
+                        # Handle system actions directly
+                        if isinstance(action, ActionResolveLegislation):
+                            state = self.engine.resolve_legislation_session(state)
+                        elif isinstance(action, ActionResolveElections):
+                            state = self.engine.resolve_elections_session(state)
+                        elif isinstance(action, ActionAcknowledgeResults):
+                            state = self.engine.start_next_term(state)
+                        
+                        if enable_tracing:
+                            trace_log.append(f"System action executed successfully")
+                        
+                    except Exception as e:
+                        if enable_tracing:
+                            trace_log.append(f"=== SYSTEM ACTION ERROR ===")
+                            trace_log.append(f"Action: {action.__class__.__name__}")
+                            trace_log.append(f"Error: {str(e)}")
+                        print(f"Error processing system action {action}: {e}")
+                        break
+                    
+                    continue
                 
-                # Process the action through the engine
-                state = self.engine.process_action(state, action)
-                logger.log_action(action, state)
+                # Handle player actions
+                if state.current_phase == "ACTION_PHASE":
+                    current_player_id = state.get_current_player().id
+                    agent = player_agents[current_player_id]
+                    
+                    # Get valid actions from the engine
+                    try:
+                        valid_actions = self.engine.get_valid_actions(state, current_player_id)
+                        
+                        if enable_tracing:
+                            trace_log.append(f"Valid actions for {state.get_current_player().name}: {[a.__class__.__name__ for a in valid_actions]}")
+                        
+                    except Exception as e:
+                        if enable_tracing:
+                            trace_log.append(f"=== VALID ACTIONS ERROR ===")
+                            trace_log.append(f"Player: {state.get_current_player().name}")
+                            trace_log.append(f"Error: {str(e)}")
+                        print(f"Error getting valid actions for {state.get_current_player().name}: {e}")
+                        break
+                    
+                    if not valid_actions:
+                        # Force pass turn
+                        action = ActionPassTurn(player_id=current_player_id)
+                        if enable_tracing:
+                            trace_log.append(f"No valid actions, forcing pass turn")
+                    else:
+                        # Let the agent choose an action
+                        try:
+                            action = agent.choose_action(state, valid_actions)
+                            
+                            if enable_tracing:
+                                trace_log.append(f"{state.get_current_player().name} chose: {action.__class__.__name__}")
+                            
+                        except Exception as e:
+                            if enable_tracing:
+                                trace_log.append(f"=== AGENT ERROR ===")
+                                trace_log.append(f"Agent: {state.get_current_player().name}")
+                                trace_log.append(f"Error: {str(e)}")
+                            print(f"Error: Agent {state.get_current_player().name} failed to choose action: {e}")
+                            # Fall back to pass turn
+                            action = ActionPassTurn(player_id=current_player_id)
+                        
+                        # Validate the chosen action is in the valid list
+                        if action not in valid_actions:
+                            if enable_tracing:
+                                trace_log.append(f"Invalid action chosen, falling back to pass turn")
+                            # Fall back to pass turn
+                            action = ActionPassTurn(player_id=current_player_id)
+                    
+                    # Process the action through the engine
+                    try:
+                        state = self.engine.process_action(state, action)
+                        logger.log_action(action, state)
+                        
+                        if enable_tracing:
+                            trace_log.append(f"Action executed successfully")
+                        
+                    except Exception as e:
+                        if enable_tracing:
+                            trace_log.append(f"=== ACTION EXECUTION ERROR ===")
+                            trace_log.append(f"Action: {action.__class__.__name__}")
+                            trace_log.append(f"Error: {str(e)}")
+                        print(f"Error processing action {action}: {e}")
+                        break
+                
+                # Track term transitions
+                if state.round_marker == 1 and round_count > 1:
+                    term_count += 1
+                    logger.log_term_end(state, term_count)
+                    
+                    if enable_tracing:
+                        trace_log.append(f"=== TERM {term_count} END ===")
             
-            # Track term transitions
-            if state.round_marker == 1 and round_count > 1:
-                term_count += 1
-                logger.log_term_end(state, term_count)
+            if enable_tracing:
+                trace_log.append(f"=== SIMULATION COMPLETE ===")
+                trace_log.append(f"Final round: {round_count}")
+                trace_log.append(f"Final phase: {state.current_phase}")
+                
+        except Exception as e:
+            if enable_tracing:
+                trace_log.append(f"=== CRITICAL ERROR ===")
+                trace_log.append(f"Error: {str(e)}")
+            print(f"Critical error during simulation: {e}")
+            # Continue to finalize rather than crashing
+        
+        # Add trace to final state if tracing was enabled
+        if enable_tracing and hasattr(state, 'turn_log'):
+            state.turn_log.extend(trace_log)
         
         # Calculate final results using the logger
         simulation_time = time.time() - start_time

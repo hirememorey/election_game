@@ -46,12 +46,16 @@ class BasePersona(Agent, ABC):
         The persona should analyze the game state and choose the most appropriate
         action according to its strategy.
         
+        IMPORTANT: The valid_actions list contains only actions that are legal
+        for the current player in the current game state. The persona should
+        not need to validate actions - it can focus purely on strategy.
+        
         Args:
             game_state: Current game state (includes game_log for strategic agents)
-            valid_actions: List of valid actions to choose from
+            valid_actions: List of pre-validated actions to choose from
             
         Returns:
-            Action: The chosen action
+            Action: The chosen action (must be one from valid_actions)
         """
         pass
     

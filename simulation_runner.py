@@ -69,8 +69,8 @@ class SimulationRunner:
         self.harness = SimulationHarness()
         
         # Set random seed for reproducible results
-        if 'random_seed' in self.config.get('simulation', {}):
-            random.seed(self.config['simulation']['random_seed'])
+        if 'random_seed' in self.config.get('global', {}):
+            random.seed(self.config['global']['random_seed'])
     
     def _load_config(self) -> Dict[str, Any]:
         """Load configuration from YAML file."""
@@ -84,24 +84,37 @@ class SimulationRunner:
     def _get_default_config(self) -> Dict[str, Any]:
         """Get default configuration if file not found."""
         return {
-            'simulation': {
-                'num_games': 100,
+            'global': {
+                'random_seed': 42,
                 'max_rounds_per_game': 100,
                 'parallel_workers': 0,
-                'random_seed': 42
+                'output_directory': 'simulation_results'
             },
-            'players': [
-                {'name': 'Random Bot', 'persona': 'random'},
-                {'name': 'Economic Bot', 'persona': 'economic'},
-                {'name': 'Legislative Bot', 'persona': 'legislative'},
-                {'name': 'Balanced Bot', 'persona': 'balanced'}
-            ],
             'data_collection': {
                 'log_level': 'silent',
                 'save_game_logs': True,
-                'save_final_states': False,
-                'output_directory': 'simulation_results'
-            }
+                'save_final_states': True,
+                'enable_tracing': False
+            },
+            'analysis': {
+                'generate_reports': True,
+                'report_format': 'markdown',
+                'create_visualizations': True,
+                'output_directory': 'analysis_reports'
+            },
+            'experiments': [
+                {
+                    'name': 'default_test',
+                    'description': 'Default test with all personas',
+                    'num_games': 100,
+                    'players': [
+                        {'name': 'Random Bot', 'persona': 'random'},
+                        {'name': 'Economic Bot', 'persona': 'economic'},
+                        {'name': 'Legislative Bot', 'persona': 'legislative'},
+                        {'name': 'Balanced Bot', 'persona': 'balanced'}
+                    ]
+                }
+            ]
         }
     
     def _create_persona(self, persona_type: str, name: str) -> Any:
@@ -145,12 +158,15 @@ class SimulationRunner:
         Path(output_dir).mkdir(exist_ok=True)
         return output_dir
     
-    def _save_simulation_results(self, results: List[SimulationResult], output_dir: str):
+    def _save_simulation_results(self, results: List[SimulationResult], output_dir: str, experiment_name: str = ""):
         """Save simulation results to files."""
         timestamp = int(time.time())
         
+        # Create filename prefix
+        prefix = f"{experiment_name}_" if experiment_name else ""
+        
         # Save summary CSV
-        csv_path = os.path.join(output_dir, f"simulation_results_{timestamp}.csv")
+        csv_path = os.path.join(output_dir, f"{prefix}simulation_results_{timestamp}.csv")
         with open(csv_path, 'w', newline='') as f:
             writer = csv.writer(f)
             writer.writerow([
@@ -166,7 +182,7 @@ class SimulationRunner:
                 ])
         
         # Save detailed JSON results
-        json_path = os.path.join(output_dir, f"detailed_results_{timestamp}.json")
+        json_path = os.path.join(output_dir, f"{prefix}detailed_results_{timestamp}.json")
         with open(json_path, 'w') as f:
             json.dump(results, f, indent=2, cls=GameStateEncoder)
         
@@ -174,58 +190,100 @@ class SimulationRunner:
         print(f"  Summary: {csv_path}")
         print(f"  Details: {json_path}")
     
-    def run_simulation_batch(self) -> List[SimulationResult]:
+    def run_simulation_batch(self) -> Dict[str, List[SimulationResult]]:
         """
-        Run a batch of simulations according to configuration.
+        Run multiple experiments according to configuration.
         
         Returns:
-            List of simulation results
+            Dictionary mapping experiment names to their results
         """
-        print("Starting simulation batch...")
+        print("Starting multi-experiment simulation batch...")
         print(f"Configuration: {self.config_path}")
         
-        # Get simulation parameters
-        num_games = self.config['simulation']['num_games']
-        max_rounds = self.config['simulation']['max_rounds_per_game']
+        # Get global parameters
+        max_rounds = self.config['global']['max_rounds_per_game']
+        output_base_dir = self.config['global']['output_directory']
         
-        # Create agents
-        agents = self._create_player_agents()
-        player_names = [config['name'] for config in self.config['players']]
+        # Setup base output directory
+        Path(output_base_dir).mkdir(exist_ok=True)
         
-        print(f"Running {num_games} games with {len(agents)} players:")
-        for i, (agent, name) in enumerate(zip(agents, player_names)):
-            print(f"  Player {i}: {name} ({agent.__class__.__name__})")
+        all_results = {}
+        total_start_time = time.time()
         
-        # Setup output directory
-        output_dir = self._setup_output_directory()
+        # Run each experiment
+        experiments = self.config.get('experiments', [])
+        if not experiments:
+            print("No experiments defined in configuration.")
+            return {}
         
-        # Run simulations
-        results = []
-        start_time = time.time()
-        
-        for game_id in range(num_games):
-            if game_id % 100 == 0 and game_id > 0:
-                elapsed = time.time() - start_time
-                rate = game_id / elapsed
-                print(f"Completed {game_id}/{num_games} games ({rate:.1f} games/sec)")
+        for experiment in experiments:
+            experiment_name = experiment['name']
+            experiment_desc = experiment.get('description', 'No description')
+            num_games = experiment['num_games']
+            players = experiment['players']
             
-            try:
-                result = self.harness.run_simulation(
-                    agents, player_names, max_rounds, SilentLogger()
+            print(f"\n{'='*60}")
+            print(f"Running Experiment: {experiment_name}")
+            print(f"Description: {experiment_desc}")
+            print(f"Games: {num_games}")
+            print(f"{'='*60}")
+            
+            # Create agents for this experiment
+            agents = []
+            player_names = []
+            for player_config in players:
+                persona = self._create_persona(
+                    player_config['persona'], 
+                    player_config['name']
                 )
-                results.append(result)
-            except Exception as e:
-                print(f"Error in game {game_id}: {e}")
-                # Continue with next game
+                agents.append(persona)
+                player_names.append(player_config['name'])
+            
+            print(f"Players:")
+            for i, (agent, name) in enumerate(zip(agents, player_names)):
+                print(f"  Player {i}: {name} ({agent.__class__.__name__})")
+            
+            # Create experiment-specific output directory
+            experiment_dir = os.path.join(output_base_dir, experiment_name)
+            Path(experiment_dir).mkdir(exist_ok=True)
+            
+            # Run simulations for this experiment
+            results = []
+            start_time = time.time()
+            
+            for game_id in range(num_games):
+                if game_id % 100 == 0 and game_id > 0:
+                    elapsed = time.time() - start_time
+                    rate = game_id / elapsed
+                    print(f"  Completed {game_id}/{num_games} games ({rate:.1f} games/sec)")
+                
+                try:
+                    # Get tracing setting from config
+                    enable_tracing = self.config['data_collection'].get('enable_tracing', False)
+                    
+                    result = self.harness.run_simulation(
+                        agents, player_names, max_rounds, SilentLogger(), enable_tracing
+                    )
+                    results.append(result)
+                except Exception as e:
+                    print(f"  Error in game {game_id}: {e}")
+                    # Continue with next game
+            
+            experiment_time = time.time() - start_time
+            print(f"  Experiment completed in {experiment_time:.1f} seconds")
+            print(f"  Average time per game: {experiment_time/num_games:.3f} seconds")
+            
+            # Save results for this experiment
+            self._save_simulation_results(results, experiment_dir, experiment_name)
+            
+            all_results[experiment_name] = results
         
-        total_time = time.time() - start_time
-        print(f"\nSimulation batch completed in {total_time:.1f} seconds")
-        print(f"Average time per game: {total_time/num_games:.3f} seconds")
+        total_time = time.time() - total_start_time
+        print(f"\n{'='*60}")
+        print(f"All experiments completed in {total_time:.1f} seconds")
+        print(f"{'='*60}")
         
-        # Save results
-        self._save_simulation_results(results, output_dir)
-        
-        return results
+        return all_results
     
     def generate_summary_report(self, results: List[SimulationResult]) -> str:
         """
@@ -270,14 +328,13 @@ class SimulationRunner:
         report += f"""
 ## Configuration
 - **Configuration File**: {self.config_path}
-- **Players**: {len(self.config['players'])}
-- **Max Rounds per Game**: {self.config['simulation']['max_rounds_per_game']}
+- **Max Rounds per Game**: {self.config['global']['max_rounds_per_game']}
 
 ## Player Strategies
 """
         
-        for i, player_config in enumerate(self.config['players']):
-            report += f"- **Player {i+1}**: {player_config['name']} ({player_config['persona']} strategy)\n"
+        # Note: Player strategies would need to be passed in or determined from context
+        # For now, we'll skip this section since it depends on the specific experiment
         
         return report
 
@@ -296,15 +353,19 @@ def main():
     
     # Run simulations
     runner = SimulationRunner(args.config)
-    results = runner.run_simulation_batch()
+    all_results = runner.run_simulation_batch()
     
     # Generate report if requested
-    if args.report:
-        report = runner.generate_summary_report(results)
+    if args.report and all_results:
         print("\n" + "="*50)
-        print("SUMMARY REPORT")
+        print("SUMMARY REPORTS")
         print("="*50)
-        print(report)
+        
+        for experiment_name, results in all_results.items():
+            if results:
+                print(f"\n--- {experiment_name.upper()} ---")
+                report = runner.generate_summary_report(results)
+                print(report)
 
 
 if __name__ == "__main__":

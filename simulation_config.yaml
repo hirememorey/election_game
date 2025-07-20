@@ -1,39 +1,19 @@
-# Simulation Framework Configuration
-# This file defines the parameters for running game simulations
+# Enhanced Simulation Framework Configuration
+# This file defines multiple experiments for comprehensive game balance analysis
 
-# Simulation Parameters
-simulation:
-  num_games: 1000                    # Number of games to simulate
-  max_rounds_per_game: 100           # Maximum rounds to prevent infinite loops
-  parallel_workers: 4                # Number of parallel processes (0 = sequential)
+# Global Settings
+global:
   random_seed: 42                    # Seed for reproducible results
-
-# Player Configuration
-players:
-  # Define player personas for the simulation
-  # Each player can have a different strategy
-  - name: "Economic Bot"
-    persona: "economic"
-    description: "Prioritizes fundraising and building PC"
-    
-  - name: "Legislative Bot" 
-    persona: "legislative"
-    description: "Focuses on sponsoring and supporting legislation"
-    
-  - name: "Random Bot"
-    persona: "random"
-    description: "Makes random decisions"
-    
-  - name: "Balanced Bot"
-    persona: "balanced"
-    description: "Balanced approach to all actions"
+  max_rounds_per_game: 100           # Maximum rounds to prevent infinite loops
+  parallel_workers: 0                # Number of parallel processes (0 = sequential)
+  output_directory: "simulation_results"
 
 # Data Collection Settings
 data_collection:
   log_level: "silent"                # silent, verbose, detailed
   save_game_logs: true               # Save detailed game logs
-  save_final_states: false           # Save complete final game states
-  output_directory: "simulation_results"
+  save_final_states: true            # Save complete final game states for analysis
+  enable_tracing: false              # Enable detailed game tracing for debugging
   
   # Metrics to collect
   metrics:
@@ -52,4 +32,113 @@ analysis:
   generate_reports: true
   report_format: "markdown"          # markdown, html, json
   create_visualizations: true
-  output_directory: "analysis_reports" 
+  output_directory: "analysis_reports"
+
+# Experiment Definitions
+# Each experiment tests a specific scenario or matchup
+experiments:
+  # Experiment 1: Basic Balance Test
+  - name: "basic_balance_test"
+    description: "Test basic balance with all personas"
+    num_games: 1000
+    players:
+      - name: "Economic Bot"
+        persona: "economic"
+        description: "Prioritizes fundraising and building PC"
+        
+      - name: "Legislative Bot" 
+        persona: "legislative"
+        description: "Focuses on sponsoring and supporting legislation"
+        
+      - name: "Random Bot"
+        persona: "random"
+        description: "Makes random decisions"
+        
+      - name: "Balanced Bot"
+        persona: "balanced"
+        description: "Balanced approach to all actions"
+
+  # Experiment 2: Economic vs Legislative Showdown
+  - name: "economic_vs_legislative"
+    description: "Test economic strategy against legislative strategy"
+    num_games: 500
+    players:
+      - name: "Economic Bot 1"
+        persona: "economic"
+        
+      - name: "Economic Bot 2"
+        persona: "economic"
+        
+      - name: "Legislative Bot 1"
+        persona: "legislative"
+        
+      - name: "Legislative Bot 2"
+        persona: "legislative"
+
+  # Experiment 3: Random Baseline
+  - name: "random_baseline"
+    description: "All random players to establish baseline"
+    num_games: 500
+    players:
+      - name: "Random Bot 1"
+        persona: "random"
+        
+      - name: "Random Bot 2"
+        persona: "random"
+        
+      - name: "Random Bot 3"
+        persona: "random"
+        
+      - name: "Random Bot 4"
+        persona: "random"
+
+  # Experiment 4: Balanced Strategy Test
+  - name: "balanced_strategy_test"
+    description: "Test balanced strategy against others"
+    num_games: 500
+    players:
+      - name: "Balanced Bot 1"
+        persona: "balanced"
+        
+      - name: "Economic Bot"
+        persona: "economic"
+        
+      - name: "Legislative Bot"
+        persona: "legislative"
+        
+      - name: "Random Bot"
+        persona: "random"
+
+  # Experiment 5: Economic Dominance Test
+  - name: "economic_dominance_test"
+    description: "Test if economic strategy dominates"
+    num_games: 300
+    players:
+      - name: "Economic Bot 1"
+        persona: "economic"
+        
+      - name: "Economic Bot 2"
+        persona: "economic"
+        
+      - name: "Economic Bot 3"
+        persona: "economic"
+        
+      - name: "Random Bot"
+        persona: "random"
+
+  # Experiment 6: Legislative Dominance Test
+  - name: "legislative_dominance_test"
+    description: "Test if legislative strategy dominates"
+    num_games: 300
+    players:
+      - name: "Legislative Bot 1"
+        persona: "legislative"
+        
+      - name: "Legislative Bot 2"
+        persona: "legislative"
+        
+      - name: "Legislative Bot 3"
+        persona: "legislative"
+        
+      - name: "Random Bot"
+        persona: "random" 
