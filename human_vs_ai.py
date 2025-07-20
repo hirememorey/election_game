@@ -131,15 +131,32 @@ class HumanVsAIGame:
         if self.is_human_turn():
             raise ValueError("It's the human player's turn")
         
-        # Get valid actions for the AI
-        current_player = self.state.get_current_player()
-        valid_actions = self.engine.get_valid_actions(self.state, current_player.id)
-        
-        # Let the AI choose an action
-        chosen_action = self.ai_persona.choose_action(self.state, valid_actions)
-        
-        # Process the action
-        self.state = self.engine.process_action(self.state, chosen_action)
+        # Process all actions for the AI until it runs out of Action Points
+        while True:
+            current_player = self.state.get_current_player()
+            ap_remaining = self.state.action_points.get(current_player.id, 0)
+            
+            # If no AP remaining, break
+            if ap_remaining <= 0:
+                break
+            
+            # Get valid actions for the AI
+            valid_actions = self.engine.get_valid_actions(self.state, current_player.id)
+            
+            # If no valid actions, break
+            if not valid_actions:
+                break
+            
+            # Let the AI choose an action
+            chosen_action = self.ai_persona.choose_action(self.state, valid_actions)
+            print(f"[DEBUG] {current_player.name} chose: {chosen_action.__class__.__name__}")
+            
+            # Process the action
+            self.state = self.engine.process_action(self.state, chosen_action)
+            
+            # Check if it's still the AI's turn (turn might have advanced)
+            if self.is_human_turn() or self.state.get_current_player().id != current_player.id:
+                break
         
         return self.state
     
@@ -314,18 +331,33 @@ class HumanVsMultipleAIGame:
         if self.is_human_turn():
             raise ValueError("It's the human player's turn")
         
-        # Get the current AI player
-        current_player = self.state.get_current_player()
-        ai_index = current_player.id - 1  # AI players start at index 1
-        
-        # Get valid actions for the AI
-        valid_actions = self.engine.get_valid_actions(self.state, current_player.id)
-        
-        # Let the AI choose an action
-        chosen_action = self.ai_personas[ai_index].choose_action(self.state, valid_actions)
-        
-        # Process the action
-        self.state = self.engine.process_action(self.state, chosen_action)
+        # Process all actions for the AI until it runs out of Action Points
+        while True:
+            current_player = self.state.get_current_player()
+            ai_index = current_player.id - 1  # AI players start at index 1
+            ap_remaining = self.state.action_points.get(current_player.id, 0)
+            
+            # If no AP remaining, break
+            if ap_remaining <= 0:
+                break
+            
+            # Get valid actions for the AI
+            valid_actions = self.engine.get_valid_actions(self.state, current_player.id)
+            
+            # If no valid actions, break
+            if not valid_actions:
+                break
+            
+            # Let the AI choose an action
+            chosen_action = self.ai_personas[ai_index].choose_action(self.state, valid_actions)
+            print(f"[DEBUG] {current_player.name} chose: {chosen_action.__class__.__name__}")
+            
+            # Process the action
+            self.state = self.engine.process_action(self.state, chosen_action)
+            
+            # Check if it's still the AI's turn (turn might have advanced)
+            if self.is_human_turn() or self.state.get_current_player().id != current_player.id:
+                break
         
         return self.state
     

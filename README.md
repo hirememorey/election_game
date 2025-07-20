@@ -7,8 +7,9 @@ A digital adaptation of a political strategy board game, featuring AI opponents 
 ### ✅ Completed Features
 - **Robust Game Engine**: Complete implementation of all game mechanics
 - **AI Opponents**: Multiple AI personas (Random, Economic, Legislative, Balanced, Heuristic)
+- **Smart AI Behavior**: AI opponents aware of game effects (e.g., avoid Fundraise during stock market crash)
 - **Multiple AI Support**: Play against 1-3 AI opponents with different personas
-- **CLI Interface**: Text-based human vs AI gameplay
+- **CLI Interface**: Text-based human vs AI gameplay with detailed turn logging
 - **Minimal Web Interface**: Simplified web UI for human vs AI games
 - **Simulation Framework**: Comprehensive testing with 300+ games per experiment
 - **Skill vs Luck Analysis**: Quantified game balance (similar to Texas Hold 'Em)
@@ -35,6 +36,12 @@ python3 cli_game.py single heuristic
 
 # Available AI personas: random, economic, legislative, balanced, heuristic
 python3 cli_game.py single economic
+
+# Features:
+# - AI opponents aware of game effects (e.g., avoid Fundraise during stock market crash)
+# - Detailed turn logging showing all AI actions
+# - Pause between AI turns for better game flow
+# - Human player can view their hidden mandate
 ```
 
 ### For Developers
@@ -132,66 +139,4 @@ election/
 ### 1. Understand the Vision
 Read the following documents:
 - `PLAYER_FIRST_REFACTOR_PLAN.md` - Detailed implementation roadmap
-- `DEVELOPER_HANDOFF_V2.md` - Current state and next steps
-- `IMPLEMENTATION_CHECKLIST.md` - Task tracking and success criteria
-
-### 2. Set Up Development Environment
-```bash
-# Clone the repository
-git clone <repository-url>
-cd election
-
-# Install dependencies
-pip install -r requirements.txt
-
-# Run tests
-python -m pytest tests/
-
-# Start development server
-python cli.py
-```
-
-### 3. Start with Phase 1
-1. **Implement Election Dice Rolls**: Update `engine/resolvers.py` for web version
-2. **Create CLI Interface**: Build `cli_game.py` for human vs AI gameplay
-3. **Test Thoroughly**: Use the simulation framework to validate changes
-
-### 4. Follow Development Guidelines
-- **Start Simple**: Begin with command-line interface
-- **Test Frequently**: Use the robust simulation framework
-- **Iterate Rapidly**: Make small, focused changes
-- **Focus on Feel**: Prioritize gameplay experience
-
-## Contributing
-
-### Development Process
-1. **Read the Documentation**: Understand the current state and vision
-2. **Follow the Checklist**: Use `IMPLEMENTATION_CHECKLIST.md` for guidance
-3. **Test Thoroughly**: Leverage the simulation framework
-4. **Document Changes**: Update relevant documentation
-
-### Code Standards
-- **Python**: Follow PEP 8 guidelines
-- **JavaScript**: Use consistent formatting
-- **Testing**: Maintain comprehensive test coverage
-- **Documentation**: Keep docs updated with changes
-
-## Key Documents
-
-- `PLAYER_FIRST_REFACTOR_PLAN.md` - Implementation roadmap
-- `DEVELOPER_HANDOFF_V2.md` - Current state and next steps
-- `IMPLEMENTATION_CHECKLIST.md` - Task tracking
-- `SKILL_VS_LUCK_IMPLEMENTATION_SUMMARY.md` - Analysis results
-- `SIMULATION_FRAMEWORK.md` - Testing framework documentation
-
-## License
-
-This project is licensed under the MIT License - see the LICENSE file for details.
-
-## Support
-
-For questions or issues:
-1. Check the documentation in the `docs/` directory
-2. Review the implementation checklist
-3. Run the simulation framework to validate behavior
-4. Create an issue with detailed information
+- `DEVELOPER_HANDOFF_V2.md`

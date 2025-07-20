@@ -28,6 +28,10 @@ class CLIGameView:
     def __init__(self):
         self.game = None
     
+    def set_game(self, game):
+        """Set the game object for the view to access."""
+        self.game = game
+    
     def display_game_state(self, state: GameState) -> None:
         """
         Display the current game state in a clear, readable format.
@@ -153,11 +157,67 @@ class CLIGameView:
     
     def _display_game_info(self):
         """Display general game information."""
-        print("\n--- Game Information ---")
-        print("This is a political strategy game where you compete for offices.")
-        print("Actions cost Action Points (AP). You get 2 AP per turn.")
-        print("The game has 4 rounds per term, with elections at the end.")
-        print("Your goal is to win the Presidency!")
+        while True:
+            print("\n--- Game Information ---")
+            print("  [1] View My Personal Mandate")
+            print("  [2] View All Offices of Power")
+            print("  [3] View Legislation Options")
+            print("  [4] General Game Rules")
+            print("  [5] Return to action menu")
+            
+            choice = input("Choose option: ").strip()
+            
+            if choice == '1':
+                # Get the human player's mandate
+                if self.game and self.game.state:
+                    human_player = None
+                    for player in self.game.state.players:
+                        if player.name == "Human":  # Assuming human player is named "Human"
+                            human_player = player
+                            break
+                    
+                    if human_player and hasattr(human_player, 'mandate') and human_player.mandate:
+                        print(f"\nYour Secret Mandate: {human_player.mandate.title}")
+                        print(f"Description: {human_player.mandate.description}")
+                    else:
+                        print("\nMandate information not available.")
+                else:
+                    print("\nGame state not available.")
+                    
+            elif choice == '2':
+                if self.game and self.game.state:
+                    print("\n--- Offices of Power ---")
+                    try:
+                        for office in self.game.state.offices.values():
+                            print(f"  - {office.title} (Tier {office.tier}): Income {office.income} PC, NPC Bonus +{office.npc_challenger_bonus}")
+                    except (AttributeError, TypeError):
+                        print("Office information not available.")
+                else:
+                    print("\nOffice information not available.")
+                    
+            elif choice == '3':
+                if self.game and self.game.state:
+                    print("\n--- Legislation Options ---")
+                    try:
+                        for leg in self.game.state.legislation_options.values():
+                            print(f"  - {leg.title}: Cost {leg.cost}, Success Target {leg.success_target}+ PC, Critical Success {leg.critical_success_target}+ PC")
+                    except (AttributeError, TypeError):
+                        print("Legislation information not available.")
+                else:
+                    print("\nLegislation information not available.")
+                    
+            elif choice == '4':
+                print("\n--- General Game Rules ---")
+                print("This is a political strategy game where you compete for offices.")
+                print("Actions cost Action Points (AP). You get 2 AP per turn.")
+                print("The game has 4 rounds per term, with elections at the end.")
+                print("Your goal is to win the Presidency!")
+                print("Each player has a secret mandate that provides bonus influence if achieved.")
+                
+            elif choice == '5':
+                break
+            else:
+                print("Invalid choice. Please enter 1-5.")
     
     def _display_action_help(self):
         """Display help for available actions."""
@@ -200,6 +260,11 @@ class CLIGameView:
             print(f"\nWinner: {winner_name}!")
         else:
             print("\nNo clear winner.")
+    
+    def prompt_for_next_turn(self, player_name: str):
+        """Prompt the user to continue to the next turn."""
+        print(f"\n{player_name}'s turn complete.")
+        input("Press Enter to continue to the next player...")
 
 
 class CLIGame:
@@ -217,6 +282,7 @@ class CLIGame:
         """
         self.game = HumanVsAIGame(ai_persona, ai_count)
         self.view = CLIGameView()
+        self.view.set_game(self.game)
     
     def start_game(self, human_name: str = "Human") -> None:
         """
@@ -265,8 +331,14 @@ class CLIGame:
                 
                 # Display what the AI did
                 if self.game.state and self.game.state.turn_log:
-                    last_message = self.game.state.turn_log[-1]
-                    print(f"{current_player}: {last_message}")
+                    # Show all recent messages from the turn log
+                    print(f"\n{current_player}'s actions:")
+                    for message in self.game.state.turn_log:
+                        if message.strip():  # Only show non-empty messages
+                            print(f"  {message}")
+                
+                # Prompt for next turn
+                self.view.prompt_for_next_turn(current_player)
         
         # Game over
         if self.game.is_game_over():
@@ -288,6 +360,7 @@ class CLIMultiAIGame:
         """
         self.game = HumanVsMultipleAIGame(ai_personas)
         self.view = CLIGameView()
+        self.view.set_game(self.game)
     
     def start_game(self, human_name: str = "Human") -> None:
         """
@@ -342,8 +415,16 @@ class CLIMultiAIGame:
                 
                 # Display what the AI did
                 if self.game.state and self.game.state.turn_log:
-                    last_message = self.game.state.turn_log[-1]
-                    print(f"{current_player}: {last_message}")
+                    # Show only the messages from this AI's turn
+                    print(f"\n{current_player}'s actions:")
+                    # Since the turn log is cleared before each action, we need to show all current messages
+                    # as they should all be from this AI's turn
+                    for message in self.game.state.turn_log:
+                        if message.strip():  # Only show non-empty messages
+                            print(f"  {message}")
+                
+                # Prompt for next turn
+                self.view.prompt_for_next_turn(current_player)
         
         # Game over
         if self.game.is_game_over():

@@ -61,12 +61,26 @@ class BalancedPersona(BasePersona):
             current_player = game_state.get_current_player()
             return ActionPassTurn(player_id=current_player.id)
         
-        # Use priority-based selection
-        chosen_action = self.choose_highest_priority_action(valid_actions)
-        if chosen_action is None:
-            current_player = game_state.get_current_player()
-            return ActionPassTurn(player_id=current_player.id)
-        return chosen_action
+        # Check for stock market crash - avoid Fundraise during crash
+        stock_crash_active = "STOCK_CRASH" in game_state.active_effects
+        
+        # Filter out Pass Turn and Fundraise (if stock crash is active)
+        profitable_actions = []
+        for action in valid_actions:
+            if isinstance(action, ActionPassTurn):
+                continue
+            if isinstance(action, ActionFundraise) and stock_crash_active:
+                continue  # Skip Fundraise during stock crash
+            profitable_actions.append(action)
+        if profitable_actions:
+            # Use priority-based selection from profitable actions only
+            chosen_action = self.choose_highest_priority_action(profitable_actions)
+            if chosen_action is not None:
+                return chosen_action
+        
+        # Only pass turn if no profitable actions are available
+        current_player = game_state.get_current_player()
+        return ActionPassTurn(player_id=current_player.id)
     
     def get_action_priority(self, action: Action) -> int:
         """

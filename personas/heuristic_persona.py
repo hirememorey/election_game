@@ -59,11 +59,14 @@ class HeuristicPersona(BasePersona):
         current_player = game_state.get_current_player()
         current_round = game_state.round_marker
         
-        # Heuristic 1: If PC is low, prioritize fundraising
+        # Heuristic 1: If PC is low, prioritize fundraising (unless stock market crash)
         if current_player.pc < 10:
-            fundraise_actions = [a for a in valid_actions if isinstance(a, ActionFundraise)]
-            if fundraise_actions:
-                return fundraise_actions[0]
+            # Check for stock market crash - avoid Fundraise during crash
+            stock_crash_active = "STOCK_CRASH" in game_state.active_effects
+            if not stock_crash_active:
+                fundraise_actions = [a for a in valid_actions if isinstance(a, ActionFundraise)]
+                if fundraise_actions:
+                    return fundraise_actions[0]
         
         # Heuristic 2: If it's Round 4 and can afford it, declare candidacy for highest value office
         if current_round == 4:
@@ -109,8 +112,14 @@ class HeuristicPersona(BasePersona):
             
             return action
         
-        # Heuristic 4: Otherwise, choose randomly from valid actions
-        return self.random.choice(valid_actions)
+        # Heuristic 4: Otherwise, choose randomly from valid actions (but never pass if profitable actions exist)
+        profitable_actions = [a for a in valid_actions if not isinstance(a, ActionPassTurn)]
+        if profitable_actions:
+            return self.random.choice(profitable_actions)
+        else:
+            # Only pass if no profitable actions are available
+            current_player = game_state.get_current_player()
+            return ActionPassTurn(player_id=current_player.id)
     
     def get_action_priority(self, action: Action) -> int:
         """
