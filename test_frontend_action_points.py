@@ -36,10 +36,10 @@ def test_action_points_frontend():
         # Test 2: Check initial Action Points
         print("\nTest 2: Checking initial Action Points...")
         current_player_id = state["players"][state["current_player_index"]]["id"]
-        initial_ap = state.get("action_points", {}).get(current_player_id, 3)
+        initial_ap = state.get("action_points", {}).get(current_player_id, 2)
         
-        if initial_ap != 3:
-            print(f"❌ Expected 3 AP, got {initial_ap}")
+        if initial_ap != 2:
+            print(f"❌ Expected 2 AP, got {initial_ap}")
             return False
             
         print(f"✅ Initial AP: {initial_ap}")
@@ -52,7 +52,7 @@ def test_action_points_frontend():
         
         response = requests.post(f"{BASE_URL}/game/{game_id}/action", json={
             "action_type": "fundraise",
-            "player_id": state["current_player_index"]
+            "player_id": current_player_id
         })
         
         if response.status_code != 200:
@@ -62,90 +62,23 @@ def test_action_points_frontend():
             
         state = response.json()["state"]
         current_player_id = state["players"][state["current_player_index"]]["id"]
-        ap_after_fundraise = state.get("action_points", {}).get(current_player_id, 3)
+        ap_after_fundraise = state.get("action_points", {}).get(str(current_player_id), 2)
         
         print(f"   Action points after: {state.get('action_points', {})}")
         print(f"   Current player ID after: {current_player_id}")
         print(f"   AP after fundraise: {ap_after_fundraise}")
         
-        if ap_after_fundraise != 2:
-            print(f"❌ Expected 2 AP after fundraise, got {ap_after_fundraise}")
+        if ap_after_fundraise != 1:
+            print(f"❌ Expected 1 AP after fundraise, got {ap_after_fundraise}")
             return False
             
         print(f"✅ AP after fundraise: {ap_after_fundraise}")
         
-        # Test 4: Perform a 2 AP action (sponsor legislation)
-        print("\nTest 4: Testing 2 AP action (sponsor legislation)...")
+        # Test 4: Test AP validation (try to perform action with insufficient AP)
+        print("\nTest 4: Testing AP validation...")
         response = requests.post(f"{BASE_URL}/game/{game_id}/action", json={
             "action_type": "sponsor_legislation",
-            "player_id": state["current_player_index"],
-            "legislation_id": "TAX_CUT"
-        })
-        
-        if response.status_code != 200:
-            print(f"❌ Failed to perform sponsor legislation action: {response.status_code}")
-            return False
-            
-        state = response.json()["state"]
-        current_player_id = state["players"][state["current_player_index"]]["id"]
-        ap_after_sponsor = state.get("action_points", {}).get(current_player_id, 3)
-        
-        if ap_after_sponsor != 0:
-            print(f"❌ Expected 0 AP after sponsor legislation, got {ap_after_sponsor}")
-            return False
-            
-        print(f"✅ AP after sponsor legislation: {ap_after_sponsor}")
-        
-        # Test 5: Check turn advancement
-        print("\nTest 5: Checking turn advancement...")
-        new_player_index = state["current_player_index"]
-        if new_player_index != 1:  # Should be Bob's turn now
-            print(f"❌ Expected player index 1, got {new_player_index}")
-            return False
-            
-        new_player_id = state["players"][new_player_index]["id"]
-        new_player_ap = state.get("action_points", {}).get(new_player_id, 3)
-        
-        if new_player_ap != 3:
-            print(f"❌ Expected 3 AP for new player, got {new_player_ap}")
-            return False
-            
-        print(f"✅ Turn advanced to player {new_player_index} with {new_player_ap} AP")
-        
-        # Test 6: Test campaign action
-        print("\nTest 6: Testing campaign action...")
-        response = requests.post(f"{BASE_URL}/game/{game_id}/action", json={
-            "action_type": "campaign",
-            "player_id": state["current_player_index"],
-            "office_id": "GOVERNOR",
-            "influence_amount": 5
-        })
-        
-        if response.status_code != 200:
-            print(f"❌ Failed to perform campaign action: {response.status_code}")
-            return False
-            
-        state = response.json()["state"]
-        current_player_id = state["players"][state["current_player_index"]]["id"]
-        ap_after_campaign = state.get("action_points", {}).get(current_player_id, 3)
-        campaign_influences = state.get("campaign_influences", [])
-        
-        if ap_after_campaign != 1:
-            print(f"❌ Expected 1 AP after campaign, got {ap_after_campaign}")
-            return False
-            
-        if len(campaign_influences) != 1:
-            print(f"❌ Expected 1 campaign influence, got {len(campaign_influences)}")
-            return False
-            
-        print(f"✅ AP after campaign: {ap_after_campaign}")
-        print(f"✅ Campaign influences: {len(campaign_influences)}")
-        
-        # Test 7: Test AP validation (try to perform action with insufficient AP)
-        print("\nTest 7: Testing AP validation...")
-        response = requests.post(f"{BASE_URL}/game/{game_id}/action", json={
-            "action_type": "sponsor_legislation",
-            "player_id": state["current_player_index"],
+            "player_id": current_player_id,
             "legislation_id": "TAX_CUT"
         })
         
@@ -154,6 +87,36 @@ def test_action_points_frontend():
             return False
             
         print("✅ Correctly prevented action with insufficient AP")
+        
+        # Test 5: Use up remaining AP to trigger turn advancement
+        print("\nTest 5: Using up remaining AP to trigger turn advancement...")
+        response = requests.post(f"{BASE_URL}/game/{game_id}/action", json={
+            "action_type": "network",
+            "player_id": current_player_id
+        })
+        
+        if response.status_code != 200:
+            print(f"❌ Failed to perform network action: {response.status_code}")
+            print(f"   Response: {response.text}")
+            return False
+            
+        state = response.json()["state"]
+        
+        # Test 6: Check turn advancement
+        print("\nTest 6: Checking turn advancement...")
+        new_player_index = state["current_player_index"]
+        if new_player_index != 1:  # Should be Bob's turn now
+            print(f"❌ Expected player index 1, got {new_player_index}")
+            return False
+            
+        new_player_id = state["players"][new_player_index]["id"]
+        new_player_ap = state.get("action_points", {}).get(str(new_player_id), 2)
+        
+        if new_player_ap != 2:
+            print(f"❌ Expected 2 AP for new player, got {new_player_ap}")
+            return False
+            
+        print(f"✅ Turn advanced to player {new_player_index} with {new_player_ap} AP")
         
         print("\n🎉 Frontend Action Points tests completed successfully!")
         return True

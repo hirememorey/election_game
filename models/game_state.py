@@ -2,7 +2,7 @@ from dataclasses import dataclass, field
 from typing import List, Dict, Optional, Set
 import copy
 
-from models.components import Player, Office, Legislation, PoliticalFavor, Candidacy, Pledge, CampaignInfluence
+from models.components import Player, Office, Legislation, PoliticalFavor, Candidacy, Pledge
 from models.cards import Deck
 
 @dataclass

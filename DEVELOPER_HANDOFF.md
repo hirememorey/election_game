@@ -486,6 +486,14 @@ PORT=5001 python3 server.py
   - **Testing**: `test_pc_commitment_and_term_transition.py` now passes all tests
 - **Legislation Menu Race Condition Fix**: The frontend now always fetches the latest game state before displaying the support/oppose legislation menus. This prevents the 'There's no pending legislation to oppose' bug caused by stale state and ensures players only see currently available legislation.
 
+### Recent Major Improvements
+1. **Action Points System**: Players get 2 AP per turn with variable costs for different actions
+2. **Political Favors System**: Players can now use favors gained from networking with proper UI
+3. **Trading Mechanic**: Players can negotiate deals during legislation sessions for votes
+4. **Candidacy Timing**: Multiple players can now declare candidacy for the same or different offices in the same round, enabling head-to-head matchups and more dynamic elections.
+5. **Legislation Support/Opposition**: Players can support/oppose others' legislation with custom PC amounts
+6. **Campaign Action Removal**: Campaign actions have been completely removed from the game to streamline the flow. Players can only declare candidacy in round 4, eliminating confusion about when to campaign vs. declare candidacy.
+
 ## 🎯 Recommended Development Approach
 
 ### Phase 1: Apple-Level Design System Testing (1-2 days)

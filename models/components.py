@@ -53,13 +53,6 @@ class Candidacy:
     committed_pc: int
 
 @dataclass
-class CampaignInfluence:
-    """Stores a player's campaign influence for a future office election."""
-    player_id: int
-    office_id: str
-    influence_amount: int  # PC committed to future election
-
-@dataclass
 class Player:
     """Represents a player's state in the game."""
     id: int

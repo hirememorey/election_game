@@ -409,45 +409,92 @@ def resolve_oppose_legislation(state: GameState, action: ActionOpposeLegislation
     return state
 
 def resolve_declare_candidacy(state: GameState, action: ActionDeclareCandidacy) -> GameState:
+    from models.components import Candidacy
     player = state.get_player_by_id(action.player_id)
     if not player: return state
-
-    # Check if player has enough PC for candidacy cost
-    office = state.offices.get(action.office_id)
-    if not office:
-        state.add_log(f"Office with ID {action.office_id} not found.")
+    
+    # Check if candidacy has already been declared this round
+    # (Removed: allow multiple candidacies per round)
+    # if state.candidacy_declared_this_round:
+    #     state.add_log(f"A candidacy has already been declared this round. {player.name} must wait until next round.")
+    #     return state
+    
+    office = state.offices[action.office_id]
+    cost = office.candidacy_cost
+    if player.pc < cost + action.committed_pc:
+        state.add_log("Not enough PC to pay candidacy and commitment.")
         return state
-        
-    candidacy_cost = office.candidacy_cost
-    if player.pc < candidacy_cost:
-        state.add_log(f"{player.name} does not have enough PC to run for {office.title} (needs {candidacy_cost}).")
-        return state
-        
-    # Deduct candidacy cost
-    player.pc -= candidacy_cost
-
-    # Add candidacy to secret list
+    
+    player.pc -= (cost + action.committed_pc)
     candidacy = Candidacy(player_id=player.id, office_id=action.office_id, committed_pc=action.committed_pc)
     state.secret_candidacies.append(candidacy)
+    # state.candidacy_declared_this_round = True # This line is removed
     
-    state.add_log(f"{player.name} secretly declares candidacy for {office.title} and pays {candidacy_cost} PC.")
+    state.add_log(f"{player.name} pays {cost} PC to run for {office.title} and secretly commits additional funds.")
     return state
+
+#--- Phase Resolvers ---
 
 def resolve_upkeep(state: GameState) -> GameState:
     # Move any pending legislation to term legislation (will be resolved at end of term)
-    if state.pending_legislation:
+    if state.pending_legislation and not state.pending_legislation.resolved:
         state.term_legislation.append(state.pending_legislation)
         state.pending_legislation = None
     
-    # Pay upkeep for allies
-    for player in state.players:
-        upkeep_cost = sum(ally.upkeep_cost for ally in player.allies)
-        if upkeep_cost > 0:
-            player.pc -= upkeep_cost
-            state.add_log(f"{player.name} pays {upkeep_cost} PC for ally upkeep.")
+    # Reset candidacy flag for new round
+    # state.candidacy_declared_this_round = False # This line is removed
+    
+    # Reset action points for all players for the new round
+    for p in state.players:
+        state.action_points[p.id] = 2
+    
+    mood = state.public_mood
+    income_multiplier = 2 if "UNEXPECTED_SURPLUS" in state.active_effects else 1
+    if income_multiplier > 1:
+        state.add_log("EVENT: Unexpected Surplus provides double income for incumbents this turn.")
 
-    # Reset fundraiser archetype bonus
-    state.fundraiser_first_fundraise_used.clear()
+    for p in state.players:
+        if p.is_incumbent:
+            p.pc += mood
+            state.add_log(f"Incumbent {p.name} {'gains' if mood >= 0 else 'loses'} {abs(mood)} PC from Public Mood.")
+        else:
+            p.pc -= mood
+            state.add_log(f"Outsider {p.name} {'gains' if mood <= 0 else 'loses'} {abs(mood)} PC from Public Mood.")
+        for ally in p.allies:
+            if ally.upkeep_cost > 0:
+                if p.pc >= ally.upkeep_cost:
+                    p.pc -= ally.upkeep_cost
+                    state.add_log(f"{p.name} pays {ally.upkeep_cost} PC for their ally, {ally.title}.")
+                else:
+                    p.allies.remove(ally)
+                    state.add_log(f"{p.name} cannot afford upkeep for {ally.title} and must discard them.")
+        if p.is_incumbent and p.current_office:
+            income = p.current_office.income * income_multiplier
+            p.pc += income
+            state.add_log(f"{p.name} collects {income} PC income from the {p.current_office.title} office.")
+
+    # Clear one-time effects after they've been applied
+    if "UNEXPECTED_SURPLUS" in state.active_effects:
+        state.active_effects.remove("UNEXPECTED_SURPLUS")
+    if "STOCK_CRASH" in state.active_effects:
+        state.active_effects.remove("STOCK_CRASH")
+    
+    # Clear negative favor effects that expire at end of round
+    if state.media_scrutiny_players:
+        state.add_log("Media scrutiny effects have cleared for the new round.")
+    state.media_scrutiny_players.clear()  # Media scrutiny expires at end of round
+    
+    # Handle hot potato effect
+    if state.hot_potato_holder is not None:
+        hot_potato_player = state.get_player_by_id(state.hot_potato_holder)
+        if hot_potato_player:
+            # Since campaign actions are removed, hot potato effect is simplified
+            # Player loses 5 PC instead of campaign influence
+            hot_potato_player.pc -= 5
+            state.add_log(f"{hot_potato_player.name} loses 5 PC for holding the politically toxic dossier.")
+            
+            # Clear the hot potato
+            state.hot_potato_holder = None
 
     return state
 
@@ -605,7 +652,7 @@ def resolve_elections(state: GameState) -> GameState:
         for cand in candidates:
             player = state.get_player_by_id(cand.player_id)
             if player:
-                # Base score is committed PC
+                # Base score is committed PC (campaign influences removed)
                 score = cand.committed_pc
                 scores[player.name] = score
 
@@ -643,27 +690,7 @@ def resolve_elections(state: GameState) -> GameState:
 
     # Clear candidacies after elections are resolved
     state.secret_candidacies.clear()
-
-    # Transition to the next term
-    state = start_next_term(state)
     
-    return state
-
-def start_next_term(state: GameState) -> GameState:
-    """Clears the board for the next term, but does not start any new phases."""
-    state.round_marker = 1
-    state.current_phase = "ACTION_PHASE"
-    state.secret_candidacies.clear()
-    state.term_legislation.clear()
-    state.pending_legislation = None
-    for p in state.players:
-        state.action_points[p.id] = 2
-    # Reset any term-based abilities or effects
-    for effect in list(state.active_effects):
-        if effect in ["WAR_BREAKS_OUT", "VOTER_APATHY"]:
-            state.active_effects.remove(effect)
-    state.fundraiser_first_fundraise_used.clear()
-    state.add_log("\n--- NEW TERM BEGINS ---")
     return state
 
 def _award_office(state: GameState, winner: Player, new_office: Office):

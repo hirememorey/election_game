@@ -81,6 +81,13 @@ class GameEngine:
     def process_action(self, state: GameState, action: Action) -> GameState:
         """Routes an action to the correct resolver and advances the game state."""
         state.clear_turn_log()
+
+        # Harden the backend: reject actions during non-action phases.
+        if (state.awaiting_results_acknowledgement or
+            state.awaiting_legislation_resolution or
+            state.awaiting_election_resolution):
+            raise ValueError("Invalid action: The game is awaiting resolution or acknowledgement.")
+
         player = state.get_player_by_id(action.player_id)
         if not player or state.get_current_player().id != player.id:
             raise ValueError("It's not your turn or the player is invalid.")
@@ -171,8 +178,17 @@ class GameEngine:
                 state = self.run_upkeep_phase(state)
         # If we're in the legislation phase, do nothing - wait for manual resolution
         elif state.current_phase == "LEGISLATION_PHASE":
-            # Do not automatically advance - wait for manual resolution
-            pass
+            # Advance to the next player
+            state.current_player_index = (state.current_player_index + 1) % len(state.players)
+            state.add_log(f"Turn advances to {state.get_current_player().name}.")
+
+            # Check if all players have passed (or acted)
+            # This is a placeholder for a more robust check.
+            # A better implementation would be to track if each player has voted.
+            if state.current_player_index == 0:
+                # This simplistic check assumes a full circle means the phase might be over.
+                # In a real scenario, we'd check `state.awaiting_legislation_resolution`.
+                pass
         # If we're in the election phase, do nothing - wait for manual resolution
         elif state.current_phase == "ELECTION_PHASE":
             # Do not automatically advance - wait for manual resolution
@@ -384,48 +400,36 @@ class GameEngine:
         return self.run_election_phase(state)
 
     def resolve_elections_session(self, state: GameState) -> GameState:
-        """Manually resolve all elections after legislation session."""
+        """Resolves elections and transitions to the next term."""
         if not state.awaiting_election_resolution:
-            state.add_log("No election session to resolve.")
             return state
+
+        print("[DEBUG] run_election_phase called")
         state.current_phase = "ELECTION_PHASE"
         state.add_log("\n--- ELECTION PHASE ---")
-        # Grant 2 AP to each player at the start of the election phase
-        for player in state.players:
-            state.action_points[player.id] = 2
-        new_state = resolvers.resolve_elections(state)
-        # Reset for the new term
-        new_state.round_marker = 1
-        new_state.current_player_index = 0  # Reset player index for new term
-        new_state.secret_candidacies.clear()
-        new_state.term_legislation.clear()  # Clear term legislation for new term
-        new_state.pending_legislation = None  # Clear any pending legislation for new term
-        # Reset any term-based abilities or effects
-        for effect in list(new_state.active_effects):
-            if effect in ["WAR_BREAKS_OUT", "VOTER_APATHY"]: # Add other term-long effects here
-                new_state.active_effects.remove(effect)
-        # Reset archetype-specific tracking for new term
-        new_state.fundraiser_first_fundraise_used.clear()  # Reset Fundraiser first Fundraise tracking
-        new_state.add_log("\nA new term begins!")
-        # Automatically run the event phase for the new term
-        new_state.add_log("\n--- EVENT PHASE ---")
-        new_state = self.run_event_phase(new_state)
-        new_state.awaiting_election_resolution = False
-        return new_state
-
-def start_next_term(self, state: GameState) -> GameState:
-    """Clears the board and starts the next term."""
-    # Reset term-specific state
-    state.term_legislation.clear()
-    state.secret_candidacies.clear()
-    state.round_marker = 1
-    
-    # Reset action points for all players
-    for p in state.players:
-        state.action_points[p.id] = 2
         
-    # Start with a new event phase
-    state = self.run_event_phase(state)
-    
-    state.add_log("\n--- NEW TERM BEGINS ---")
-    return state
+        state = resolvers.resolve_elections(state)
+        
+        # Instead of advancing to the next term, set a flag
+        state.awaiting_election_resolution = False
+        state.awaiting_results_acknowledgement = True
+        state.add_log("Elections resolved. Awaiting acknowledgement.")
+        
+        return state
+
+    def start_next_term(self, state: GameState) -> GameState:
+        """Clears the board and starts the next term."""
+        # Reset term-specific state
+        state.term_legislation.clear()
+        state.secret_candidacies.clear()
+        state.current_player_index = 0
+        
+        # Reset action points for all players
+        for p in state.players:
+            state.action_points[p.id] = 2
+            
+        # Start with a new event phase
+        state = self.run_event_phase(state)
+        
+        state.add_log("\n--- NEW TERM BEGINS ---")
+        return state

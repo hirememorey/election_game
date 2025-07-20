@@ -113,23 +113,49 @@ This document tracks the major improvements and features that have been implemen
 - Players get 2 Action Points per turn instead of 1 action
 - Multiple actions per turn until AP are exhausted
 - Variable AP costs for different actions (1-2 AP)
-- Campaign action for placing influence for future elections
 - Automatic turn advancement when AP exhausted
 - AP validation prevents actions when insufficient AP
 
 **Technical Implementation**:
-- `models/game_state.py`: Added `action_points` and `campaign_influences` fields
-- `models/components.py`: Added `CampaignInfluence` dataclass
-- `engine/actions.py`: Added `ActionCampaign` class
-- `engine/resolvers.py`: Added `resolve_campaign()` function
+- `models/game_state.py`: Added `action_points` field
+- `engine/actions.py`: Added action point costs
+- `engine/resolvers.py`: Added AP validation and turn advancement logic
 - `engine/engine.py`: Added AP costs, validation, and turn advancement logic
-- `server.py`: Added campaign action handling and state serialization
+- `server.py`: Added action point handling and state serialization
 
 **Testing**: `test_action_points_system.py` provides comprehensive testing
 **Impact**: Dramatically increases player autonomy and speeds up gameplay
 **Frontend Status**: **ENHANCED** - Apple-level design system implemented
 
-### 3. **Trading Mechanic** - REMOVED
+### 3. **Campaign Action Removal** - COMPLETED
+**Status**: Successfully removed to streamline gameplay
+
+**What it did**:
+- Players could campaign in rounds 1-4 to place influence for future elections
+- Campaign action cost 2 AP and placed influence on offices
+- Created confusion with declare candidacy timing
+
+**Why removed**:
+- Simplified the game flow and eliminated strategic confusion
+- Players now focus on building resources in early rounds
+- Declare candidacy in round 4 provides clear election preparation timing
+- Streamlined gameplay experience with cleaner action choices
+
+**Technical Changes**:
+- `engine/actions.py`: Removed `ActionCampaign` class
+- `engine/engine.py`: Removed campaign from action costs and resolvers
+- `engine/resolvers.py`: Removed `resolve_campaign()` function
+- `models/components.py`: Removed `CampaignInfluence` class
+- `models/game_state.py`: Removed `campaign_influences` field
+- `server.py`: Removed campaign action handling
+- `static/script.js`: Removed campaign UI and handlers
+- Updated hot potato effect to use PC loss instead of campaign influence
+- Updated election resolution to remove campaign influence bonuses
+
+**Testing**: `test_campaign_removal.py` provides comprehensive testing
+**Impact**: Cleaner game flow with less strategic confusion
+
+### 4. **Trading Mechanic** - REMOVED
 **Status**: Successfully removed to streamline gameplay
 
 **What it did**:
@@ -155,7 +181,7 @@ This document tracks the major improvements and features that have been implemen
 
 **Impact**: Simplified legislation sessions for faster, more focused gameplay
 
-### 4. **🏛️ Enhanced Election Results Display** - COMPLETED
+### 5. **🏛️ Enhanced Election Results Display** - COMPLETED
 **Status**: **COMPLETED** - Fully implemented and tested
 
 **What it does**:
@@ -184,7 +210,7 @@ This document tracks the major improvements and features that have been implemen
 
 **Impact**: Provides players with clear, detailed feedback on election outcomes, enhancing the strategic understanding of the game
 
-### 5. **Political Favors System** - COMPLETED
+### 6. **Political Favors System** - COMPLETED
 **Status**: Fully implemented and tested
 
 **What it does**:
@@ -213,7 +239,7 @@ This document tracks the major improvements and features that have been implemen
 **Testing**: `test_api.py` includes favor system testing
 **Impact**: Adds strategic depth to networking actions
 
-### 6. **PC Commitment System** - COMPLETED
+### 7. **PC Commitment System** - COMPLETED
 **Status**: Fully implemented and tested
 
 **What it does**:
@@ -229,7 +255,7 @@ This document tracks the major improvements and features that have been implemen
 **Testing**: `test_pc_commitment_and_term_transition.py` provides comprehensive testing
 **Impact**: Adds strategic depth to legislation and candidacy actions
 
-### 7. **Automatic Event Phases** - COMPLETED
+### 8. **Automatic Event Phases** - COMPLETED
 **Status**: Fully implemented and tested
 
 **What it does**:
@@ -243,7 +269,7 @@ This document tracks the major improvements and features that have been implemen
 **Testing**: `test_automatic_event_phase.py` provides comprehensive testing
 **Impact**: Eliminates manual event drawing, improves game flow
 
-### 8. **Term Transition Fixes** - COMPLETED
+### 9. **Term Transition Fixes** - COMPLETED
 **Status**: Fully implemented and tested
 
 **What it does**:
@@ -258,7 +284,7 @@ This document tracks the major improvements and features that have been implemen
 **Testing**: `test_pc_commitment_and_term_transition.py` includes term transition testing
 **Impact**: Prevents state corruption between terms
 
-### 9. **Legislation Session Timing** - COMPLETED
+### 10. **Legislation Session Timing** - COMPLETED
 **Status**: Fully implemented and tested
 
 **What it does**:
@@ -273,7 +299,7 @@ This document tracks the major improvements and features that have been implemen
 **Testing**: `test_legislation_timing.py` provides comprehensive testing
 **Impact**: Ensures all players have a chance to vote on bills
 
-### 10. **Form Alliance Action Removal** - COMPLETED
+### 11. **Form Alliance Action Removal** - COMPLETED
 **Status**: Successfully removed for simplified testing
 
 **What it does**:
@@ -291,7 +317,7 @@ This document tracks the major improvements and features that have been implemen
 **Testing**: `test_form_alliance_removal.py` verifies the action is gone
 **Impact**: Simplified action set for easier testing and balance
 
-### 11. **Round 5 Confusion Fix** - COMPLETED
+### 12. **Round 5 Confusion Fix** - COMPLETED
 **Status**: Fully implemented and tested
 
 **What it does**:
@@ -311,7 +337,7 @@ This document tracks the major improvements and features that have been implemen
 **Testing**: Manual testing confirms improved game flow
 **Impact**: Much clearer game flow and better user experience
 
-### 12. **Action Points System Fixes** - COMPLETED
+### 13. **Action Points System Fixes** - COMPLETED
 **Status**: Fully implemented and tested
 
 **What it does**:
@@ -329,7 +355,7 @@ This document tracks the major improvements and features that have been implemen
 **Testing**: `test_pc_commitment_and_term_transition.py` now passes all tests
 **Impact**: Resolves AP validation errors and ensures smooth gameplay flow
 
-### 13. **🎰 Gambling-Style Legislation System** - DEPRECATED
+### 14. **🎰 Gambling-Style Legislation System** - DEPRECATED
 **Status**: Replaced by the **Secret Commitment Legislation System**.
 **What it did**:
 - Allowed players to commit PC to support/oppose legislation during any turn.

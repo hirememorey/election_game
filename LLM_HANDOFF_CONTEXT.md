@@ -335,9 +335,8 @@
 - **Network** (1 AP): Gain 2 PC + 1-2 political favors
 - **Sponsor Legislation** (2 AP): Create legislation for votes/mood (cost varies by legislation type)
 - **Declare Candidacy** (2 AP): Run for office (Round 4 only, cost varies by office + optional PC commitment)
-- **Use Favor** (0 AP): Strategic advantage actions (requires having political favors, now with selection menu)
+- **Use Favor** (1 AP): Strategic advantage actions (requires having political favors, now with selection menu)
 - **Support/Oppose Legislation** (1 AP): **🎰 Gambling-style system** - commit PC during any turn with risk/reward mechanics
-- **Campaign** (2 AP): Place influence for future office elections (NEW)
 - **Trading** (0 AP): Propose trades of PC/favors for votes during legislation sessions
 
 ### Incumbent/Outsider Public Mood System (NEW)
@@ -348,16 +347,12 @@
 - **Events Affected**: Economic Boom, Recession Hits, Unexpected Surplus, Last Bill Hit/Dud, Tech Leap, Natural Disaster, Midterm Fury, Stock Crash, MEDIA_SPIN favor, successful legislation
 
 ### Recent Major Improvements
-1. **Action Points System**: Players get 3 AP per turn with variable costs for different actions
+1. **Action Points System**: Players get 2 AP per turn with variable costs for different actions
 2. **Political Favors System**: Players can now use favors gained from networking with proper UI
 3. **Trading Mechanic**: Players can negotiate deals during legislation sessions for votes
 4. **Candidacy Timing**: Multiple players can now declare candidacy for the same or different offices in the same round, enabling head-to-head matchups and more dynamic elections.
 5. **Legislation Support/Opposition**: Players can support/oppose others' legislation with custom PC amounts
-6. **Automatic Event Phases**: Smooth game flow with automatic event card drawing
-7. **PC Commitment System**: Strategic depth through custom PC investment in actions
-8. **Incumbent/Outsider Logic**: Strategic tension through public mood effects
-9. **Enhanced UI**: Better turn status display and action points visualization
-10. **Production Deployment**: Successfully deployed to Render with proper configuration
+6. **Campaign Action Removal**: Campaign actions have been completely removed from the game to streamline the flow. Players can only declare candidacy in round 4, eliminating confusion about when to campaign vs. declare candidacy.
 
 ## 🚀 Current Status
 

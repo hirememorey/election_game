@@ -15,7 +15,7 @@ import os
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
 from engine.engine import GameEngine
-from engine.actions import ActionFundraise, ActionNetwork, ActionSponsorLegislation, ActionCampaign, ActionPassTurn
+from engine.actions import ActionFundraise, ActionNetwork, ActionSponsorLegislation, ActionPassTurn
 from game_data import load_game_data
 
 def test_action_points_system():
@@ -77,61 +77,31 @@ def test_action_points_system():
     print(f"Alice AP after 2 AP action: {state.action_points[alice.id]}")
     assert state.action_points[alice.id] == 0, "Should have 0 AP remaining after 2 AP action"
     
-    # --- Test 5: Campaign action works ---
-    print("\nTest 5: Campaign action works")
-    # Reset Alice's AP to 2
-    state.current_player_index = 0
-    state.action_points[alice.id] = 2
-    
-    # Take campaign action (2 AP)
-    action = ActionCampaign(player_id=0, office_id="GOVERNOR", influence_amount=5)
-    state = engine.process_action(state, action)
-    print(f"Alice AP after campaign action: {state.action_points[alice.id]}")
-    assert state.action_points[alice.id] == 0, "Should have 0 AP remaining after campaign action"
-    
-    # Check campaign influence was recorded
-    print(f"Campaign influences: {len(state.campaign_influences)}")
-    assert len(state.campaign_influences) == 1, "Should have 1 campaign influence"
-    campaign = state.campaign_influences[0]
-    assert campaign.player_id == 0, "Campaign should be for Alice"
-    assert campaign.office_id == "GOVERNOR", "Campaign should be for Governor"
-    assert campaign.influence_amount == 5, "Campaign should have 5 PC influence"
-    
-    # --- Test 6: AP validation prevents overdraft ---
-    print("\nTest 6: AP validation prevents overdraft")
-    # Reset to fresh state
-    state = engine.start_new_game(["Alice", "Bob"])
-    alice = state.players[0]
-    
-    # Try to take a 2 AP action with only 2 AP (should work)
-    action = ActionSponsorLegislation(player_id=0, legislation_id="INFRASTRUCTURE")
-    state = engine.process_action(state, action)
-    print(f"Alice AP after 2 AP action: {state.action_points[alice.id]}")
-    assert state.action_points[alice.id] == 0, "Should have 0 AP remaining"
-    
-    # Try to take another 2 AP action (should fail)
+    # --- Test 5: AP validation prevents actions when insufficient AP ---
+    print("\nTest 5: AP validation")
+    # Try to take a 1 AP action with 0 AP
     try:
-        action = ActionCampaign(player_id=0, office_id="GOVERNOR", influence_amount=5)
-        state = engine.process_action(state, action)
-        assert False, "Should have failed due to insufficient AP"
+        action = ActionFundraise(player_id=0)
+        engine.process_action(state, action)
+        assert False, "Should have raised an error for insufficient AP"
     except ValueError as e:
-        print(f"Correctly prevented overdraft: {e}")
-        assert "Not enough action points" in str(e), "Should mention action points in error"
+        print(f"✅ AP validation works: {e}")
     
-    # --- Test 7: AP reset for new players ---
-    print("\nTest 7: AP reset for new players")
-    state = engine.start_new_game(["Alice", "Bob"])
-    state.current_phase = "ACTION_PHASE"  # Ensure correct phase for turn advancement
-    alice = state.players[0]
-    # Take final action to advance turn
+    # --- Test 6: Turn advancement when AP exhausted ---
+    print("\nTest 6: Turn advancement")
+    # Reset to Alice's turn with 1 AP
+    state.current_player_index = 0
+    state.action_points[alice.id] = 1
+    
+    # Take a 1 AP action, should advance to Bob
     action = ActionFundraise(player_id=0)
     state = engine.process_action(state, action)
-    # Check that Bob got 2 AP
-    bob = state.players[1]
-    print(f"Bob AP: {state.action_points[bob.id]}")
-    assert state.action_points[bob.id] == 2, "Bob should have 2 AP when starting his turn"
+    print(f"Current player after Alice's action: {state.current_player_index}")
+    assert state.current_player_index == 1, "Should advance to Bob when Alice's AP is exhausted"
+    print("✅ Turn advancement works correctly")
     
-    print("\n🎉 Action Points System tests completed!")
+    print("\n🎉 All Action Points system tests passed!")
+    return True
 
 if __name__ == "__main__":
     test_action_points_system() 

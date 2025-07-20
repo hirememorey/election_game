@@ -107,33 +107,6 @@ The application has been significantly improved with major fixes to core functio
 - ✅ **Next steps guidance working**
 - ✅ **Touch feedback improved**
 
-## 📱 Mobile Testing
-
-The game includes comprehensive mobile testing to ensure optimal mobile experience:
-
-### Running Mobile Tests
-```bash
-# Run all mobile tests
-./run-mobile-tests.sh
-
-# Run specific test file
-npx playwright test tests/mobile-ui-elements.spec.ts
-
-# View test results
-npx playwright show-report test-results/mobile/usability-report
-```
-
-### Mobile Test Results (Latest)
-- **All mobile improvements implemented and working** ✅
-- **Immediate feedback systems active** ✅
-- **Phase indicators enhanced and clear** ✅
-- **Quick actions panel functional** ✅
-- **Mobile CSS optimizations applied** ✅
-- **Next steps guidance working** ✅
-- **Touch feedback improved** ✅
-
-The mobile experience has been completely transformed with comprehensive improvements that provide immediate feedback, clear progress indicators, and enhanced usability for mobile users.
-
 ## 🎯 Game Features
 
 ### Core Mechanics
@@ -155,91 +128,19 @@ The mobile experience has been completely transformed with comprehensive improve
 3. **Legislation Phase**: Vote on bills with PC commitments
 4. **Election Phase**: Determine winners and losers
 
+## Game Actions
+
+Players can take the following actions during their turn:
+
+- **Fundraise** (1 AP): Gain Political Capital (PC) - 5 PC base, +2 for Fundraiser archetype, +10 with Hedge Fund Bro ally
+- **Network** (1 AP): Gain 2 PC + 1-2 political favors
+- **Sponsor Legislation** (2 AP): Create legislation for votes/mood (cost varies by legislation type)
+- **Declare Candidacy** (2 AP): Run for office (Round 4 only, cost varies by office + optional PC commitment)
+- **Use Favor** (1 AP): Strategic advantage actions (requires having political favors, now with selection menu)
+- **Support/Oppose Legislation** (1 AP): **🎰 Gambling-style system** - commit PC during any turn with risk/reward mechanics
+- **Trading** (0 AP): Propose trades of PC/favors for votes during legislation sessions
+
 ## 🛠️ Development
 
 ### Project Structure
 ```
-election/
-├── static/           # Frontend assets
-│   ├── index.html   # Main game interface
-│   ├── script.js    # Game logic
-│   └── style.css    # Apple-level styling
-├── engine/          # Game engine
-│   ├── engine.py    # Core game logic
-│   ├── actions.py   # Action definitions
-│   └── resolvers.py # Phase resolution
-├── models/          # Data models
-│   ├── game_state.py
-│   ├── cards.py
-│   └── components.py
-├── tests/           # Test suite
-│   ├── mobile-ui-elements.spec.ts
-│   ├── mobile-usability.spec.ts
-│   └── mobile-config.ts
-└── server.py        # Flask server
-```
-
-### Key Technologies
-- **Backend**: Python Flask
-- **Frontend**: Vanilla JavaScript with Apple-level CSS
-- **Testing**: Playwright for mobile testing
-- **Design**: Responsive, touch-friendly interface
-
-## 📋 Testing
-
-### Mobile Usability Tests
-The comprehensive mobile testing suite covers:
-
-- **Touch Interactions**: Button sizes, spacing, gestures
-- **Responsive Design**: Orientation changes, text readability
-- **Game Flow**: Complete mobile game experience with proper screen transitions
-- **Accessibility**: Keyboard navigation, screen readers, ARIA labels
-- **Performance**: Load times, responsiveness
-- **Cross-Device Testing**: iPhone, iPad, Samsung Galaxy across Chromium, Firefox, WebKit
-- **Action Visibility**: Ensures all actions remain accessible on mobile devices
-
-### Running Tests
-```bash
-# Mobile tests only
-./run-mobile-tests.sh
-
-# All tests
-npx playwright test
-
-# Specific browser
-npx playwright test --project=chromium
-```
-
-## 🎨 Design Philosophy
-
-The game features **Apple-level design** with:
-- **Minimalist interface** with clear information hierarchy
-- **Touch-first design** optimized for mobile devices
-- **Responsive layout** that adapts to any screen size
-- **Intuitive interactions** with natural gestures
-- **Accessible design** supporting keyboard and screen readers
-- **Non-interfering mobile experience** with clear action visibility
-
-## 📚 Documentation
-
-- `MOBILE_TESTING_GUIDE.md` - Complete mobile testing documentation
-- `MOBILE_TEST_RESULTS.md` - Latest test results and analysis
-- `MOBILE_IMPROVEMENTS_SUMMARY.md` - Latest mobile improvements and fixes
-- `DEVELOPER_HANDOFF.md` - Technical implementation details
-- `GAME_IMPROVEMENTS.md` - Future enhancement plans
-
-## 🤝 Contributing
-
-1. Fork the repository
-2. Create a feature branch
-3. Run mobile tests: `./run-mobile-tests.sh`
-4. Ensure all tests pass
-5. Submit a pull request
-
-## 📄 License
-
-This project is licensed under the MIT License - see the LICENSE file for details.
-
----
-
-**Election: The Game** - Where political strategy meets mobile gaming excellence. 

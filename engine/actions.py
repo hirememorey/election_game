@@ -67,5 +67,5 @@ class ActionCompleteTrading(Action):
 
 @dataclass
 class ActionPassTurn(Action):
-    """Pass the current turn and advance to the next player."""
+    """Pass turn without taking any action."""
     pass

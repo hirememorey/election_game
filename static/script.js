@@ -1129,9 +1129,14 @@ function getAvailableActions(currentPlayer) {
             disabled: false
         });
         
-        // Add action buttons based on game state
-        if (gameState.current_phase === 'ACTION_PHASE') {
-            // No campaign button for now.
+        if (gameState.round_marker === 4) {
+            actions.push({
+                type: 'declare_candidacy',
+                label: 'Declare Candidacy',
+                icon: '🏛️',
+                cost: 2,
+                disabled: false
+            });
         }
     }
     
@@ -1175,9 +1180,6 @@ function handleActionClick(actionType) {
             break;
         case 'oppose_legislation':
             showLegislationOpposeMenu();
-            break;
-        case 'campaign':
-            showCampaignDialog();
             break;
         case 'declare_candidacy':
             showCandidacyMenu();
@@ -1294,41 +1296,13 @@ function showLegislationMenu() {
     `);
 }
 
-function showCampaignDialog() {
-    // Get office data from game state
-    const offices = gameState.offices || {};
-    const officeEntries = Object.entries(offices);
-    
-    const officeOptions = officeEntries.map(([id, office]) => `
-        <option value="${id}">${office.title} (Candidacy Cost: ${office.candidacy_cost} PC)</option>
-    `).join('');
-    
-    showModal('Campaign', `
-        <div class="form-group">
-            <label for="campaign-office">Office:</label>
-            <select id="campaign-office">
-                <option value="">Select an office...</option>
-                ${officeOptions}
-            </select>
-        </div>
-        <div class="form-group">
-            <label for="campaign-pc">PC to Commit:</label>
-            <input type="number" id="campaign-pc" min="1" max="50" required placeholder="Enter PC amount">
-        </div>
-        <div class="modal-actions">
-            <button class="btn-primary" onclick="handleCampaignAction()">Campaign</button>
-            <button class="btn-secondary" onclick="closeModal()">Cancel</button>
-        </div>
-    `);
-}
-
 function showCandidacyMenu() {
     // Get office data from game state
     const offices = gameState.offices || {};
     const officeEntries = Object.entries(offices);
     
     const officeOptions = officeEntries.map(([id, office]) => `
-        <option value="${id}">${office.title} (Cost: ${office.candidacy_cost} PC)</option>
+        <option value="${id}">${office.title} (Candidacy Cost: ${office.candidacy_cost} PC)</option>
     `).join('');
     
     showModal('Declare Candidacy', `
@@ -1341,7 +1315,7 @@ function showCandidacyMenu() {
         </div>
         <div class="form-group">
             <label for="candidacy-pc">Additional PC to Commit:</label>
-            <input type="number" id="candidacy-pc" min="0" max="50" required placeholder="Enter PC amount">
+            <input type="number" id="candidacy-pc" min="0" max="50" required placeholder="Enter additional PC amount">
         </div>
         <div class="modal-actions">
             <button class="btn-primary" onclick="handleCandidacyAction()">Declare Candidacy</button>
@@ -1604,31 +1578,12 @@ async function sponsorLegislation(legislationId) {
     }
 }
 
-async function handleCampaignAction() {
-    const officeSelect = document.getElementById('campaign-office');
-    const pcInput = document.getElementById('campaign-pc');
-    
-    const officeId = officeSelect.value;
-    const influenceAmount = parseInt(pcInput.value);
-    
-    if (!officeId || !influenceAmount || influenceAmount <= 0) {
-        showMessage('Please enter valid values', 'error');
-        return;
-    }
-    
-    closeModal();
-    await performAction('campaign', {
-        office_id: officeId,
-        influence_amount: influenceAmount
-    });
-}
-
 async function handleCandidacyAction() {
     const officeSelect = document.getElementById('candidacy-office');
     const pcInput = document.getElementById('candidacy-pc');
     
     const officeId = officeSelect.value;
-    const additionalPc = parseInt(pcInput.value) || 0;
+    const committedPc = parseInt(pcInput.value) || 0;
     
     if (!officeId) {
         showMessage('Please select an office', 'error');
@@ -1638,7 +1593,7 @@ async function handleCandidacyAction() {
     closeModal();
     await performAction('declare_candidacy', {
         office_id: officeId,
-        additional_pc: additionalPc
+        committed_pc: committedPc
     });
 }
 
