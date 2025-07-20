@@ -248,11 +248,17 @@ Received: <element(s) not found>
 - Test the improved legislation session flow (no more round 5 confusion)
 - Test Pass Turn functionality and action point handling
 - Test manual phase resolution system
-- Test legislation voting restrictions and pass turn functionality
-- Test the Secret Commitment system's impact on game flow, player interaction, and overall fun.
-- Test the new UI and logging for clarity and dramatic effect.
 
-### 4. **Balance Adjustments** (MEDIUM PRIORITY)
+### 4. **Skill vs. Luck Balancing** (NEW - HIGH PRIORITY)
+**What**: Implement the simulation plan to analyze and tune the game's balance of skill and luck.
+**Why**: To achieve a "Texas Hold 'Em" style balance where skill is the primary determinant of long-term success, but luck keeps individual games exciting.
+**How**: Follow the detailed, three-phase plan outlined in `SIMULATION_FRAMEWORK.md` under the "Future Direction: Quantifying Skill vs. Luck" section.
+**Key Steps**:
+1.  **Develop AI Personas**: Create `CluelessCarl` (random baseline) and `StrategicSamantha` (skilled proxy) to establish a skill delta.
+2.  **Run Baseline Simulations**: Quantify the current "skill edge" in the game.
+3.  **Tune "Luck Knobs"**: Systematically adjust the impact of random elements (election dice, event cards) and measure the effect on the skill edge.
+
+### 5. **Balance Adjustments** (MEDIUM PRIORITY)
 **What**: Fine-tune AP costs, PC rewards, and legislation targets based on playtesting of the new system.
 **Why**: Ensure optimal gameplay experience
 **How**: Adjust values in `engine/engine.py` and `engine/resolvers.py`
@@ -264,19 +270,18 @@ Received: <element(s) not found>
 - Public mood effect magnitudes
 - Secret commitment amounts and strategic impact
 
-### 5. **Database Integration** (MEDIUM PRIORITY)
+### 6. **Database Integration** (MEDIUM PRIORITY)
 **What**: Replace in-memory storage with persistent database
 **Why**: Production readiness and game state persistence
 **How**: Add PostgreSQL/MongoDB integration
 **Files to Modify**: `server.py`, add database models
 **Estimated Effort**: 1-2 days
 
-### 6. **Network Action Design** (LOW PRIORITY)
+### 7. **Network Action Design** (LOW PRIORITY)
 **What**: Implement merged Network/Alliance system from `NETWORK_ACTION_DESIGN.md`
 **Why**: Add strategic depth if Form Alliance is missed
 **How**: Follow design document specifications
 **Estimated Effort**: 2-3 days
-
 
 
 ## 🏗️ Technical Architecture

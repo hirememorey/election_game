@@ -195,4 +195,58 @@ Example results from demonstration:
 
 ---
 
-For more details, see the code in `simulation_runner.py`, `analysis.py`, `personas/`, and the test scripts. The enhanced framework provides a solid foundation for ongoing game balance analysis and development. 
+For more details, see the code in `simulation_runner.py`, `analysis.py`, `personas/`, and the test scripts. The enhanced framework provides a solid foundation for ongoing game balance analysis and development.
+
+## Future Direction: Quantifying Skill vs. Luck
+
+### Objective
+
+The next phase of simulation work is to analyze and tune the game's balance of skill and luck. The goal is to achieve a ratio akin to Texas Hold 'Em, where skill is the dominant factor in long-term success, but a sufficient luck component ensures that any single game is unpredictable and exciting. This requires a systematic approach to measure the impact of player decisions versus random events.
+
+### The Hybrid Path Forward: A Three-Phase Plan
+
+This plan combines two core strategies: "Skill Spectrum Analysis" using AI personas and "Luck Knob Analysis" to perform sensitivity analysis on the game's random elements.
+
+#### Phase 1: Establish the Skill Baseline
+
+This phase answers the question: "As the game is currently designed, what is the raw advantage of skillful play over random chance?"
+
+1.  **Persona Development**:
+    *   **`CluelessCarl` (The Baseline)**: This persona represents 0% skill. It understands the rules but makes uniformly random choices from the list of valid actions. It commits random amounts of PC. Its performance is the benchmark for a game outcome driven by pure luck.
+    *   **`StrategicSamantha` (The Skilled Proxy)**: This persona represents a skilled human player. It uses complex heuristics, such as tracking opponent resources, estimating their secret objectives based on their actions, and, crucially, **bluffing** in the Secret Commitment system.
+
+2.  **Simulation Experiment: The Skill Delta Test**
+    *   **Setup**: Run a large batch of simulations (e.g., 10,000 games) with one `StrategicSamantha` against three `CluelessCarls`.
+    *   **Metric**: Measure Samantha's win rate. In a 4-player game, a purely random outcome would yield a 25% win rate. The deviation from this baseline quantifies the "skill edge." A 35% win rate suggests a small edge, while a 75% win rate might indicate the game is too deterministic.
+
+#### Phase 2: Test Strategic Viability
+
+This phase ensures the game has a healthy, balanced meta where multiple strategies can succeed, preventing a single "optimal" strategy from dominating.
+
+1.  **Additional Persona Development**:
+    *   **`GreedyGus` (The Economist)**: A one-dimensional persona that prioritizes maximizing its own PC above all else, almost always choosing to Fundraise.
+    *   **`LegislativeLarry` (The Specialist)**: A focused persona that only sponsors or supports legislation aligning with its secret mandate, ignoring other opportunities.
+
+2.  **Simulation Experiment: The Meta-Balance Test**
+    *   **Setup**: Run 10,000 simulations with one of each of the four personas.
+    *   **Metric**: Analyze the win-rate distribution. A healthy meta would see `StrategicSamantha` winning most often, but with `Larry` and `Gus` having a reasonable chance if the game's random events favor their playstyle. If `GreedyGus` consistently wins, it may indicate the game's economy is unbalanced.
+
+#### Phase 3: Tune the Luck Knobs
+
+This phase isolates the impact of specific random mechanics to see how they influence the established skill and meta baselines.
+
+1.  **Identify "Luck Knobs"**:
+    *   **Election Randomness**: The dice roll used in election resolution.
+    *   **Event Card Impact**: The magnitude of PC or Influence swings from Event Cards.
+    *   **Favor Card Pool**: The distribution of powerful vs. weak cards in the Political Favor deck.
+
+2.  **Simulation Experiment: Sensitivity Analysis**
+    *   **Setup**: Re-run the "Skill Delta Test" and "Meta-Balance Test" under modified conditions.
+    *   **Example Scenario ("Pure Skill Election")**: Set the election dice roll to 0 for all players. The winner is determined solely by deterministic factors like committed PC.
+    *   **Metric**: How much does Samantha's win rate change when this luck element is removed? If it jumps from 40% to 80%, it indicates the dice roll has an outsized impact on the game's outcome, potentially invalidating a game's worth of skillful play. This allows for fine-tuning (e.g., changing from a d6 to a d3 roll) to achieve the desired balance.
+
+### Red Teaming & Caveats
+
+*   **Assumption**: AI personas are perfect proxies for human players.
+*   **Critique**: This is false. Humans are emotional, irrational, and are influenced by social dynamics not present in the simulation.
+*   **Conclusion**: This framework's purpose is not to perfectly simulate a human playgroup, but to **test the mechanical and mathematical robustness of the game's core systems.** It ensures that no single strategy is inherently broken and that the intended skill-based mechanics are not being completely invalidated by random chance. A mechanically sound game is the necessary foundation upon which a rich, human-driven psychological meta can be built. 
