@@ -1,14 +1,14 @@
-from flask import Flask, request, jsonify, send_from_directory
-from flask_cors import CORS
+"""
+Core Game Logic Module
+This module contains the core game logic and state management functions
+that were previously part of the Flask server.
+"""
+
 import json
 from engine.engine import GameEngine
 from game_data import load_game_data
 from engine.actions import ActionFundraise, ActionNetwork, ActionSponsorLegislation, ActionDeclareCandidacy, ActionUseFavor, ActionSupportLegislation, ActionOpposeLegislation, ActionProposeTrade, ActionAcceptTrade, ActionDeclineTrade, ActionCompleteTrading, ActionPassTurn
 import uuid
-import os
-
-app = Flask(__name__, static_folder='static')
-CORS(app)  # Allow cross-origin requests for development
 
 # Initialize the game engine
 game_data = load_game_data()
@@ -116,7 +116,6 @@ def serialize_game_state(state):
                 'resolved': leg.resolved
             } for leg in state.term_legislation
         ],
-        # Removed: 'legislation_session_active', 'current_trade_phase', 'active_trade_offers', 'trade_offers'
         'action_points': state.action_points,
         # Negative favor effects
         'political_debts': state.political_debts,
@@ -131,14 +130,10 @@ def serialize_game_state(state):
         'last_election_results': state.last_election_results
     }
 
-@app.route('/api/game', methods=['POST'])
-def create_game():
+def create_game(player_names):
     """Create a new game."""
-    data = request.get_json()
-    player_names = data.get('player_names', [])
-    
     if len(player_names) < 2 or len(player_names) > 4:
-        return jsonify({'error': 'Game requires 2-4 players'}), 400
+        raise ValueError('Game requires 2-4 players')
     
     # Create new game
     game_state = engine.start_new_game(player_names)
@@ -147,87 +142,24 @@ def create_game():
     game_id = str(uuid.uuid4())
     active_games[game_id] = game_state
     
-    return jsonify({
-        'game_id': game_id,
-        'state': serialize_game_state(game_state)
-    })
+    return game_id, serialize_game_state(game_state)
 
-
-@app.route('/api/game/new_vs_ai', methods=['POST'])
-def create_human_vs_ai_game():
-    """Create a new game with one human player and AI opponents."""
-    data = request.get_json()
-    player_name = data.get('player_name', 'Human')
-    ai_persona = data.get('ai_persona', 'heuristic')
-    ai_count = data.get('ai_count', 2)  # Default to 2 AI opponents
-    
-    # Create player names: Human + AI opponents
-    player_names = [player_name] + [f"AI-{i+1}" for i in range(ai_count)]
-    
-    # Create new game
-    game_state = engine.start_new_game(player_names)
-    # Run the first event phase immediately
-    game_state = engine.run_event_phase(game_state)
-    game_id = str(uuid.uuid4())
-    active_games[game_id] = game_state
-    
-    return jsonify({
-        'game_id': game_id,
-        'state': serialize_game_state(game_state)
-    })
-
-
-@app.route('/api/game/new_vs_multiple_ai', methods=['POST'])
-def create_human_vs_multiple_ai_game():
-    """Create a new game with one human player and multiple AI opponents with different personas."""
-    data = request.get_json()
-    player_name = data.get('player_name', 'Human')
-    ai_personas = data.get('ai_personas', ['heuristic', 'economic', 'legislative'])
-    
-    # Create player names: Human + AI opponents
-    player_names = [player_name] + [f"AI-{i+1}" for i in range(len(ai_personas))]
-    
-    # Create new game
-    game_state = engine.start_new_game(player_names)
-    # Run the first event phase immediately
-    game_state = engine.run_event_phase(game_state)
-    game_id = str(uuid.uuid4())
-    active_games[game_id] = game_state
-    
-    return jsonify({
-        'game_id': game_id,
-        'state': serialize_game_state(game_state),
-        'ai_personas': ai_personas
-    })
-
-@app.route('/api/game/<game_id>', methods=['GET'])
 def get_game_state(game_id):
     """Get the current state of a game."""
     if game_id not in active_games:
-        return jsonify({'error': 'Game not found'}), 404
+        raise ValueError('Game not found')
     
     state = active_games[game_id]
-    
-    # DISABLED: Auto-advancement to prevent legislation session from being automatically resolved
-    # Let the frontend handle phase transitions manually
-    pass
-    
-    return jsonify({
-        'game_id': game_id,
-        'state': serialize_game_state(state)
-    })
+    return serialize_game_state(state)
 
-@app.route('/api/game/<game_id>/action', methods=['POST'])
-def process_action(game_id):
+def process_action(game_id, action_data):
     """Process a player action."""
     if game_id not in active_games:
-        return jsonify({'error': 'Game not found'}), 404
+        raise ValueError('Game not found')
     
     state = active_games[game_id]
-    data = request.get_json()
-    
-    action_type = data.get('action_type')
-    player_id = data.get('player_id')
+    action_type = action_data.get('action_type')
+    player_id = action_data.get('player_id')
     
     # Create the appropriate action object
     action = None
@@ -236,21 +168,20 @@ def process_action(game_id):
     elif action_type == 'network':
         action = ActionNetwork(player_id=player_id)
     elif action_type == 'sponsor_legislation':
-        legislation_id = data.get('legislation_id')
+        legislation_id = action_data.get('legislation_id')
         action = ActionSponsorLegislation(player_id=player_id, legislation_id=legislation_id)
-
     elif action_type == 'declare_candidacy':
-        office_id = data.get('office_id')
-        committed_pc = data.get('committed_pc')
+        office_id = action_data.get('office_id')
+        committed_pc = action_data.get('committed_pc')
         action = ActionDeclareCandidacy(player_id=player_id, office_id=office_id, committed_pc=committed_pc)
     elif action_type == 'use_favor':
-        favor_id = data.get('favor_id')
-        target_player_id = data.get('target_player_id', -1)
-        choice = data.get('choice', '')
+        favor_id = action_data.get('favor_id')
+        target_player_id = action_data.get('target_player_id', -1)
+        choice = action_data.get('choice', '')
         action = ActionUseFavor(player_id=player_id, favor_id=favor_id, target_player_id=target_player_id, choice=choice)
     elif action_type == 'support_legislation':
-        legislation_id = data.get('legislation_id')
-        support_amount = data.get('support_amount')
+        legislation_id = action_data.get('legislation_id')
+        support_amount = action_data.get('support_amount')
         
         # NEW: Store secret commitment instead of updating public state
         if game_id not in SECRET_COMMITMENTS:
@@ -264,22 +195,18 @@ def process_action(game_id):
             for entry in SECRET_COMMITMENTS[game_id][legislation_id]
         )
         if already_committed:
-            return jsonify({'error': 'You have already committed support for this bill.'}), 400
+            raise ValueError('You have already committed support for this bill.')
         
         # Check if player has enough PC
         player = state.get_player_by_id(player_id)
         if not player:
-            return jsonify({'error': 'Player not found'}), 400
-        
-        print(f"[DEBUG] Server: Player {player.name} has {player.pc} PC, trying to commit {support_amount} PC")
+            raise ValueError('Player not found')
         
         if player.pc < support_amount:
-            return jsonify({'error': f'Not enough PC. You have {player.pc}, need {support_amount}'}), 400
+            raise ValueError(f'Not enough PC. You have {player.pc}, need {support_amount}')
         
         # Deduct PC immediately
-        old_pc = player.pc
         player.pc -= support_amount
-        print(f"[DEBUG] Server: Deducted {support_amount} PC from {player.name}. Old PC: {old_pc}, New PC: {player.pc}")
         
         # Store the secret commitment
         SECRET_COMMITMENTS[game_id][legislation_id].append((player_id, 'support', support_amount))
@@ -288,8 +215,8 @@ def process_action(game_id):
         action = ActionSupportLegislation(player_id=player_id, legislation_id=legislation_id, support_amount=support_amount)
         
     elif action_type == 'oppose_legislation':
-        legislation_id = data.get('legislation_id')
-        oppose_amount = data.get('oppose_amount')
+        legislation_id = action_data.get('legislation_id')
+        oppose_amount = action_data.get('oppose_amount')
         
         # NEW: Store secret commitment instead of updating public state
         if game_id not in SECRET_COMMITMENTS:
@@ -303,22 +230,18 @@ def process_action(game_id):
             for entry in SECRET_COMMITMENTS[game_id][legislation_id]
         )
         if already_committed:
-            return jsonify({'error': 'You have already committed opposition for this bill.'}), 400
+            raise ValueError('You have already committed opposition for this bill.')
         
         # Check if player has enough PC
         player = state.get_player_by_id(player_id)
         if not player:
-            return jsonify({'error': 'Player not found'}), 400
-        
-        print(f"[DEBUG] Server: Player {player.name} has {player.pc} PC, trying to commit {oppose_amount} PC")
+            raise ValueError('Player not found')
         
         if player.pc < oppose_amount:
-            return jsonify({'error': f'Not enough PC. You have {player.pc}, need {oppose_amount}'}), 400
+            raise ValueError(f'Not enough PC. You have {player.pc}, need {oppose_amount}')
         
         # Deduct PC immediately
-        old_pc = player.pc
         player.pc -= oppose_amount
-        print(f"[DEBUG] Server: Deducted {oppose_amount} PC from {player.name}. Old PC: {old_pc}, New PC: {player.pc}")
         
         # Store the secret commitment
         SECRET_COMMITMENTS[game_id][legislation_id].append((player_id, 'oppose', oppose_amount))
@@ -326,11 +249,11 @@ def process_action(game_id):
         # Create action for engine processing (will consume AP)
         action = ActionOpposeLegislation(player_id=player_id, legislation_id=legislation_id, oppose_amount=oppose_amount)
     elif action_type == 'propose_trade':
-        target_player_id = data.get('target_player_id')
-        legislation_id = data.get('legislation_id')
-        offered_pc = data.get('offered_pc', 0)
-        offered_favor_ids = data.get('offered_favor_ids', [])
-        requested_vote = data.get('requested_vote', 'support')
+        target_player_id = action_data.get('target_player_id')
+        legislation_id = action_data.get('legislation_id')
+        offered_pc = action_data.get('offered_pc', 0)
+        offered_favor_ids = action_data.get('offered_favor_ids', [])
+        requested_vote = action_data.get('requested_vote', 'support')
         action = ActionProposeTrade(
             player_id=player_id, 
             target_player_id=target_player_id, 
@@ -340,54 +263,39 @@ def process_action(game_id):
             requested_vote=requested_vote
         )
     elif action_type == 'accept_trade':
-        trade_offer_id = data.get('trade_offer_id')
+        trade_offer_id = action_data.get('trade_offer_id')
         action = ActionAcceptTrade(player_id=player_id, trade_offer_id=trade_offer_id)
     elif action_type == 'decline_trade':
-        trade_offer_id = data.get('trade_offer_id')
+        trade_offer_id = action_data.get('trade_offer_id')
         action = ActionDeclineTrade(player_id=player_id, trade_offer_id=trade_offer_id)
     elif action_type == 'complete_trading':
         action = ActionCompleteTrading(player_id=player_id)
     elif action_type == 'pass_turn':
         action = ActionPassTurn(player_id=player_id)
     else:
-        return jsonify({'error': 'Invalid action type'}), 400
+        raise ValueError('Invalid action type')
     
-    try:
-        # Process all actions through the engine to ensure AP validation
-        new_state = engine.process_action(state, action)
-        active_games[game_id] = new_state
-        
-        return jsonify({
-            'game_id': game_id,
-            'state': serialize_game_state(new_state)
-        })
-    except Exception as e:
-        return jsonify({'error': str(e)}), 400
+    # Process all actions through the engine to ensure AP validation
+    new_state = engine.process_action(state, action)
+    active_games[game_id] = new_state
+    
+    return serialize_game_state(new_state)
 
-@app.route('/api/game/<game_id>/event', methods=['POST'])
 def run_event_phase(game_id):
     """Run the event phase (automated)."""
     if game_id not in active_games:
-        return jsonify({'error': 'Game not found'}), 404
+        raise ValueError('Game not found')
     
     state = active_games[game_id]
+    new_state = engine.run_event_phase(state)
+    active_games[game_id] = new_state
     
-    try:
-        new_state = engine.run_event_phase(state)
-        active_games[game_id] = new_state
-        
-        return jsonify({
-            'game_id': game_id,
-            'state': serialize_game_state(new_state)
-        })
-    except Exception as e:
-        return jsonify({'error': str(e)}), 400
+    return serialize_game_state(new_state)
 
-@app.route('/api/game/<game_id>/resolve_legislation', methods=['POST'])
 def resolve_legislation(game_id):
     """Manually resolve all pending legislation at the end of the term."""
     if game_id not in active_games:
-        return jsonify({'error': 'Game not found'}), 404
+        raise ValueError('Game not found')
     
     state = active_games[game_id]
     
@@ -402,35 +310,29 @@ def resolve_legislation(game_id):
         new_state = engine.resolve_legislation_session(state)
     
     active_games[game_id] = new_state
-    return jsonify({
-        'game_id': game_id,
-        'state': serialize_game_state(new_state)
-    })
+    return serialize_game_state(new_state)
 
-@app.route('/api/game/<game_id>/resolve_elections', methods=['POST'])
 def resolve_elections(game_id):
     """Manually resolve all elections after legislation session."""
     if game_id not in active_games:
-        return jsonify({'error': 'Game not found'}), 404
+        raise ValueError('Game not found')
+    
     state = active_games[game_id]
-    # Ensure dice rolls are enabled for web version (disable_dice_roll=False)
+    # Ensure dice rolls are enabled for CLI version (disable_dice_roll=False)
     new_state = engine.resolve_elections_session(state, disable_dice_roll=False)
     active_games[game_id] = new_state
-    return jsonify({
-        'game_id': game_id,
-        'state': serialize_game_state(new_state)
-    })
+    
+    return serialize_game_state(new_state)
 
-@app.route('/api/game/<game_id>/acknowledge_results', methods=['POST'])
 def acknowledge_results(game_id):
     """Acknowledge the results of an election or legislation to proceed."""
     if game_id not in active_games:
-        return jsonify({'error': 'Game not found'}), 404
+        raise ValueError('Game not found')
     
     state = active_games[game_id]
     
     if not state.awaiting_results_acknowledgement:
-        return jsonify({'error': 'No results to acknowledge.'}), 400
+        raise ValueError('No results to acknowledge.')
         
     state.awaiting_results_acknowledgement = False
     
@@ -438,36 +340,10 @@ def acknowledge_results(game_id):
     new_state = engine.start_next_term(state)
     
     active_games[game_id] = new_state
-    return jsonify({
-        'game_id': game_id,
-        'state': serialize_game_state(new_state)
-    })
+    return serialize_game_state(new_state)
 
-@app.route('/api/game/<game_id>', methods=['DELETE'])
 def delete_game(game_id):
     """Delete a game."""
     if game_id in active_games:
         del active_games[game_id]
-    return jsonify({'message': 'Game deleted'})
-
-@app.route('/api/test', methods=['GET'])
-def test_api():
-    """Test endpoint to verify API is working."""
-    return jsonify({'message': 'API is working!', 'timestamp': '2025-07-07'})
-
-@app.route('/')
-def index():
-    """Serve the main game page."""
-    return send_from_directory('static', 'index.html')
-
-
-@app.route('/play')
-def minimal_game():
-    """Serve the minimal game interface."""
-    return send_from_directory('static', 'minimal.html')
-
-if __name__ == '__main__':
-    # Use port 5001 by default for local dev, but allow override for Render
-    port = int(os.environ.get('PORT', 5001))
-    debug = os.environ.get('FLASK_ENV') == 'development'
-    app.run(debug=debug, host='0.0.0.0', port=port) 
+    return True 
