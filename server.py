@@ -152,6 +152,54 @@ def create_game():
         'state': serialize_game_state(game_state)
     })
 
+
+@app.route('/api/game/new_vs_ai', methods=['POST'])
+def create_human_vs_ai_game():
+    """Create a new game with one human player and AI opponents."""
+    data = request.get_json()
+    player_name = data.get('player_name', 'Human')
+    ai_persona = data.get('ai_persona', 'heuristic')
+    ai_count = data.get('ai_count', 2)  # Default to 2 AI opponents
+    
+    # Create player names: Human + AI opponents
+    player_names = [player_name] + [f"AI-{i+1}" for i in range(ai_count)]
+    
+    # Create new game
+    game_state = engine.start_new_game(player_names)
+    # Run the first event phase immediately
+    game_state = engine.run_event_phase(game_state)
+    game_id = str(uuid.uuid4())
+    active_games[game_id] = game_state
+    
+    return jsonify({
+        'game_id': game_id,
+        'state': serialize_game_state(game_state)
+    })
+
+
+@app.route('/api/game/new_vs_multiple_ai', methods=['POST'])
+def create_human_vs_multiple_ai_game():
+    """Create a new game with one human player and multiple AI opponents with different personas."""
+    data = request.get_json()
+    player_name = data.get('player_name', 'Human')
+    ai_personas = data.get('ai_personas', ['heuristic', 'economic', 'legislative'])
+    
+    # Create player names: Human + AI opponents
+    player_names = [player_name] + [f"AI-{i+1}" for i in range(len(ai_personas))]
+    
+    # Create new game
+    game_state = engine.start_new_game(player_names)
+    # Run the first event phase immediately
+    game_state = engine.run_event_phase(game_state)
+    game_id = str(uuid.uuid4())
+    active_games[game_id] = game_state
+    
+    return jsonify({
+        'game_id': game_id,
+        'state': serialize_game_state(game_state),
+        'ai_personas': ai_personas
+    })
+
 @app.route('/api/game/<game_id>', methods=['GET'])
 def get_game_state(game_id):
     """Get the current state of a game."""
@@ -365,7 +413,8 @@ def resolve_elections(game_id):
     if game_id not in active_games:
         return jsonify({'error': 'Game not found'}), 404
     state = active_games[game_id]
-    new_state = engine.resolve_elections_session(state)
+    # Ensure dice rolls are enabled for web version (disable_dice_roll=False)
+    new_state = engine.resolve_elections_session(state, disable_dice_roll=False)
     active_games[game_id] = new_state
     return jsonify({
         'game_id': game_id,
@@ -410,6 +459,12 @@ def test_api():
 def index():
     """Serve the main game page."""
     return send_from_directory('static', 'index.html')
+
+
+@app.route('/play')
+def minimal_game():
+    """Serve the minimal game interface."""
+    return send_from_directory('static', 'minimal.html')
 
 if __name__ == '__main__':
     # Use port 5001 by default for local dev, but allow override for Render

@@ -7,6 +7,9 @@ A digital adaptation of a political strategy board game, featuring AI opponents 
 ### ✅ Completed Features
 - **Robust Game Engine**: Complete implementation of all game mechanics
 - **AI Opponents**: Multiple AI personas (Random, Economic, Legislative, Balanced, Heuristic)
+- **Multiple AI Support**: Play against 1-3 AI opponents with different personas
+- **CLI Interface**: Text-based human vs AI gameplay
+- **Minimal Web Interface**: Simplified web UI for human vs AI games
 - **Simulation Framework**: Comprehensive testing with 300+ games per experiment
 - **Skill vs Luck Analysis**: Quantified game balance (similar to Texas Hold 'Em)
 - **Web Deployment**: Functional web interface with backend API
@@ -17,16 +20,29 @@ We are transitioning to a **Player-First Refactor** to focus on gameplay experie
 ## Quick Start
 
 ### For Players
-1. Visit the deployed web application
-2. Start a new game
-3. Play against AI opponents
+1. **CLI Game**: Run `python3 cli_game.py multi` for 1 vs 3 AI opponents
+2. **Web Interface**: Visit `http://localhost:5001/play` for minimal interface
+3. **Full Web Game**: Visit `http://localhost:5001/` for complete interface
 4. Experience the strategic depth of political campaigning
+
+### CLI Game Usage
+```bash
+# Play against 3 AI opponents with different personas
+python3 cli_game.py multi
+
+# Play against 1 AI opponent
+python3 cli_game.py single heuristic
+
+# Available AI personas: random, economic, legislative, balanced, heuristic
+python3 cli_game.py single economic
+```
 
 ### For Developers
 1. Clone the repository
 2. Install dependencies: `pip install -r requirements.txt`
-3. Run the simulation framework: `python simulation_runner.py`
-4. Start the web server: `python cli.py`
+3. Start the web server: `python server.py`
+4. Test CLI game: `python cli_game.py multi`
+5. Run the simulation framework: `python simulation_runner.py`
 
 ## Project Structure
 
@@ -57,6 +73,12 @@ election/
 - **Balanced**: Mixed strategic approach
 - **Heuristic**: Basic strategic thinking (46.1% win rate vs random)
 
+### Game Modes
+- **Single AI**: Play against 1 AI opponent
+- **Multiple AI**: Play against 3 AI opponents with different personas
+- **CLI Interface**: Text-based gameplay for rapid testing
+- **Web Interface**: Browser-based gameplay with real-time updates
+
 ### Simulation Framework
 - **Configurable Experiments**: YAML-based testing setup
 - **Statistical Analysis**: Automated result processing
@@ -65,17 +87,19 @@ election/
 
 ## Development Roadmap
 
-### Phase 1: Command-Line Interface (Current)
-- [ ] Implement election dice rolls in web version
-- [ ] Create CLI game interface for human vs AI
-- [ ] Build human vs AI game orchestration
-- [ ] Add comprehensive testing framework
+### Phase 1: Command-Line Interface (✅ Completed)
+- [x] Implement election dice rolls in web version
+- [x] Create CLI game interface for human vs AI
+- [x] Build human vs AI game orchestration
+- [x] Add comprehensive testing framework
+- [x] Support multiple AI opponents with different personas
 
-### Phase 2: Minimal Web Interface
-- [ ] Create simplified web UI
-- [ ] Implement AI opponent selection
-- [ ] Add real-time game state display
-- [ ] Ensure mobile compatibility
+### Phase 2: Minimal Web Interface (✅ Completed)
+- [x] Create simplified web UI
+- [x] Implement AI opponent selection
+- [x] Add real-time game state display
+- [x] Ensure mobile compatibility
+- [x] Support multiple AI game modes
 
 ### Phase 3: Gameplay Iteration
 - [ ] Test and refine gameplay balance

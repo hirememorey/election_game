@@ -31,8 +31,14 @@ python3 test_api.py
 
 Then open your browser to: **http://localhost:5001**
 
+### Game Interfaces
+- **Full Game**: http://localhost:5001/ (Complete interface with all features)
+- **Minimal Interface**: http://localhost:5001/play (Simplified human vs AI gameplay)
+- **CLI Game**: `python3 cli_game.py multi` (Text-based interface)
+
 ## 🎯 How to Play
 
+### Full Game Interface
 1. **Start the server** using one of the methods above
 2. **Open your browser** to `http://localhost:5001`
 3. **Enter player names** (2-4 players)
@@ -45,6 +51,22 @@ Then open your browser to: **http://localhost:5001**
    - Declare Candidacy: Run for office
 6. **Draw Event Cards** during the Event Phase
 7. **Win** by achieving your mandate or winning the Presidency!
+
+### Minimal Interface (Human vs AI)
+1. **Open your browser** to `http://localhost:5001/play`
+2. **Choose game mode**: Single AI or Multiple AI (3 opponents)
+3. **Select AI personas** for each opponent
+4. **Click "Start Game"** to begin
+5. **Play against AI opponents** with real-time updates
+
+### CLI Interface
+```bash
+# Play against 3 AI opponents
+python3 cli_game.py multi
+
+# Play against 1 AI opponent
+python3 cli_game.py single heuristic
+```
 
 ## 📱 Mobile Support
 
@@ -72,8 +94,13 @@ The game is fully optimized for mobile devices:
 ### Key Files
 - `server.py` - Flask backend with API endpoints
 - `static/index.html` - Main game interface with Apple-level design
+- `static/minimal.html` - Minimal human vs AI interface
 - `static/script.js` - Game logic and API communication
+- `static/minimal.js` - Minimal interface logic
 - `static/style.css` - Apple-inspired design system with SF Pro Display typography
+- `static/minimal.css` - Minimal interface styling
+- `cli_game.py` - Command-line interface for human vs AI gameplay
+- `human_vs_ai.py` - Human vs AI game orchestration
 - `engine/` - Core game logic (reused from CLI version)
 - `models/` - Game data models
 
