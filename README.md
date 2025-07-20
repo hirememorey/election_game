@@ -1,146 +1,121 @@
-# Election: The Political Strategy Game
+# Election Game
 
-A sophisticated political strategy board game with Apple-level design, featuring secret commitment mechanics, action points, and political archetypes.
+A strategic political simulation game where players compete for influence through legislation, elections, and political maneuvering.
 
-## 🎮 Game Overview
+## Features
 
-**Election: The Game** is a strategic political simulation where players compete for power through legislation, campaigning, and political maneuvering. The game features:
+- **Secret Commitment System**: Players secretly commit Political Capital to support or oppose legislation
+- **Action Points System**: Strategic resource management with limited actions per turn
+- **Multiple Office Types**: President, Senators, Governors, and more with different influence values
+- **Hidden Funder Mandates**: Unique victory conditions for each player
+- **Event Cards**: Dynamic events that affect gameplay
+- **Mobile-Optimized**: Responsive design with touch-friendly controls
 
-- **Secret Commitment System**: Players secretly commit Political Capital (PC) to support/oppose legislation
-- **Action Points**: Strategic resource management with 2 AP per turn
-- **Political Archetypes**: Unique abilities for each player (Insider, Populist, etc.)
-- **Multi-Phase Gameplay**: Event → Action → Legislation → Election cycles
-- **Mobile-Optimized**: Fully responsive design with touch-friendly interface
+## Quick Start
 
-## 🚀 Quick Start
+### Web Version (Recommended for Players)
 
-### Prerequisites
-- Python 3.8+
-- Node.js (for mobile testing)
+1. **Install Dependencies**:
+   ```bash
+   pip install -r requirements.txt
+   ```
 
-### Installation
+2. **Run the Server**:
+   ```bash
+   python server.py
+   ```
+
+3. **Open in Browser**:
+   Navigate to `http://localhost:5000`
+
+### Simulation Framework (For Developers/Analysis)
+
+The project now includes a comprehensive simulation framework for game balance analysis:
+
 ```bash
-# Clone the repository
-git clone https://github.com/yourusername/election-game.git
-cd election-game
+# Run a single simulation
+python simulation_harness.py
 
-# Install Python dependencies
-pip install -r requirements.txt
-
-# Install Playwright for mobile testing (optional)
-npm install -g playwright
-npx playwright install
+# The simulation harness supports:
+# - Headless game execution
+# - Agent-based testing
+# - Tournament systems
+# - Balance analysis
 ```
 
-### Running the Game
-```bash
-# Start the server
-PORT=5001 python3 server.py
+## Game Mechanics
 
-# Open in browser
-open http://localhost:5001
-```
+### Core Systems
 
-## ✅ **MAJOR FIXES COMPLETED (July 16, 2025)**
+- **Political Capital (PC)**: Primary resource used for actions and commitments
+- **Action Points (AP)**: Limited actions per turn (2 AP per player per round)
+- **Influence**: Victory is determined by total influence points
+- **Offices**: Holding political offices grants influence bonuses
 
-The application has been significantly improved with major fixes to core functionality and comprehensive mobile enhancements:
+### Actions Available
 
-### **Core Application Issues Resolved**
-- ✅ **Fixed Infinite Loop** - Added safety breaks in server.py to prevent auto-advance loops
-- ✅ **Fixed API Race Conditions** - Added locking mechanism in script.js to prevent concurrent API calls
-- ✅ **Fixed UI Race Conditions** - Modified startNewGame() to only transition screens after successful API responses
-- ✅ **Fixed Undefined Function Call** - Changed updateUI() to updatePhaseUI() in JavaScript
-- ✅ **Fixed Test Selectors** - Updated all ambiguous text selectors to target specific containers
-- ✅ **Fixed Modal Sizing** - Added tablet-specific CSS for proper modal sizing
-- ✅ **Fixed ARIA Labels** - Added proper accessibility labels to icon buttons
-- ✅ **Forced Serial Execution** - Set workers: 1 in Playwright config to prevent test interference
+- **Fundraise**: Gain Political Capital
+- **Network**: Build connections and gain advantages
+- **Sponsor Legislation**: Create bills for voting
+- **Support/Oppose Legislation**: Commit PC to influence outcomes
+- **Declare Candidacy**: Run for political office
+- **Use Favor**: Leverage political connections
 
-### **Mobile Experience Completely Enhanced**
-- ✅ **Immediate Feedback** - Mobile users now get instant feedback after all actions
-- ✅ **Enhanced Phase Indicators** - Clear progress indicators with round/phase information
-- ✅ **Quick Action Panel** - Touch-friendly quick actions for common game actions
-- ✅ **Mobile-Optimized Results** - Results overlay fully optimized for mobile screens
-- ✅ **Next Steps Guidance** - Contextual guidance after each action for mobile users
-- ✅ **Improved Touch Feedback** - Enhanced visual feedback for all touchable elements
+### Victory Conditions
 
-### **Current Application State**
-- ✅ **Game Setup** - Players can be added and games created successfully
-- ✅ **UI Transitions** - Proper screen transitions from setup to game
-- ✅ **Action Phase** - Correctly displays and manages player turns
-- ✅ **Server Communication** - No more infinite loops or hanging
-- ✅ **Basic Actions** - Players can perform actions (fundraise, network, etc.)
-- ✅ **Turn Management** - Proper turn advancement
-- ✅ **Mobile Experience** - Comprehensive mobile optimizations implemented
+Players earn influence through:
+- **Office Bonuses**: President (25), US Senator (15), Governor (10), etc.
+- **PC Conversion**: Remaining PC converts to influence (10:1 ratio)
+- **Hidden Funder Mandates**: Unique objectives worth 15 influence each
 
-### **Test Infrastructure Improvements**
-- ✅ **Serial Test Execution** - Tests now run sequentially to prevent interference
-- ✅ **Specific Selectors** - All selectors now target specific containers
-- ✅ **Proper Error Handling** - Tests no longer hang indefinitely
-- ✅ **Mobile-Specific Tests** - Created comprehensive mobile testing suite
-
-## 📱 **MOBILE EXPERIENCE COMPLETELY ENHANCED (July 16, 2025)**
-
-### **Latest Mobile Improvements**
-- **Immediate Feedback System**: Mobile users now receive instant feedback after sponsoring legislation and other actions
-- **Enhanced Phase Indicators**: Clear progress indicators showing current round and phase with visual progress bars
-- **Quick Action Panel**: Touch-friendly panel at bottom of screen for common actions (fundraise, network, sponsor, pass turn)
-- **Mobile-Optimized Results**: Results overlay fully optimized for mobile screens with proper sizing and scrolling
-- **Next Steps Guidance**: Contextual guidance after each action to help mobile users understand what happens next
-- **Improved Touch Feedback**: Enhanced visual feedback for all touchable elements with proper scaling and animations
-
-### **Mobile Features**
-- **Touch-Friendly Interface**: All buttons sized for comfortable touch interaction
-- **No Gesture Conflicts**: Swipe gestures disabled on mobile to prevent interference with action visibility
-- **Dedicated Identity Button**: Easy access to player identity via 🎭 button in header
-- **Modal-Based Information**: Identity and game log displayed in clean, accessible modals
-- **Responsive Design**: Adapts beautifully to all screen sizes and orientations
-- **Immediate Feedback**: Clear messages after actions to guide mobile users
-- **Progress Indicators**: Visual progress bars and clear phase information
-- **Quick Actions**: Easy access to common actions via touch-friendly panel
-
-### **Mobile Testing Results**
-- ✅ **All mobile improvements implemented and working**
-- ✅ **Immediate feedback systems active**
-- ✅ **Phase indicators enhanced and clear**
-- ✅ **Quick actions panel functional**
-- ✅ **Mobile CSS optimizations applied**
-- ✅ **Next steps guidance working**
-- ✅ **Touch feedback improved**
-
-## 🎯 Game Features
-
-### Core Mechanics
-- **Political Capital (PC)**: Primary resource for actions and commitments
-- **Action Points (AP)**: Limited actions per turn (2 AP)
-- **Secret Commitments**: Hidden PC allocation for dramatic reveals
-- **Legislation Voting**: Support/oppose bills with PC stakes
-- **Election Cycles**: Win votes to gain power and influence
-
-### Player Archetypes
-- **Insider**: Political establishment with network advantages
-- **Populist**: Grassroots support and campaign bonuses
-- **Reformer**: Legislative expertise and policy influence
-- **Strategist**: Information gathering and tactical advantages
-
-### Game Phases
-1. **Event Phase**: Random events affecting all players
-2. **Action Phase**: Players take actions using AP
-3. **Legislation Phase**: Vote on bills with PC commitments
-4. **Election Phase**: Determine winners and losers
-
-## Game Actions
-
-Players can take the following actions during their turn:
-
-- **Fundraise** (1 AP): Gain Political Capital (PC) - 5 PC base, +2 for Fundraiser archetype, +10 with Hedge Fund Bro ally
-- **Network** (1 AP): Gain 2 PC + 1-2 political favors
-- **Sponsor Legislation** (2 AP): Create legislation for votes/mood (cost varies by legislation type)
-- **Declare Candidacy** (2 AP): Run for office (Round 4 only, cost varies by office + optional PC commitment)
-- **Use Favor** (1 AP): Strategic advantage actions (requires having political favors, now with selection menu)
-- **Support/Oppose Legislation** (1 AP): **🎰 Gambling-style system** - commit PC during any turn with risk/reward mechanics
-- **Trading** (0 AP): Propose trades of PC/favors for votes during legislation sessions
-
-## 🛠️ Development
+## Development
 
 ### Project Structure
+
 ```
+election/
+├── server.py              # Main web server
+├── simulation_harness.py  # Game balance analysis framework
+├── engine/               # Core game logic
+├── models/              # Data structures
+├── resolvers/           # Game event resolution
+├── static/             # Frontend assets
+└── templates/          # HTML templates
+```
+
+### Key Components
+
+- **GameEngine**: Core game state management
+- **SimulationHarness**: Automated testing framework
+- **Action System**: Modular action implementation
+- **Scoring System**: Influence calculation and victory determination
+
+## Deployment
+
+### Local Development
+```bash
+python server.py
+```
+
+### Production Deployment
+See `DEPLOYMENT.md` for detailed deployment instructions.
+
+## Documentation
+
+- `DEVELOPER_HANDOFF.md` - Development context and recent changes
+- `GAME_IMPROVEMENTS.md` - Feature evolution and improvements
+- `MOBILE_IMPROVEMENTS_SUMMARY.md` - Mobile UX enhancements
+- `PHYSICAL_GAME_SPEC.md` - Original board game design
+- `DEPLOYMENT.md` - Production deployment guide
+
+## Contributing
+
+1. Fork the repository
+2. Create a feature branch
+3. Make your changes
+4. Test thoroughly (both web and simulation)
+5. Submit a pull request
+
+## License
+
+This project is licensed under the MIT License.

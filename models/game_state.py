@@ -43,6 +43,7 @@ class GameState:
 
     # Game flow trackers
     round_marker: int = 1
+    term_counter: int = 0  # Track number of terms completed
     public_mood: int = 0  # Range from -3 (Very Angry) to +3 (Ecstatic)
     current_player_index: int = 0
     current_phase: str = "EVENT_PHASE"  # EVENT_PHASE, ACTION_PHASE, UPKEEP_PHASE, ELECTION_PHASE

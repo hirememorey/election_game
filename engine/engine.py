@@ -306,13 +306,10 @@ class GameEngine:
         return new_state
 
     def is_game_over(self, state: GameState) -> bool:
-        """Checks if the game has ended (e.g., after 3 terms)."""
+        """Checks if the game has ended (after 3 terms)."""
         # The game ends after the election phase of the 3rd term.
-        # The run_upkeep_phase logic increments the round marker.
-        # A 4-round term means round_marker will be 5 at the start of the next term's upkeep.
-        # We will set a game over flag after the 3rd election.
-        # For now, let's use a simple placeholder.
-        return state.round_marker > 4 # A simple check for 3 terms (12 rounds total)
+        # We track terms completed in state.term_counter
+        return state.term_counter >= 3
 
     def get_final_scores(self, state: GameState) -> dict:
         """Calculates and returns the final scores and the winner."""
@@ -419,6 +416,9 @@ class GameEngine:
 
     def start_next_term(self, state: GameState) -> GameState:
         """Clears the board and starts the next term."""
+        # Increment term counter
+        state.term_counter += 1
+        
         # Reset term-specific state
         state.term_legislation.clear()
         state.secret_candidacies.clear()
