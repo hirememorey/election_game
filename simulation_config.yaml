@@ -1,0 +1,55 @@
+# Simulation Framework Configuration
+# This file defines the parameters for running game simulations
+
+# Simulation Parameters
+simulation:
+  num_games: 1000                    # Number of games to simulate
+  max_rounds_per_game: 100           # Maximum rounds to prevent infinite loops
+  parallel_workers: 4                # Number of parallel processes (0 = sequential)
+  random_seed: 42                    # Seed for reproducible results
+
+# Player Configuration
+players:
+  # Define player personas for the simulation
+  # Each player can have a different strategy
+  - name: "Economic Bot"
+    persona: "economic"
+    description: "Prioritizes fundraising and building PC"
+    
+  - name: "Legislative Bot" 
+    persona: "legislative"
+    description: "Focuses on sponsoring and supporting legislation"
+    
+  - name: "Random Bot"
+    persona: "random"
+    description: "Makes random decisions"
+    
+  - name: "Balanced Bot"
+    persona: "balanced"
+    description: "Balanced approach to all actions"
+
+# Data Collection Settings
+data_collection:
+  log_level: "silent"                # silent, verbose, detailed
+  save_game_logs: true               # Save detailed game logs
+  save_final_states: false           # Save complete final game states
+  output_directory: "simulation_results"
+  
+  # Metrics to collect
+  metrics:
+    - winner_id
+    - winner_name  
+    - game_length_rounds
+    - game_length_terms
+    - final_scores
+    - simulation_time_seconds
+    - actions_taken_per_player
+    - pc_gained_per_player
+    - legislation_sponsored_per_player
+
+# Analysis Settings
+analysis:
+  generate_reports: true
+  report_format: "markdown"          # markdown, html, json
+  create_visualizations: true
+  output_directory: "analysis_reports" 

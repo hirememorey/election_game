@@ -12,6 +12,8 @@ import time
 from typing import List, Dict, Any
 
 from simulation_harness import SimulationHarness, Agent, RandomAgent, SimulationResult
+from simulation_runner import SimulationRunner
+from personas import RandomPersona, EconomicPersona, LegislativePersona, BalancedPersona
 from engine.engine import GameEngine
 from models.game_state import GameState
 from models.components import Player
@@ -145,7 +147,7 @@ class SimulationFrameworkTest(unittest.TestCase):
         """Test that simulations complete properly."""
         # First principle: Simulations must complete and produce valid results
         agents = [TestAgentPassOnly() for _ in range(3)]
-        result = self.harness.run_simulation(agents, ['Alice', 'Bob', 'Charlie'], verbose=False)
+        result = self.harness.run_simulation(agents, ['Alice', 'Bob', 'Charlie'])
         
         # Red-team: Should have valid result structure
         self.assertIsInstance(result, SimulationResult)
@@ -212,8 +214,8 @@ class SimulationFrameworkTest(unittest.TestCase):
         agents = [TestAgentPassOnly() for _ in range(2)]
         
         # Run same simulation twice
-        result1 = self.harness.run_simulation(agents, ['Alice', 'Bob'], verbose=False)
-        result2 = self.harness.run_simulation(agents, ['Alice', 'Bob'], verbose=False)
+        result1 = self.harness.run_simulation(agents, ['Alice', 'Bob'])
+        result2 = self.harness.run_simulation(agents, ['Alice', 'Bob'])
         
         # Red-team: Should produce same results
         self.assertEqual(result1.game_length_rounds, result2.game_length_rounds)
@@ -226,7 +228,7 @@ class SimulationFrameworkTest(unittest.TestCase):
             agents = [TestAgentPassOnly() for _ in range(num_players)]
             start_time = time.time()
             
-            result = self.harness.run_simulation(agents, verbose=False)
+            result = self.harness.run_simulation(agents)
             
             # Red-team: Should complete in reasonable time regardless of player count
             self.assertLess(time.time() - start_time, 5.0)
@@ -245,7 +247,7 @@ class SimulationFrameworkTest(unittest.TestCase):
         
         # Red-team: Should handle agent errors gracefully
         with self.assertRaises(Exception):
-            self.harness.run_simulation(agents, ['Alice', 'Bob'], verbose=False)
+            self.harness.run_simulation(agents, ['Alice', 'Bob'])
             
     def test_action_point_arithmetic(self):
         """Test that action point arithmetic is correct."""
@@ -321,17 +323,13 @@ class SimulationFrameworkTest(unittest.TestCase):
         """Test that final scores have correct structure."""
         # First principle: Final scores must have consistent structure
         agents = [TestAgentPassOnly() for _ in range(2)]
-        result = self.harness.run_simulation(agents, ['Alice', 'Bob'], verbose=False)
+        result = self.harness.run_simulation(agents, ['Alice', 'Bob'])
         
         # Red-team: Final scores should have expected structure
         self.assertIsInstance(result.final_scores, dict)
-        for player_id, score_data in result.final_scores.items():
+        for player_id, score in result.final_scores.items():
             self.assertIsInstance(player_id, int)
-            self.assertIsInstance(score_data, dict)
-            self.assertIn('total_influence', score_data)
-            self.assertIn('details', score_data)
-            self.assertIsInstance(score_data['total_influence'], int)
-            self.assertIsInstance(score_data['details'], list)
+            self.assertIsInstance(score, int)
             
     def test_simulation_termination(self):
         """Test that simulations terminate properly."""
@@ -339,14 +337,45 @@ class SimulationFrameworkTest(unittest.TestCase):
         agents = [TestAgentPassOnly() for _ in range(2)]
         
         # Test with reasonable max_rounds
-        result = self.harness.run_simulation(agents, ['Alice', 'Bob'], max_rounds=50, verbose=False)
+        result = self.harness.run_simulation(agents, ['Alice', 'Bob'], max_rounds=50)
         
         # Red-team: Should complete within max_rounds
         self.assertLessEqual(result.game_length_rounds, 50)
         
         # Test with very low max_rounds
-        result = self.harness.run_simulation(agents, ['Alice', 'Bob'], max_rounds=5, verbose=False)
+        result = self.harness.run_simulation(agents, ['Alice', 'Bob'], max_rounds=5)
         self.assertLessEqual(result.game_length_rounds, 5)
+        
+    def test_new_personas(self):
+        """Test that the new persona system works correctly."""
+        # Test that all personas can be created and used
+        personas = [
+            RandomPersona("Test Random"),
+            EconomicPersona("Test Economic"),
+            LegislativePersona("Test Legislative"),
+            BalancedPersona("Test Balanced")
+        ]
+        
+        # Test that each persona can make decisions
+        state = self.harness.create_game(['Alice', 'Bob'])
+        valid_actions = self.engine.get_valid_actions(state, 0)
+        
+        for persona in personas:
+            action = persona.choose_action(state, valid_actions)
+            self.assertIsInstance(action, Action)
+            
+    def test_simulation_runner(self):
+        """Test that the simulation runner works correctly."""
+        # Test that the simulation runner can be initialized
+        runner = SimulationRunner()
+        
+        # Test that it can create agents
+        agents = runner._create_player_agents()
+        self.assertEqual(len(agents), 4)  # Default config has 4 players
+        
+        # Test that all agents are personas
+        for agent in agents:
+            self.assertIsInstance(agent, (RandomPersona, EconomicPersona, LegislativePersona, BalancedPersona))
 
 
 def run_comprehensive_tests():

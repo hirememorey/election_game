@@ -1,0 +1,473 @@
+[
+  {
+    "winner_id": 0,
+    "winner_name": "Random Bot",
+    "game_length_rounds": 50,
+    "game_length_terms": 5,
+    "final_scores": {
+      "0": {
+        "total_influence": 15,
+        "details": [
+          "+5 Influence from holding office: State Senator",
+          "+10 Influence from 105 PC remaining (1/10 conversion)"
+        ]
+      },
+      "1": {
+        "total_influence": 6,
+        "details": [
+          "+6 Influence from 69 PC remaining (1/10 conversion)"
+        ]
+      },
+      "2": {
+        "total_influence": 15,
+        "details": [
+          "+15 Influence from Hidden Funder: The People's Alliance"
+        ]
+      },
+      "3": {
+        "total_influence": 5,
+        "details": [
+          "+5 Influence from 58 PC remaining (1/10 conversion)"
+        ]
+      }
+    },
+    "game_log": [
+      "The Fundraiser has already used their first Fundraise action this term.",
+      "Balanced Bot takes the Fundraise action and gains 5 PC."
+    ],
+    "simulation_time_seconds": 0.0010869503021240234,
+    "final_state": {
+      "players": [
+        {
+          "id": 0,
+          "name": "Random Bot",
+          "archetype": {
+            "id": "INSIDER",
+            "title": "The Insider",
+            "description": "Start with a State Senator office, but only 15 PC."
+          },
+          "mandate": {
+            "id": "KINGMAKER",
+            "title": "The Kingmaker's Pact",
+            "description": "You must have supported at least two pieces of legislation sponsored by the player who wins the Presidency. Your support must have been on successful legislation."
+          },
+          "pc": 105,
+          "current_office": {
+            "id": "STATE_SENATOR",
+            "title": "State Senator",
+            "tier": 1,
+            "candidacy_cost": 10,
+            "income": 5,
+            "npc_challenger_bonus": 0
+          },
+          "allies": [],
+          "favors": [
+            {
+              "id": "MEDIA_SPIN",
+              "description": "Improve public mood by 1."
+            },
+            {
+              "id": "PEEK_EVENT",
+              "description": "Look at the top card of the Event Deck and gain 5 PC."
+            },
+            {
+              "id": "LEGISLATIVE_INFLUENCE",
+              "description": "Add 5 PC support to pending legislation."
+            }
+          ]
+        },
+        {
+          "id": 1,
+          "name": "Economic Bot",
+          "archetype": {
+            "id": "ORATOR",
+            "title": "The Orator",
+            "description": "Once per Term, you may re-roll one failed legislation die roll."
+          },
+          "mandate": {
+            "id": "PRINCIPLED_LEADER",
+            "title": "The Grassroots Movement",
+            "description": "Win the Presidency without ever having held a Governor office."
+          },
+          "pc": 69,
+          "current_office": null,
+          "allies": [],
+          "favors": []
+        },
+        {
+          "id": 2,
+          "name": "Legislative Bot",
+          "archetype": {
+            "id": "POPULIST",
+            "title": "The Populist",
+            "description": "When you gain PC from negative Public Mood as an Outsider, gain 1 additional PC."
+          },
+          "mandate": {
+            "id": "PEOPLES_CHAMPION",
+            "title": "The People's Alliance",
+            "description": "Ensure the Public Mood is +2 or +3 when the final Presidential election occurs."
+          },
+          "pc": 4,
+          "current_office": null,
+          "allies": [],
+          "favors": []
+        },
+        {
+          "id": 3,
+          "name": "Balanced Bot",
+          "archetype": {
+            "id": "FUNDRAISER",
+            "title": "The Fundraiser",
+            "description": "Your first Fundraise action each Term grants an additional 2 PC."
+          },
+          "mandate": {
+            "id": "MINIMALIST",
+            "title": "The Fiscal Watchdogs",
+            "description": "Win the Presidency having committed 20 PC or less to the final election."
+          },
+          "pc": 58,
+          "current_office": null,
+          "allies": [],
+          "favors": []
+        }
+      ],
+      "offices": {
+        "STATE_SENATOR": {
+          "id": "STATE_SENATOR",
+          "title": "State Senator",
+          "tier": 1,
+          "candidacy_cost": 10,
+          "income": 5,
+          "npc_challenger_bonus": 0
+        },
+        "CONGRESS_SEAT": {
+          "id": "CONGRESS_SEAT",
+          "title": "Congress Seat",
+          "tier": 1,
+          "candidacy_cost": 15,
+          "income": 7,
+          "npc_challenger_bonus": 1
+        },
+        "GOVERNOR": {
+          "id": "GOVERNOR",
+          "title": "Governor",
+          "tier": 2,
+          "candidacy_cost": 25,
+          "income": 12,
+          "npc_challenger_bonus": 2
+        },
+        "US_SENATOR": {
+          "id": "US_SENATOR",
+          "title": "US Senator",
+          "tier": 2,
+          "candidacy_cost": 30,
+          "income": 15,
+          "npc_challenger_bonus": 3
+        },
+        "PRESIDENT": {
+          "id": "PRESIDENT",
+          "title": "President",
+          "tier": 3,
+          "candidacy_cost": 50,
+          "income": 0,
+          "npc_challenger_bonus": 4
+        }
+      },
+      "legislation_options": {
+        "INFRASTRUCTURE": {
+          "id": "INFRASTRUCTURE",
+          "title": "Infrastructure Bill",
+          "cost": 5,
+          "success_target": 8,
+          "crit_target": 15,
+          "success_reward": 10,
+          "crit_reward": 12,
+          "failure_penalty": 0,
+          "mood_change": 1
+        },
+        "CHILDREN": {
+          "id": "CHILDREN",
+          "title": "Protect The Children!",
+          "cost": 5,
+          "success_target": 6,
+          "crit_target": 12,
+          "success_reward": 8,
+          "crit_reward": 10,
+          "failure_penalty": 0,
+          "mood_change": 1
+        },
+        "TAX_CODE": {
+          "id": "TAX_CODE",
+          "title": "Change the Tax Code",
+          "cost": 10,
+          "success_target": 12,
+          "crit_target": 20,
+          "success_reward": 20,
+          "crit_reward": 25,
+          "failure_penalty": 5,
+          "mood_change": 0
+        },
+        "MILITARY": {
+          "id": "MILITARY",
+          "title": "Military Funding",
+          "cost": 8,
+          "success_target": 10,
+          "crit_target": 18,
+          "success_reward": 12,
+          "crit_reward": 15,
+          "failure_penalty": 0,
+          "mood_change": 0
+        },
+        "HEALTHCARE": {
+          "id": "HEALTHCARE",
+          "title": "Healthcare Overhaul",
+          "cost": 15,
+          "success_target": 18,
+          "crit_target": 30,
+          "success_reward": 40,
+          "crit_reward": 45,
+          "failure_penalty": 10,
+          "mood_change": 1
+        }
+      },
+      "event_deck": {
+        "cards": [
+          {
+            "id": "CELEB_POLITICIAN",
+            "title": "Celebrity Politician",
+            "description": "The player with the lowest PC gains 15 PC.",
+            "effect_id": "CELEB_POLITICIAN"
+          },
+          {
+            "id": "MIDTERM_FURY",
+            "title": "Midterm Fury",
+            "description": "Timing. Draw only in Round 2 or 3 of a Term. Public Mood moves 2 spaces towards 'Very Angry'.",
+            "effect_id": "MIDTERM_FURY"
+          },
+          {
+            "id": "NATURAL_DISASTER",
+            "title": "Natural Disaster",
+            "description": "Move Public Mood -1. A random Governor (or a random player if no Governors) must respond, losing 10 PC.",
+            "effect_id": "NATURAL_DISASTER"
+          },
+          {
+            "id": "GRASSROOTS",
+            "title": "Grassroots Movement",
+            "description": "The player with the fewest held offices (0 is fewest) gains 10 PC.",
+            "effect_id": "GRASSROOTS"
+          },
+          {
+            "id": "ENDORSEMENT",
+            "title": "Surprise Endorsement",
+            "description": "You (the player who drew this card) gain 10 PC.",
+            "effect_id": "ENDORSEMENT"
+          },
+          {
+            "id": "STOCK_CRASH",
+            "title": "Stock Market Crash",
+            "description": "Move Public Mood -3 spaces. Any player who chose to 'Fundraise' this round loses 5 PC instead of gaining it.",
+            "effect_id": "STOCK_CRASH"
+          },
+          {
+            "id": "TECH_LEAP",
+            "title": "Technological Leap",
+            "description": "Move Public Mood +1. The player with the least PC gains 10 PC.",
+            "effect_id": "TECH_LEAP"
+          },
+          {
+            "id": "WAR_BREAKS_OUT",
+            "title": "War Breaks Out",
+            "description": "Public Mood is locked at its current position for the rest of the Term. All legislation requires 2 additional PC to pass until the Term ends.",
+            "effect_id": "WAR_BREAKS_OUT"
+          },
+          {
+            "id": "FOREIGN_POLICY_CRISIS",
+            "title": "Foreign Policy Crisis",
+            "description": "A random player rolls a d6: 1-3: Lose 10 PC. 4-6: Gain 10 PC.",
+            "effect_id": "FOREIGN_POLICY_CRISIS"
+          },
+          {
+            "id": "LAST_BILL_DUD",
+            "title": "Last Bill Was a Dud!",
+            "description": "The last player to successfully sponsor legislation loses 10 PC. Move Public Mood -1.",
+            "effect_id": "LAST_BILL_DUD"
+          },
+          {
+            "id": "SCANDAL",
+            "title": "Scandal!",
+            "description": "The player with the most PC loses 15 PC and must immediately draw one card from the Scrutiny Deck.",
+            "effect_id": "SCANDAL"
+          },
+          {
+            "id": "ECONOMIC_BOOM",
+            "title": "Economic Boom",
+            "description": "Move Public Mood +2 spaces. All players gain 5 PC.",
+            "effect_id": "ECONOMIC_BOOM"
+          },
+          {
+            "id": "RECESSION_HITS",
+            "title": "Recession Hits",
+            "description": "Move Public Mood -2 spaces. All players lose 5 PC.",
+            "effect_id": "RECESSION_HITS"
+          }
+        ]
+      },
+      "scrutiny_deck": {
+        "cards": [
+          {
+            "id": "DONOR_SCANDAL_2",
+            "title": "Minor Donor Scandal",
+            "description": "You must return a questionable donation. Lose 8 PC.",
+            "effect_id": "PAY_PC_8"
+          },
+          {
+            "id": "OLD_VOTE_2",
+            "title": "Old Vote Haunts You",
+            "description": "Your past policies are unpopular. Public Mood drops by 1.",
+            "effect_id": "MOOD_MINUS_1"
+          },
+          {
+            "id": "DONOR_SCANDAL",
+            "title": "Minor Donor Scandal",
+            "description": "You must return a questionable donation. Lose 8 PC.",
+            "effect_id": "PAY_PC_8"
+          },
+          {
+            "id": "GAFFE_INVESTIGATION",
+            "title": "Gaffe Investigation",
+            "description": "A past mistake surfaces. Pay 10 PC.",
+            "effect_id": "PAY_PC_10"
+          },
+          {
+            "id": "OLD_VOTE",
+            "title": "Old Vote Haunts You",
+            "description": "Your past policies are unpopular. Public Mood drops by 1.",
+            "effect_id": "MOOD_MINUS_1"
+          },
+          {
+            "id": "INTERNAL_STRIFE",
+            "title": "Internal Campaign Strife",
+            "description": "Your team is in disarray. Lose 5 PC.",
+            "effect_id": "PAY_PC_5"
+          },
+          {
+            "id": "FINANCE_AUDIT",
+            "title": "Campaign Finance Audit",
+            "description": "Your Fundraise action grants 2 PC less next round.",
+            "effect_id": "FINANCE_AUDIT"
+          },
+          {
+            "id": "NEGATIVE_PRESS",
+            "title": "Negative Press Cycle",
+            "description": "You are bombarded by bad press. Lose 5 PC.",
+            "effect_id": "NEGATIVE_PRESS"
+          },
+          {
+            "id": "UNPOPULAR_STANCE",
+            "title": "Unpopular Stance",
+            "description": "Your position on a key issue backfires. Lose 7 PC.",
+            "effect_id": "PAY_PC_7"
+          },
+          {
+            "id": "GAFFE_INVESTIGATION_2",
+            "title": "Gaffe Investigation",
+            "description": "A past mistake surfaces. Pay 10 PC.",
+            "effect_id": "PAY_PC_10"
+          }
+        ]
+      },
+      "alliance_deck": {
+        "cards": [
+          {
+            "id": "GENERAL_JACKSON",
+            "title": "General Hank 'Bulldog' Jackson",
+            "description": "When you sponsor the Military Funding legislation, you automatically succeed (no roll needed).",
+            "upkeep_cost": 0,
+            "weakness_description": "Any time the Public Mood would improve due to an Event Card, it improves by 1 less space."
+          },
+          {
+            "id": "JUDGE_REED",
+            "title": "Judge Evelyn Reed (Retired)",
+            "description": "You are immune to the 'Gaffe on the Trail' and 'Scandal!' Event Cards.",
+            "upkeep_cost": 0,
+            "weakness_description": "You cannot sponsor 'Change the Tax Code' legislation."
+          },
+          {
+            "id": "HEDGE_FUND_BRO",
+            "title": "Steve McRoberts, The Hedge Fund Bro",
+            "description": "When you take the Fundraise action, gain an additional 10 PC.",
+            "upkeep_cost": 0,
+            "weakness_description": "If an Event Card forces a random player to lose PC, you must be the target if you are an eligible choice."
+          },
+          {
+            "id": "MASTER_POLLSTER",
+            "title": "Katja Petrova, The Master Pollster",
+            "description": "Once per Term (during Round 4), you may secretly look at one office's candidacy cost before anyone declares their candidacy.",
+            "upkeep_cost": 0,
+            "weakness_description": "Opponents only need to tie, not beat, your roll to win a contested election against you."
+          },
+          {
+            "id": "UNION_BOSS",
+            "title": "'Big' Sal Marconi, The Union Boss",
+            "description": "Gain a +5 PC bonus when committing PC to an election for Governor or Congress.",
+            "upkeep_cost": 0,
+            "weakness_description": "Before the Election Phase begins, you must pay 10% of your current PC (rounded up) or discard this Ally."
+          },
+          {
+            "id": "GRASSROOTS_ACTIVIST",
+            "title": "Celeste Imani, The Grassroots Activist",
+            "description": "If your PC total is the lowest at the start of your turn, gain 5 PC.",
+            "upkeep_cost": 0,
+            "weakness_description": "You gain 2 PC less from Fundraise actions."
+          },
+          {
+            "id": "SPIN_DOCTOR",
+            "title": "Marcus Thorne, The Savvy Spin Doctor",
+            "description": "The first time you would lose PC from the Public Mood track each round, ignore the loss.",
+            "upkeep_cost": 0,
+            "weakness_description": "You have a -1 penalty to your dice roll when sponsoring 'Protect The Children!'."
+          },
+          {
+            "id": "CAMPAIGN_MANAGER",
+            "title": "Diane Westbrook, The Veteran Campaign Manager",
+            "description": "Once per Election Phase, you may add a flat +1 to any single election roll (after rolling).",
+            "upkeep_cost": 5,
+            "weakness_description": ""
+          }
+        ]
+      },
+      "favor_supply": [
+        {
+          "id": "EXTRA_FUNDRAISING",
+          "description": "Gain 8 PC immediately."
+        },
+        {
+          "id": "COMPROMISING_POSITION",
+          "description": "Choose one: discard two of your Political Favors, or reveal your Player Archetype to all players."
+        },
+        {
+          "id": "POLITICAL_HOT_POTATO",
+          "description": "You've been handed a politically toxic dossier. Pass this card to another player. Whoever holds it when the next Upkeep Phase begins loses 5 Influence."
+        }
+      ],
+      "pledge_supply": [],
+      "round_marker": 4,
+      "term_counter": 2,
+      "public_mood": 2,
+      "current_player_index": 3,
+      "current_phase": "ACTION_PHASE",
+      "action_points": {
+        "0": 0,
+        "1": 0,
+        "2": 0,
+        "3": 1
+      },
+      "action_point_costs": {},
+      "turn_log": [
+        "The Fundraiser has already used their first Fundraise action this term.",
+        "Balanced Bot takes the Fundraise action and gains 5 PC."
+      ],
+      "secret_candidacies": [],
+      "pending_legislation": null,
+      "term_legislation": [],
+      "active_effects": 
