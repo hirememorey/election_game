@@ -32,9 +32,9 @@ The game's design has evolved to favor strategic depth and player interaction. H
 
 ### How to Play
 
-The primary way to play the game is through the web-based graphical interface.
+The primary way to play the game is through the new web-based terminal interface, which mirrors the experience of the original `cli_game.py`.
 
-#### Web-Based Game (Recommended)
+#### Web-Based Terminal
 
 To play the game, start the local web server:
 
@@ -42,16 +42,7 @@ To play the game, start the local web server:
 uvicorn server:app --reload
 ```
 
-Then, open your web browser and navigate to `http://localhost:8000`. You will be greeted with a graphical interface where you can play against three AI opponents.
-
-#### Local Play (Command Line - for debugging)
-
-The command-line interface is still available for quick, headless games, which can be useful for debugging the core game engine.
-
-*   **Human vs. 3 AI Opponents:**
-    ```bash
-    python3 cli_game.py
-    ```
+Then, open your web browser and navigate to `http://localhost:8000`. You will be greeted with a terminal interface where you can play against three AI opponents.
 
 ---
 
