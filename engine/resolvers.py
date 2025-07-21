@@ -272,7 +272,7 @@ def resolve_sponsor_legislation(state: GameState, action: ActionSponsorLegislati
         return state
     
     player.pc -= bill.cost
-    state.add_log(f"{player.name} sponsored the {bill.title}.")
+    state.add_log(f"{player.name} sponsors the {bill.title} for {bill.cost} PC.")
     state.add_log(f"This legislation will be voted on during the end-of-term legislation session.")
     
     # Create pending legislation for other players to respond to during the term
@@ -349,7 +349,10 @@ def resolve_support_legislation(state: GameState, action: ActionSupportLegislati
         else:
             state.add_log(f"{player.name} secretly commits {action.support_amount} PC to support the legislation.")
             state.add_log(f"Secret commitment has been registered.")
-    
+    else:
+        # Public log for AI players
+        state.add_log(f"{player.name} commits {action.support_amount} PC to support the legislation.")
+
     return state
 
 def resolve_oppose_legislation(state: GameState, action: ActionOpposeLegislation) -> GameState:
@@ -411,7 +414,10 @@ def resolve_oppose_legislation(state: GameState, action: ActionOpposeLegislation
         else:
             state.add_log(f"{player.name} secretly commits {action.oppose_amount} PC to oppose the legislation.")
             state.add_log(f"Secret commitment has been registered.")
-    
+    else:
+        # Public log for AI players
+        state.add_log(f"{player.name} commits {action.oppose_amount} PC to oppose the legislation.")
+
     return state
 
 def resolve_declare_candidacy(state: GameState, action: ActionDeclareCandidacy) -> GameState:
