@@ -110,7 +110,8 @@ class GameSession:
         if self.state.action_points.get(current_player.id, 0) <= 0:
             action = ActionPassTurn(player_id=current_player.id)
         else:
-            action = persona.choose_action(self.state, self.engine)
+            valid_actions = self.engine.get_valid_actions(self.state, current_player.id)
+            action = persona.choose_action(self.state, valid_actions)
             if not action:
                 action = ActionPassTurn(player_id=current_player.id)
 

@@ -4,6 +4,7 @@ from starlette.websockets import WebSocketDisconnect
 from game_session import GameSession
 import json
 import asyncio
+from fastapi.responses import FileResponse
 
 app = FastAPI()
 
@@ -12,10 +13,13 @@ sessions = {}
 
 app.mount("/static", StaticFiles(directory="static"), name="static")
 
+@app.get("/health")
+async def health_check():
+    return {"status": "ok"}
+
 @app.get("/")
 async def read_root():
-    from fastapi.responses import RedirectResponse
-    return RedirectResponse(url="/static/index.html")
+    return FileResponse('static/index.html')
 
 async def run_ai_turns(game: GameSession, websocket: WebSocket):
     await asyncio.sleep(0.1) 
@@ -75,3 +79,7 @@ async def websocket_endpoint(websocket: WebSocket):
         print(f"An error occurred with client {client_id}: {e}")
         if client_id in sessions:
             del sessions[client_id] 
+
+if __name__ == "__main__":
+    import uvicorn
+    uvicorn.run(app, host="0.0.0.0", port=5001) 

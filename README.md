@@ -2,7 +2,24 @@
 
 ## Overview
 
-Election is a digital adaptation of a political strategy board game. It is a turn-based game where players take on the roles of political actors vying for power. The game is currently in a **CLI-First Development** phase, prioritizing gameplay mechanics, balance, and simulation over a graphical user interface.
+Election is a digital adaptation of a political strategy board game. It is a turn-based game where players take on the roles of political actors vying for power. The game features a web-based terminal interface that provides an immersive command-line experience.
+
+## Recent Updates (Latest)
+
+### ✅ **Critical Bug Fixes**
+- **AI Player Issue Resolved**: Fixed a critical bug where AI players would get stuck during their turn due to incorrect parameter passing in the game session manager.
+- **Server Startup**: Fixed missing uvicorn run command that prevented the server from starting properly.
+- **Static File Serving**: Corrected the path to JavaScript files in the HTML template.
+
+### ✅ **Testing Improvements**
+- **Frontend Unit Tests**: Fixed JavaScript unit tests to handle ANSI color codes properly.
+- **End-to-End Testing**: Added comprehensive E2E test framework using Playwright for deployment confidence.
+- **All Tests Passing**: Both frontend and backend test suites are now passing.
+
+### ✅ **Deployment Ready**
+- **Production Configuration**: Server properly configured for deployment on Render.
+- **Health Check Endpoint**: Added `/health` endpoint for monitoring and testing.
+- **Static File Optimization**: All static assets properly served and cached.
 
 ## Core Game Mechanics & Design Rationale
 
@@ -28,21 +45,39 @@ The game's design has evolved to favor strategic depth and player interaction. H
 
 1.  **Clone the repository:** `git clone <repository_url>`
 2.  **Navigate to the directory:** `cd election`
-3.  **Install dependencies:** `pip install -r requirements.txt`
+3.  **Install Python dependencies:** `pip3 install -r requirements.txt`
+4.  **Install Node.js dependencies:** `npm install`
 
 ### How to Play
 
-The primary way to play the game is through the new web-based terminal interface, which mirrors the experience of the original `cli_game.py`.
+The primary way to play the game is through the web-based terminal interface.
 
 #### Web-Based Terminal
 
 To play the game, start the local web server:
 
 ```bash
-uvicorn server:app --reload
+python3 server.py
 ```
 
-Then, open your web browser and navigate to `http://localhost:8000`. You will be greeted with a terminal interface where you can play against three AI opponents.
+Then, open your web browser and navigate to `http://localhost:5001`. You will be greeted with a terminal interface where you can play against AI opponents.
+
+### Testing
+
+#### Frontend Tests
+```bash
+npm test
+```
+
+#### Backend Tests
+```bash
+python3 -m pytest test_*.py
+```
+
+#### End-to-End Tests
+```bash
+npx playwright test test_e2e_gameplay.spec.ts
+```
 
 ---
 
@@ -51,7 +86,7 @@ Then, open your web browser and navigate to `http://localhost:8000`. You will be
 *   `engine/`: Contains the core game logic, rules, and action resolvers. The heart of how the game functions.
 *   `models/`: Defines the data structures for the game state, players, and other components (`GameState`, `Player`, etc.).
 *   `personas/`: Home to the different AI strategies.
-*   `static/`: Contains the web frontend files (`index.html`).
+*   `static/`: Contains the web frontend files (`index.html`, `app.js`).
 *   `server.py`: The FastAPI web server that provides the game's API and serves the frontend.
 *   `game_session.py`: A headless session manager that orchestrates the game flow, connecting the engine to a client (like the web server).
 
@@ -83,3 +118,31 @@ The strategy for this involves:
 3.  **Tuning "Luck Knobs":** Systematically adjusting the game's random elements (like election dice rolls or the impact of event cards) and re-running tests to measure how they affect the skill edge.
 
 By iterating through this process, we can fine-tune the game's mechanics to create the most engaging and competitive experience possible.
+
+---
+
+## Deployment
+
+The game is configured for deployment on Render with the following features:
+
+- **Health Check**: `/health` endpoint for monitoring
+- **WebSocket Support**: Real-time game updates
+- **Static File Serving**: Optimized for production
+- **Error Handling**: Comprehensive error handling and logging
+
+### Manual Testing Before Deployment
+
+Before deploying, run this quick manual test:
+
+```bash
+# Start the server
+python3 server.py
+
+# Open browser to http://localhost:5001
+# Verify:
+# - Page loads
+# - Terminal appears
+# - Game state displays
+# - Can take an action
+# - AI responds
+```

@@ -78,7 +78,7 @@ describe('TerminalUI', () => {
         expect(ui.term.writeln).toHaveBeenCalledWith(expect.stringContaining('ELECTION: THE GAME'));
         expect(ui.term.writeln).toHaveBeenCalledWith(expect.stringContaining('Game Progress'));
         expect(ui.term.writeln).toHaveBeenCalledWith(expect.stringContaining('Test log message'));
-        expect(ui.term.writeln).toHaveBeenCalledWith(expect.stringContaining('Human (The Populist)'));
+        expect(ui.term.writeln).toHaveBeenCalledWith(expect.stringMatching(/Human.*\(The Populist\)/));
         expect(ui.term.writeln).toHaveBeenCalledWith(expect.stringContaining("Human's Turn"));
     });
 
