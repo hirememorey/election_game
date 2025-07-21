@@ -11,7 +11,11 @@ app = FastAPI()
 # A simple dictionary to hold game sessions for each client
 sessions = {}
 
-app.mount("/static", StaticFiles(directory="static"), name="static")
+# Use an absolute path for the static directory
+import os
+static_dir = os.path.join(os.path.dirname(__file__), "static")
+app.mount("/static", StaticFiles(directory=static_dir), name="static")
+
 
 @app.get("/health")
 async def health_check():
@@ -19,7 +23,7 @@ async def health_check():
 
 @app.get("/")
 async def read_root():
-    return FileResponse('static/index.html')
+    return FileResponse(os.path.join(static_dir, 'index.html'))
 
 async def run_ai_turns(game: GameSession, websocket: WebSocket):
     await asyncio.sleep(0.1) 
