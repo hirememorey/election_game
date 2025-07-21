@@ -32,7 +32,9 @@ The game's design has evolved to favor strategic depth and player interaction. H
 
 ### Running the Game
 
-The primary way to playtest the game is through the command-line interface.
+The game can be played both locally and online through a web-based terminal interface.
+
+#### Local Play (Command Line)
 
 *   **Human vs. 3 AI Opponents:**
     ```bash
@@ -44,12 +46,36 @@ The primary way to playtest the game is through the command-line interface.
     ```
     *   Replace `<persona>` with one of the available AI personas: `random`, `economic`, `legislative`, `balanced`, or `heuristic`.
 
+#### Online Play (Web Browser)
+
+The game is also available online through a web-based terminal that provides the same CLI experience as the local version:
+
+*   **Play Online:** Visit the deployed application at [your-render-url] to play in your browser
+*   **Features:** Full terminal emulation with keyboard input, real-time game updates, and persistent sessions
+*   **Compatibility:** Works on desktop and mobile browsers with keyboard support
+
+#### Running the Web Server Locally
+
+To run the web version locally for development or testing:
+
+```bash
+# Install dependencies
+pip install -r requirements.txt
+
+# Start the web server
+uvicorn server:app --host 0.0.0.0 --port 8000
+
+# Open your browser to http://localhost:8000
+```
+
 ### Key Directories
 
 *   `engine/`: Contains the core game logic, rules, and action resolvers. The heart of how the game functions.
 *   `models/`: Defines the data structures for the game state, players, and other components (`GameState`, `Player`, etc.).
 *   `personas/`: Home to the different AI strategies. To create a new AI, you would add a new persona class here.
 *   `simulation_results/`: Default output directory for the simulation framework.
+*   `static/`: Contains the web frontend files for the online terminal interface.
+*   `server.py`: FastAPI web server that bridges the web terminal to the CLI game using WebSockets and pseudoterminals.
 
 ---
 
