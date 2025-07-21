@@ -1033,7 +1033,9 @@ def resolve_pass_turn(state: GameState, action: ActionPassTurn) -> GameState:
     player = state.get_player_by_id(action.player_id)
     if not player: return state
     
-    state.add_log(f"{player.name} passes their turn.")
+    # Passing the turn now costs all remaining AP for the turn
+    state.action_points[player.id] = 0
+    state.add_log(f"{player.name} passes their turn, ending their action phase.")
     return state
 
 def resolve_resolve_legislation(state: GameState, action) -> GameState:

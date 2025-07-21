@@ -30,7 +30,7 @@ def test_get_state_for_client():
     assert "log" in client_state
     
     assert len(client_state["players"]) == 4
-    assert client_state["players"][0] == "Human"
+    assert client_state["players"][0]['name'] == "Human"
 
     # Since the to_dict methods are not fully implemented, we can't test everything yet.
     # This confirms the basic structure is present. 

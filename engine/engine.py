@@ -6,7 +6,12 @@ from engine import resolvers
 from engine.actions import Action
 from engine.scoring import calculate_final_scores
 from typing import List
-from engine.actions import ActionFundraise, ActionNetwork, ActionSponsorLegislation, ActionDeclareCandidacy, ActionUseFavor, ActionSupportLegislation, ActionOpposeLegislation, ActionPassTurn, ActionResolveLegislation, ActionResolveElections, ActionAcknowledgeResults
+from engine.actions import (
+    ActionFundraise, ActionNetwork, ActionSponsorLegislation, ActionDeclareCandidacy, 
+    ActionUseFavor, ActionSupportLegislation, ActionOpposeLegislation, ActionPassTurn, 
+    ActionResolveLegislation, ActionResolveElections, ActionAcknowledgeResults,
+    ACTION_CLASSES
+)
 
 class GameEngine:
     def __init__(self, game_data):
@@ -120,84 +125,21 @@ class GameEngine:
         # The resolver function will handle the logic and return the new state
         new_state = resolver(state, action)
         
-        # Always advance turn after ActionPassTurn
-        if action.__class__.__name__ == "ActionPassTurn":
-            new_state = self._advance_turn(new_state)
-        
-        # Always advance turn after any action
-        new_state = self._advance_turn(new_state)
-        
-        # CRITICAL FIX: Only auto-advance if we're in ACTION_PHASE and not in resolution phases
-        # This prevents legislation session from being immediately resolved
-        while (new_state.current_phase == "ACTION_PHASE" and 
-               all(ap <= 0 for ap in new_state.action_points.values()) and
-               not new_state.awaiting_legislation_resolution and
-               not new_state.awaiting_election_resolution):
-            new_state = self._advance_turn(new_state)
-        
-        # CRITICAL FIX: If at end of round 4 and all players have 0 or less AP, force upkeep phase
-        if (new_state.current_phase == "ACTION_PHASE" and
-            new_state.round_marker == 4 and
-            all(ap <= 0 for ap in new_state.action_points.values()) and
-            not new_state.awaiting_legislation_resolution and
-            not new_state.awaiting_election_resolution):
-            print("[DEBUG] Forcing upkeep phase at end of round 4 due to all APs exhausted.")
-            new_state = self.run_upkeep_phase(new_state)
-        
+        # After an action, check if the player's turn should end.
+        current_player = new_state.get_current_player()
+        if new_state.action_points[current_player.id] <= 0:
+            new_state.add_log(f"{current_player.name}'s turn ends.")
+            new_state.current_player_index = (new_state.current_player_index + 1) % len(new_state.players)
+            new_state.add_log(f"It is now {new_state.get_current_player().name}'s turn.")
+
         return new_state
 
-    def _advance_turn(self, state: GameState) -> GameState:
-        """Advances the turn to the next player or phase."""
-        print(f"[DEBUG] _advance_turn: current_phase={state.current_phase}, current_player_index={state.current_player_index}, APs={[state.action_points[p.id] for p in state.players]}")
-        # If we're in the action phase, only advance if current player's AP is 0 or less
-        if state.current_phase == "ACTION_PHASE":
-            current_player = state.players[state.current_player_index]
-            if state.action_points[current_player.id] <= 0:
-                state.current_player_index = (state.current_player_index + 1) % len(state.players)
-                print(f"[DEBUG] _advance_turn: advanced to player {state.current_player_index}")
-                # If we've gone through all players, check if we should end the round
-                if state.current_player_index == 0:
-                    # End of round - run upkeep phase
-                    print(f"[DEBUG] _advance_turn: End of round detected, calling run_upkeep_phase")
-                    state = self.run_upkeep_phase(state)
-                else:
-                    # Grant action points to the next player
-                    next_player = state.players[state.current_player_index]
-                    state.action_points[next_player.id] = 2
-                    state.add_log(f"\n{next_player.name}'s turn.")
-            # Additional check: if current player has no valid actions, auto-advance
-            elif state.action_points[current_player.id] > 0:
-                # Check if player has any valid actions they can take
-                has_valid_actions = self._player_has_valid_actions(state, current_player)
-                if not has_valid_actions:
-                    state.add_log(f"{current_player.name} has no valid actions available. Auto-advancing turn.")
-                    state.action_points[current_player.id] = 0  # Force turn advancement
-                    return self._advance_turn(state)  # Recursively advance
-            # CRITICAL FIX: If all players have 0 or less AP and round_marker is 4, force upkeep phase
-            if (
-                all(ap <= 0 for ap in state.action_points.values()) and
-                state.round_marker == 4
-            ):
-                print("[DEBUG] _advance_turn: Forcing upkeep phase at end of round 4 due to all APs exhausted.")
-                state = self.run_upkeep_phase(state)
-        # If we're in the legislation phase, do nothing - wait for manual resolution
-        elif state.current_phase == "LEGISLATION_PHASE":
-            # Advance to the next player
-            state.current_player_index = (state.current_player_index + 1) % len(state.players)
-            state.add_log(f"Turn advances to {state.get_current_player().name}.")
+    def _advance_turn_after_action(self, state: GameState) -> GameState:
+        """DEPRECATED"""
+        return state
 
-            # Check if all players have passed (or acted)
-            # This is a placeholder for a more robust check.
-            # A better implementation would be to track if each player has voted.
-            if state.current_player_index == 0:
-                # This simplistic check assumes a full circle means the phase might be over.
-                # In a real scenario, we'd check `state.awaiting_legislation_resolution`.
-                pass
-        # If we're in the election phase, do nothing - wait for manual resolution
-        elif state.current_phase == "ELECTION_PHASE":
-            # Do not automatically advance - wait for manual resolution
-            pass
-        print(f"[DEBUG] _advance_turn: end state current_player_index={state.current_player_index}, APs={[state.action_points[p.id] for p in state.players]}")
+    def _advance_turn(self, state: GameState) -> GameState:
+        """DEPRECATED"""
         return state
 
     def _player_has_valid_actions(self, state: GameState, player: Player) -> bool:
@@ -444,6 +386,18 @@ class GameEngine:
         # The game ends after the election phase of the 3rd term.
         # We track terms completed in state.term_counter
         return state.term_counter >= 3
+
+    def action_from_dict(self, data: dict) -> Action:
+        """Creates an Action object from a dictionary."""
+        action_type_name = data.pop('action_type', None)
+        if not action_type_name:
+            raise ValueError("Action data must include 'action_type'")
+
+        action_class = ACTION_CLASSES.get(action_type_name)
+        if not action_class:
+            raise ValueError(f"Unknown action type: {action_type_name}")
+
+        return action_class(**data)
 
     def get_final_scores(self, state: GameState) -> dict:
         """Calculates and returns the final scores and the winner."""

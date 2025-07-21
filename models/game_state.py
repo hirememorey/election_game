@@ -96,6 +96,7 @@ class GameState:
             "term_counter": self.term_counter,
             "public_mood": self.public_mood,
             "current_player_index": self.current_player_index,
+            "current_player": self.get_current_player().name, # Add the current player's name
             "current_phase": self.current_phase,
             "action_points": self.action_points,
             "turn_log": self.turn_log,

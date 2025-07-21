@@ -54,22 +54,57 @@ class GameSession:
 
     def get_state_for_client(self) -> Dict[str, Any]:
         """
-        Returns a JSON-serializable representation of the current game state.
-        This method will be expanded to serialize the full game state.
+        Returns a JSON-serializable representation of the current game state,
+        including valid actions for the human player if it is their turn.
         """
         if not self.state:
             return {"error": "Game not started."}
 
-        # This is a placeholder. We will need to implement a full to_dict method
         # on the GameState and its components. For now, this provides a basic structure.
-        return {
-            "round_marker": self.state.round_marker,
-            "current_phase": self.state.current_phase,
-            "public_mood": self.state.public_mood,
-            "players": [p.name for p in self.state.players],
-            "current_player": self.state.get_current_player().name,
-            "log": self.state.turn_log
-        }
+        state_dict = self.state.to_dict()
+        state_dict['log'] = list(self.state.turn_log)
+
+
+        # If it's the human's turn, add the available actions to the state payload
+        if self.is_human_turn():
+            valid_actions = self.engine.get_valid_actions(self.state, self.human_player_id)
+            # We need to serialize the actions as well
+            state_dict['valid_actions'] = [action.to_dict() for action in valid_actions]
+        
+        return state_dict
+
+    def process_human_action(self, action_data: Dict[str, Any]) -> List[str]:
+        """
+        Processes a single action from the human player and runs subsequent AI turns.
+        Returns a log of all events that occurred.
+        """
+        if not self.state or not self.is_human_turn():
+            return ["Error: It is not your turn."]
+
+        # Reconstruct the action object from the dictionary
+        action = self.engine.action_from_dict(action_data)
+        if not action:
+            return ["Error: Invalid action data."]
+            
+        # Validate that the action is actually valid
+        valid_actions = self.engine.get_valid_actions(self.state, self.human_player_id)
+        if action not in valid_actions:
+             return ["Error: That action is not valid right now."]
+
+        # Process the human action and collect logs
+        self.state.clear_turn_log()
+        self.state = self.engine.process_action(self.state, action)
+        human_logs = list(self.state.turn_log)
+        self.state.clear_turn_log()
+
+        # After the human action, run all subsequent AI turns
+        ai_logs = self._run_ai_turns()
+        
+        # The game state has been advanced by the AI turns, so the "new" state is the current state
+        final_logs = human_logs + ai_logs
+        
+        # The state has already been advanced by the engine, so we just return the logs
+        return final_logs
 
     def _run_ai_turns(self) -> List[str]:
         """
@@ -78,36 +113,27 @@ class GameSession:
         if not self.state or self.is_human_turn():
             return []
             
-        all_logs = []
-        while not self.is_game_over() and not self.is_human_turn():
+        all_ai_logs = []
+        while not self.is_human_turn() and not self.is_game_over():
             current_player = self.state.get_current_player()
-            ai_index = current_player.id - 1
-            
-            # AI takes its full turn (all APs)
-            while not self.is_game_over() and self.state.get_current_player().id == current_player.id:
-                if self.state.action_points.get(current_player.id, 0) <= 0:
-                    # This logic should be handled by the engine's advance_turn,
-                    # but as a safeguard, we advance turn if AP is 0.
-                    self.state = self.engine.advance_turn(self.state)
-                    break
+            persona = self.ai_personas[current_player.id - 1] 
 
-                valid_actions = self.engine.get_valid_actions(self.state, current_player.id)
-                if not valid_actions:
-                    self.state = self.engine.advance_turn(self.state)
-                    break
-                
-                chosen_action = self.ai_personas[ai_index].choose_action(self.state, valid_actions)
-                
+            # AI takes its full turn until it runs out of AP
+            while self.state.action_points[current_player.id] > 0 and not self.is_game_over():
                 self.state.clear_turn_log()
-                self.state = self.engine.process_action(self.state, chosen_action)
-                all_logs.extend(self.state.turn_log)
+                action = persona.choose_action(self.state, self.engine)
+                
+                if not action: # If persona returns None, it passes
+                    action = ActionPassTurn(player_id=current_player.id)
 
-        # After all AI turns, the engine might have triggered events. Capture those logs.
-        if self.state.turn_log:
-            all_logs.extend(self.state.turn_log)
-            self.state.clear_turn_log()
+                self.state = self.engine.process_action(self.state, action)
+                all_ai_logs.extend(self.state.turn_log)
+
+                # Break if the turn has somehow advanced to a different player
+                if self.state.get_current_player().id != current_player.id:
+                    break
         
-        return all_logs
+        return all_ai_logs
 
     def is_human_turn(self) -> bool:
         if not self.state: return False

@@ -2,56 +2,101 @@
 <html>
 <head>
     <title>Election: The Game</title>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/xterm@4.18.0/css/xterm.css" />
-    <script src="https://cdn.jsdelivr.net/npm/xterm@4.18.0/lib/xterm.js"></script>
     <style>
-        body, html {
-            margin: 0;
-            padding: 0;
-            height: 100%;
-            background-color: #000;
-        }
-        #terminal {
-            width: 100%;
-            height: 100%;
-        }
+        body { font-family: sans-serif; background-color: #f0f0f0; color: #333; }
+        #game-container { max-width: 800px; margin: auto; background: #fff; padding: 20px; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
+        .player { border: 1px solid #ccc; padding: 10px; margin-bottom: 10px; }
+        .current-player { border-color: #007bff; border-width: 2px; }
+        .log-entry { padding: 5px; border-bottom: 1px solid #eee; }
+        #actions button { display: block; margin: 5px 0; padding: 10px; width: 100%; background-color: #007bff; color: white; border: none; cursor: pointer; }
+        #actions button:hover { background-color: #0056b3; }
     </style>
 </head>
 <body>
-    <div id="terminal"></div>
+    <div id="game-container">
+        <h1>Election: The Game</h1>
+        <div id="game-state"></div>
+        <div id="log"></div>
+        <div id="actions"></div>
+    </div>
+
     <script>
-        const term = new Terminal({
-            cursorBlink: true,
-            rows: 40,
-            cols: 120,
-        });
-        const termElement = document.getElementById('terminal');
-        term.open(termElement);
+        const socket = new WebSocket(`ws://${window.location.host}/ws`);
 
-        const wsProtocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-        const wsUrl = `${wsProtocol}//${window.location.host}/ws`;
-        const ws = new WebSocket(wsUrl);
-
-        ws.onopen = () => {
-            term.writeln('Welcome to Election: A Political Strategy Game!');
-            term.writeln('Connecting to server...');
+        socket.onmessage = function(event) {
+            const gameState = JSON.parse(event.data);
+            renderGameState(gameState);
         };
 
-        ws.onmessage = (event) => {
-            term.write(event.data);
-        };
+        function renderGameState(state) {
+            const stateDiv = document.getElementById('game-state');
+            const logDiv = document.getElementById('log');
+            const actionsDiv = document.getElementById('actions');
 
-        ws.onerror = (error) => {
-            term.writeln(`\r\n\x1b[31mError: ${error.message}\x1b[0m`);
-        };
+            // Clear previous state
+            stateDiv.innerHTML = '';
+            logDiv.innerHTML = '<h2>Log</h2>';
+            actionsDiv.innerHTML = '<h2>Your Actions</h2>';
 
-        ws.onclose = () => {
-            term.writeln('\r\n\x1b[31mConnection closed.\x1b[0m');
-        };
+            // Render game info
+            stateDiv.innerHTML += `<div>Round: ${state.round_marker}</div>`;
+            stateDiv.innerHTML += `<div>Phase: ${state.current_phase}</div>`;
+            
+            // Render players
+            state.players.forEach(player => {
+                const playerDiv = document.createElement('div');
+                playerDiv.className = 'player';
+                if (player.name === state.current_player) {
+                    playerDiv.classList.add('current-player');
+                }
+                playerDiv.innerHTML = `
+                    <h3>${player.name} (${player.archetype.title})</h3>
+                    <p>PC: ${player.pc}</p>
+                    <p>Office: ${player.current_office ? player.current_office.title : 'None'}</p>
+                `;
+                stateDiv.appendChild(playerDiv);
+            });
 
-        term.onData((data) => {
-            ws.send(data);
-        });
+            // Render log
+            state.log.forEach(entry => {
+                const logEntry = document.createElement('div');
+                logEntry.className = 'log-entry';
+                logEntry.textContent = entry;
+                logDiv.appendChild(logEntry);
+            });
+
+            // Render actions for human player
+            if (state.valid_actions) {
+                state.valid_actions.forEach(action => {
+                    const button = document.createElement('button');
+                    // Create a user-friendly description for the action
+                    button.textContent = getActionDescription(action);
+                    button.onclick = () => {
+                        // We need to handle actions that require more input,
+                        // like choosing an amount or target. This is a simplified example.
+                        if (action.action_type === 'ActionSupportLegislation' || action.action_type === 'ActionOpposeLegislation') {
+                            const amount = prompt("Enter PC amount to commit:", "1");
+                            if (amount) {
+                                action.support_amount = parseInt(amount);
+                                action.oppose_amount = parseInt(amount);
+                            }
+                        }
+                        socket.send(JSON.stringify(action));
+                    };
+                    actionsDiv.appendChild(button);
+                });
+            }
+        }
+
+        function getActionDescription(action) {
+            // This function creates a user-friendly string from the action object.
+            // It can be expanded to be more descriptive.
+            let desc = action.action_type.replace('Action', '');
+            if (action.legislation_id) desc += `: ${action.legislation_id}`;
+            if (action.office_id) desc += `: ${action.office_id}`;
+            return desc;
+        }
+
     </script>
 </body>
 </html> 

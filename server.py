@@ -33,20 +33,15 @@ async def websocket_endpoint(websocket: WebSocket):
 
         while True:
             data = await websocket.receive_text()
+            action_data = json.loads(data)
             
-            # Here, you would parse the incoming data to determine the action
-            # For now, we'll just log it. This is where you'll build out
-            # the handling for player actions sent from the client.
-            print(f"Received from client: {data}")
-
-            # Example: action processing (to be fully implemented)
-            # action = parse_action_from_data(data)
-            # game.process_human_action(action)
-            # ai_logs = game._run_ai_turns()
+            # Process the human's action and get all the logs
+            all_logs = game.process_human_action(action_data)
             
-            # new_state = game.get_state_for_client()
-            # new_state['log'].extend(ai_logs)
-            # await websocket.send_json(new_state)
+            # Send the new state back to the client
+            new_state = game.get_state_for_client()
+            new_state['log'] = all_logs # Make sure the log includes everything that happened
+            await websocket.send_json(new_state)
 
     except WebSocketDisconnect:
         print(f"Client {client_id} disconnected.")

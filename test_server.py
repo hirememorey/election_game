@@ -31,4 +31,4 @@ def test_websocket_connection_and_initial_state():
         # Note: This part of the test will need to be expanded once the to_dict methods
         # in the models are fully implemented.
         # For now, we are just checking the player names.
-        assert data["players"][0] == "Human" 
+        assert data["players"][0]['name'] == "Human" 
