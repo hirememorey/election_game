@@ -363,23 +363,12 @@ class CLIGame:
             else:
                 # AI turn - run their entire turn automatically
                 if not self.game.is_game_over():
-                    current_ai_player_id = self.game.state.get_current_player().id
                     current_ai_player_name = self.game.get_current_player_name()
-                    
                     print(f"\n{Colors.BLUE}🤖 {current_ai_player_name} is thinking...{Colors.END}")
+                    time.sleep(1)
                     
-                    all_ai_actions_log = []
-
-                    # Loop as long as it is the current AI's turn
-                    while not self.game.is_game_over() and self.game.state.get_current_player().id == current_ai_player_id:
-                        time.sleep(1)
-                        
-                        self.game.process_ai_turn()
-                        
-                        # Collect logs and clear them to avoid re-printing
-                        if self.game.state and self.game.state.turn_log:
-                            all_ai_actions_log.extend(self.game.state.turn_log)
-                            self.game.clear_turn_log()
+                    # Get the complete log of the AI's turn from the engine
+                    all_ai_actions_log = self.game.process_ai_turn()
 
                     # After the AI's turn is fully over, display all their actions.
                     if all_ai_actions_log:
@@ -464,23 +453,12 @@ class CLIMultiAIGame:
             else:
                 # AI turn - run their entire turn automatically
                 if not self.game.is_game_over():
-                    current_ai_player_id = self.game.state.get_current_player().id
                     current_ai_player_name = self.game.get_current_player_name()
-
                     print(f"\n{Colors.BLUE}🤖 {current_ai_player_name} is thinking...{Colors.END}")
+                    time.sleep(1)
 
-                    all_ai_actions_log = []
-
-                    # Loop as long as it is the current AI's turn
-                    while not self.game.is_game_over() and self.game.state.get_current_player().id == current_ai_player_id:
-                        time.sleep(1)
-
-                        self.game.process_ai_turn()
-
-                        # Collect logs and clear them to avoid re-printing
-                        if self.game.state and self.game.state.turn_log:
-                            all_ai_actions_log.extend(self.game.state.turn_log)
-                            self.game.clear_turn_log()
+                    # Get the complete log of the AI's turn from the engine
+                    all_ai_actions_log = self.game.process_ai_turn()
                     
                     # After the AI's turn is fully over, display all their actions.
                     if all_ai_actions_log:

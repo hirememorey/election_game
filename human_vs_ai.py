@@ -123,12 +123,12 @@ class HumanVsAIGame:
         if self.state:
             self.state.clear_turn_log()
     
-    def process_ai_turn(self) -> GameState:
+    def process_ai_turn(self) -> List[str]:
         """
-        Process the AI player's turn.
+        Process the AI player's turn and return a log of what happened.
         
         Returns:
-            GameState: The updated game state
+            List[str]: A list of log messages describing the AI's actions.
         """
         if not self.state:
             raise ValueError("No game in progress")
@@ -136,34 +136,37 @@ class HumanVsAIGame:
         if self.is_human_turn():
             raise ValueError("It's the human player's turn")
         
-        # Process all actions for the AI until it runs out of Action Points
-        while True:
+        turn_logs = []
+        current_ai_player_id = self.state.get_current_player().id
+
+        # Process all actions for the AI until it runs out of Action Points or the turn passes
+        while not self.state.is_game_over() and self.state.get_current_player().id == current_ai_player_id:
             current_player = self.state.get_current_player()
+            ai_index = current_player.id - 1
             ap_remaining = self.state.action_points.get(current_player.id, 0)
             
-            # If no AP remaining, break
             if ap_remaining <= 0:
                 break
             
-            # Get valid actions for the AI
             valid_actions = self.engine.get_valid_actions(self.state, current_player.id)
-            
-            # If no valid actions, break
             if not valid_actions:
                 break
             
-            # Let the AI choose an action
             chosen_action = self.ai_persona.choose_action(self.state, valid_actions)
             print(f"[DEBUG] {current_player.name} chose: {chosen_action.__class__.__name__}")
             
-            # Process the action
+            # Process the action and capture the log
+            self.state.clear_turn_log()
             self.state = self.engine.process_action(self.state, chosen_action)
-            
-            # Check if it's still the AI's turn (turn might have advanced)
-            if self.is_human_turn() or self.state.get_current_player().id != current_player.id:
-                break
-        
-        return self.state
+            turn_logs.extend(self.state.turn_log)
+
+        # After the AI's turn is done, the engine might have triggered events.
+        # We need to capture those logs as well.
+        if self.state.turn_log:
+             turn_logs.extend(self.state.turn_log)
+             self.state.clear_turn_log()
+             
+        return turn_logs
     
     def is_game_over(self) -> bool:
         """Check if the game is over."""
@@ -220,7 +223,7 @@ class HumanVsAIGame:
         if self.state.awaiting_results_acknowledgement:
             # For now, we'll skip results acknowledgement in CLI mode
             # This can be enhanced later
-            pass
+            pass 
 
 
 class HumanVsMultipleAIGame:
@@ -328,12 +331,12 @@ class HumanVsMultipleAIGame:
         if self.state:
             self.state.clear_turn_log()
     
-    def process_ai_turn(self) -> GameState:
+    def process_ai_turn(self) -> List[str]:
         """
-        Process the AI player's turn.
+        Process the AI player's turn and return a log of what happened.
         
         Returns:
-            GameState: The updated game state
+            List[str]: A list of log messages describing the AI's actions.
         """
         if not self.state:
             raise ValueError("No game in progress")
@@ -341,35 +344,37 @@ class HumanVsMultipleAIGame:
         if self.is_human_turn():
             raise ValueError("It's the human player's turn")
         
-        # Process all actions for the AI until it runs out of Action Points
-        while True:
+        turn_logs = []
+        current_ai_player_id = self.state.get_current_player().id
+
+        # Process all actions for the AI until it runs out of Action Points or the turn passes
+        while not self.state.is_game_over() and self.state.get_current_player().id == current_ai_player_id:
             current_player = self.state.get_current_player()
-            ai_index = current_player.id - 1  # AI players start at index 1
+            ai_index = current_player.id - 1
             ap_remaining = self.state.action_points.get(current_player.id, 0)
             
-            # If no AP remaining, break
             if ap_remaining <= 0:
                 break
             
-            # Get valid actions for the AI
             valid_actions = self.engine.get_valid_actions(self.state, current_player.id)
-            
-            # If no valid actions, break
             if not valid_actions:
                 break
             
-            # Let the AI choose an action
             chosen_action = self.ai_personas[ai_index].choose_action(self.state, valid_actions)
             print(f"[DEBUG] {current_player.name} chose: {chosen_action.__class__.__name__}")
             
-            # Process the action
+            # Process the action and capture the log
+            self.state.clear_turn_log()
             self.state = self.engine.process_action(self.state, chosen_action)
-            
-            # Check if it's still the AI's turn (turn might have advanced)
-            if self.is_human_turn() or self.state.get_current_player().id != current_player.id:
-                break
-        
-        return self.state
+            turn_logs.extend(self.state.turn_log)
+
+        # After the AI's turn is done, the engine might have triggered events.
+        # We need to capture those logs as well.
+        if self.state.turn_log:
+             turn_logs.extend(self.state.turn_log)
+             self.state.clear_turn_log()
+             
+        return turn_logs
     
     def is_game_over(self) -> bool:
         """Check if the game is over."""
