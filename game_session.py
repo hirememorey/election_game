@@ -119,6 +119,32 @@ class GameSession:
         self.state = self.engine.process_action(self.state, action)
         return list(self.state.turn_log)
 
+    def run_full_ai_turn(self) -> List[str]:
+        """
+        Runs all actions for the current AI player's turn.
+        Returns a consolidated log of all actions taken.
+        """
+        if not self.state or self.is_human_turn() or self.is_game_over():
+            return []
+
+        turn_logs = []
+        current_player_id = self.state.get_current_player().id
+
+        # Loop as long as it's the current AI's turn and they have AP
+        while (not self.is_game_over() and 
+               self.state.get_current_player().id == current_player_id and
+               self.state.action_points.get(current_player_id, 0) > 0):
+            
+            action_logs = self.run_one_ai_action()
+            turn_logs.extend(action_logs)
+
+        # After the loop, the turn might have auto-passed. Capture any final logs.
+        if self.state.turn_log:
+            turn_logs.extend(self.state.turn_log)
+            self.state.clear_turn_log()
+            
+        return turn_logs
+
     def is_human_turn(self) -> bool:
         if not self.state: return False
         return self.state.get_current_player().id == self.human_player_id
