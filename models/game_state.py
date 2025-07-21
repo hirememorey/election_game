@@ -85,6 +85,8 @@ class GameState:
     awaiting_election_resolution: bool = False
     awaiting_results_acknowledgement: bool = False
     last_election_results: Optional[dict] = None
+    
+
 
     def get_current_player(self) -> Player:
         """Returns the player whose turn it is."""

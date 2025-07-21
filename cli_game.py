@@ -208,6 +208,13 @@ class CLIGameView:
         print(f"{Colors.CYAN}Phase: {state.current_phase}{Colors.END}")
         print(f"{Colors.CYAN}Public Mood: {state.public_mood}{Colors.END}")
         
+        # Current player's mandate (if it's a human turn)
+        if state.current_phase == "ACTION_PHASE" and self.game.is_human_turn():
+            current_player = state.get_current_player()
+            print(f"\n{Colors.BOLD}🎯 Your Personal Mandate:{Colors.END}")
+            print(f"  {Colors.YELLOW}{current_player.mandate.title}{Colors.END}")
+            print(f"  {Colors.WHITE}{current_player.mandate.description}{Colors.END}")
+        
         # Available offices
         if state.offices:
             print(f"\n{Colors.BOLD}🏛️  Available Offices:{Colors.END}")
@@ -336,6 +343,9 @@ class CLIGame:
             if self.game.state:
                 self.view.display_game_state(self.game.state)
             
+            # Clear turn log at the start of each player's turn
+            self.game.clear_turn_log()
+            
             # Check if it's human turn
             if self.game.is_human_turn():
                 # Human turn
@@ -363,11 +373,14 @@ class CLIGame:
                 
                 # Display what the AI did
                 if self.game.state and self.game.state.turn_log:
-                    # Show all recent messages from the turn log
                     print(f"\n{Colors.BLUE}🤖 {current_player}'s actions:{Colors.END}")
                     for message in self.game.state.turn_log:
                         if message.strip():  # Only show non-empty messages
-                            print(f"  {Colors.BLUE}•{Colors.END} {message}")
+                            # Filter out secret commitment messages for AI players (human shouldn't see AI secrets)
+                            if "secretly commits" in message and current_player != "Human":
+                                print(f"  {Colors.BLUE}•{Colors.END} {current_player} made a secret commitment.")
+                            else:
+                                print(f"  {Colors.BLUE}•{Colors.END} {message}")
                 
                 # Prompt for next turn
                 self.view.prompt_for_next_turn(current_player)
@@ -420,6 +433,9 @@ class CLIMultiAIGame:
             if self.game.state:
                 self.view.display_game_state(self.game.state)
             
+            # Clear turn log at the start of each player's turn
+            self.game.clear_turn_log()
+            
             # Check if it's human turn
             if self.game.is_human_turn():
                 # Human turn
@@ -447,11 +463,14 @@ class CLIMultiAIGame:
                 
                 # Display what the AI did
                 if self.game.state and self.game.state.turn_log:
-                    # Show all recent messages from the turn log
                     print(f"\n{Colors.BLUE}🤖 {current_player}'s actions:{Colors.END}")
                     for message in self.game.state.turn_log:
                         if message.strip():  # Only show non-empty messages
-                            print(f"  {Colors.BLUE}•{Colors.END} {message}")
+                            # Filter out secret commitment messages for AI players (human shouldn't see AI secrets)
+                            if "secretly commits" in message and current_player != "Human":
+                                print(f"  {Colors.BLUE}•{Colors.END} {current_player} made a secret commitment.")
+                            else:
+                                print(f"  {Colors.BLUE}•{Colors.END} {message}")
                 
                 # Prompt for next turn
                 self.view.prompt_for_next_turn(current_player)

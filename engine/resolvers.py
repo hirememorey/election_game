@@ -339,13 +339,16 @@ def resolve_support_legislation(state: GameState, action: ActionSupportLegislati
     player.pc -= action.support_amount
     print(f"[DEBUG] resolve_support_legislation: Deducted {action.support_amount} PC from {player.name}. Old PC: {old_pc}, New PC: {player.pc}")
     
-    # Provide confirmation feedback
-    if is_sponsor:
-        state.add_log(f"{player.name} secretly commits {action.support_amount} PC to support their own legislation.")
-        state.add_log(f"Secret commitment has been registered.")
-    else:
-        state.add_log(f"{player.name} secretly commits {action.support_amount} PC to support the legislation.")
-        state.add_log(f"Secret commitment has been registered.")
+    # Provide confirmation feedback - only to the acting player, not publicly
+    # Secret commitments should not be revealed to other players
+    # Only log for human players (AI secret commitments should be hidden)
+    if player.name == "Human":
+        if is_sponsor:
+            state.add_log(f"{player.name} secretly commits {action.support_amount} PC to support their own legislation.")
+            state.add_log(f"Secret commitment has been registered.")
+        else:
+            state.add_log(f"{player.name} secretly commits {action.support_amount} PC to support the legislation.")
+            state.add_log(f"Secret commitment has been registered.")
     
     return state
 
@@ -398,13 +401,16 @@ def resolve_oppose_legislation(state: GameState, action: ActionOpposeLegislation
     player.pc -= action.oppose_amount
     print(f"[DEBUG] resolve_oppose_legislation: Deducted {action.oppose_amount} PC from {player.name}. Old PC: {old_pc}, New PC: {player.pc}")
     
-    # Provide confirmation feedback
-    if is_sponsor:
-        state.add_log(f"{player.name} secretly commits {action.oppose_amount} PC to oppose their own legislation.")
-        state.add_log(f"Secret commitment has been registered.")
-    else:
-        state.add_log(f"{player.name} secretly commits {action.oppose_amount} PC to oppose the legislation.")
-        state.add_log(f"Secret commitment has been registered.")
+    # Provide confirmation feedback - only to the acting player, not publicly
+    # Secret commitments should not be revealed to other players
+    # Only log for human players (AI secret commitments should be hidden)
+    if player.name == "Human":
+        if is_sponsor:
+            state.add_log(f"{player.name} secretly commits {action.oppose_amount} PC to oppose their own legislation.")
+            state.add_log(f"Secret commitment has been registered.")
+        else:
+            state.add_log(f"{player.name} secretly commits {action.oppose_amount} PC to oppose the legislation.")
+            state.add_log(f"Secret commitment has been registered.")
     
     return state
 

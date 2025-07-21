@@ -118,6 +118,11 @@ class HumanVsAIGame:
         self.state = self.engine.process_action(self.state, action)
         return self.state
     
+    def clear_turn_log(self):
+        """Clear the turn log. This should be called at the start of each player's turn."""
+        if self.state:
+            self.state.clear_turn_log()
+    
     def process_ai_turn(self) -> GameState:
         """
         Process the AI player's turn.
@@ -317,6 +322,11 @@ class HumanVsMultipleAIGame:
         
         self.state = self.engine.process_action(self.state, action)
         return self.state
+    
+    def clear_turn_log(self):
+        """Clear the turn log. This should be called at the start of each player's turn."""
+        if self.state:
+            self.state.clear_turn_log()
     
     def process_ai_turn(self) -> GameState:
         """

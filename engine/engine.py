@@ -85,7 +85,6 @@ class GameEngine:
 
     def process_action(self, state: GameState, action: Action) -> GameState:
         """Routes an action to the correct resolver and advances the game state."""
-        state.clear_turn_log()
 
         # Harden the backend: reject actions during non-action phases.
         if (state.awaiting_results_acknowledgement or
