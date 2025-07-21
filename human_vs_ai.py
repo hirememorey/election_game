@@ -139,10 +139,9 @@ class HumanVsAIGame:
         turn_logs = []
         current_ai_player_id = self.state.get_current_player().id
 
-        # Process all actions for the AI until it runs out of Action Points or the turn passes
-        while not self.state.is_game_over() and self.state.get_current_player().id == current_ai_player_id:
+        # Loop as long as it's the current AI's turn
+        while not self.is_game_over() and self.state.get_current_player().id == current_ai_player_id:
             current_player = self.state.get_current_player()
-            ai_index = current_player.id - 1
             ap_remaining = self.state.action_points.get(current_player.id, 0)
             
             if ap_remaining <= 0:
@@ -348,7 +347,7 @@ class HumanVsMultipleAIGame:
         current_ai_player_id = self.state.get_current_player().id
 
         # Process all actions for the AI until it runs out of Action Points or the turn passes
-        while not self.state.is_game_over() and self.state.get_current_player().id == current_ai_player_id:
+        while not self.is_game_over() and self.state.get_current_player().id == current_ai_player_id:
             current_player = self.state.get_current_player()
             ai_index = current_player.id - 1
             ap_remaining = self.state.action_points.get(current_player.id, 0)
