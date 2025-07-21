@@ -20,11 +20,23 @@ async def read_root():
 async def run_ai_turns(game: GameSession, websocket: WebSocket):
     await asyncio.sleep(0.1) 
     while not game.is_human_turn() and not game.is_game_over():
-        await asyncio.sleep(0.1) 
-        logs = game.run_one_ai_action()
-        new_state = game.get_state_for_client()
-        new_state['log'] = logs
-        await websocket.send_json(new_state)
+        try:
+            await asyncio.sleep(0.1) 
+            logs = game.run_one_ai_action()
+            new_state = game.get_state_for_client()
+            new_state['log'] = logs
+            await websocket.send_json(new_state)
+        except Exception as e:
+            error_message = f"Error during AI turn: {e}"
+            print(error_message)
+            # Send an error state to the client
+            error_state = game.get_state_for_client()
+            error_state['log'] = [error_message, "AI turn aborted. It is now the human's turn."]
+            # It's better to reset to human turn to avoid getting stuck
+            # This part needs a corresponding method in GameSession, e.g., force_next_turn()
+            # For now, we just send the error and stop the AI loop.
+            await websocket.send_json(error_state)
+            break # Exit the AI loop
 
 @app.websocket("/ws")
 async def websocket_endpoint(websocket: WebSocket):

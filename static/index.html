@@ -129,7 +129,29 @@
                 this.term.writeln(`\x1B[36mRound: ${state.round_marker}/4\x1B[0m`);
                 this.term.writeln(`\x1B[36mPhase: ${state.current_phase}\x1B[0m`);
                 this.term.writeln(`\x1B[36mPublic Mood: ${state.public_mood}\x1B[0m`);
-                // Add more info as needed, e.g., mandates, offices, legislation
+
+                const humanPlayer = state.players.find(p => p.name === 'Human');
+                if (humanPlayer && humanPlayer.mandate) {
+                    this.term.writeln('\n\x1B[1m🎯 Your Personal Mandate:\x1B[0m');
+                    this.term.writeln(`  \x1B[93m${humanPlayer.mandate.title}\x1B[0m`);
+                    this.term.writeln(`  \x1B[97m${humanPlayer.mandate.description}\x1B[0m`);
+                }
+
+                if (state.offices) {
+                    this.term.writeln('\n\x1B[1m🏛️  Available Offices:\x1B[0m');
+                    for (const office_id in state.offices) {
+                        const office = state.offices[office_id];
+                        this.term.writeln(`  ${office.title} (Tier ${office.tier}) - Cost: ${office.candidacy_cost} PC`);
+                    }
+                }
+
+                if (state.legislation_options) {
+                    this.term.writeln('\n\x1B[1m📜 Available Legislation:\x1B[0m');
+                    for (const leg_id in state.legislation_options) {
+                        const legislation = state.legislation_options[leg_id];
+                        this.term.writeln(`  ${legislation.title} - Cost: ${legislation.cost} PC`);
+                    }
+                }
             }
         }
 
