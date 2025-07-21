@@ -1,0 +1,41 @@
+{
+  "name": "election",
+  "version": "1.0.0",
+  "description": "Election is a digital adaptation of a political strategy board game. It is a turn-based game where players take on the roles of political actors vying for power. The game is currently in a **CLI-First Development** phase, prioritizing gameplay mechanics, balance, and simulation over a graphical user interface.",
+  "main": "index.js",
+  "dependencies": {
+    "playwright": "^1.54.1",
+    "playwright-core": "^1.54.1",
+    "undici-types": "^7.8.0"
+  },
+  "devDependencies": {
+    "jest": "^29.7.0",
+    "jest-environment-jsdom": "^30.0.4",
+    "jsdom": "^24.1.1",
+    "xterm": "^5.3.0"
+  },
+  "scripts": {
+    "test": "jest"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/hirememorey/election_game.git"
+  },
+  "jest": {
+    "testEnvironment": "jsdom",
+    "testMatch": [
+      "**/static/**/*.test.js"
+    ],
+    "setupFiles": [
+      "./jest.setup.js"
+    ]
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/hirememorey/election_game/issues"
+  },
+  "homepage": "https://github.com/hirememorey/election_game#readme"
+}
