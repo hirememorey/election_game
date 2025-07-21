@@ -12,6 +12,13 @@ class Office:
     income: int
     npc_challenger_bonus: int
 
+    def to_dict(self):
+        return {
+            "id": self.id, "title": self.title, "tier": self.tier,
+            "candidacy_cost": self.candidacy_cost, "income": self.income,
+            "npc_challenger_bonus": self.npc_challenger_bonus
+        }
+
 @dataclass
 class Legislation:
     """Represents a bill that can be sponsored."""
@@ -29,11 +36,22 @@ class Legislation:
     # Public mood change on success
     mood_change: int = 0
 
+    def to_dict(self):
+        return {
+            "id": self.id, "title": self.title, "cost": self.cost,
+            "success_target": self.success_target, "crit_target": self.crit_target,
+            "success_reward": self.success_reward, "crit_reward": self.crit_reward,
+            "failure_penalty": self.failure_penalty, "mood_change": self.mood_change
+        }
+
 @dataclass
 class PoliticalFavor:
     """A one-time use token for a small advantage."""
     id: str
     description: str
+
+    def to_dict(self):
+        return {"id": self.id, "description": self.description}
 
 @dataclass
 class Pledge:
@@ -45,12 +63,24 @@ class Pledge:
     # A description of the promised action, for logging
     promise_description: str
 
+    def to_dict(self):
+        return {
+            "promiser_id": self.promiser_id, "owed_to_id": self.owed_to_id,
+            "promise_description": self.promise_description
+        }
+
 @dataclass
 class Candidacy:
     """Stores a player's secret declaration for an office."""
     player_id: int
     office_id: str
     committed_pc: int
+
+    def to_dict(self):
+        return {
+            "player_id": self.player_id, "office_id": self.office_id,
+            "committed_pc": self.committed_pc
+        }
 
 @dataclass
 class Player:
@@ -63,6 +93,18 @@ class Player:
     current_office: Optional[Office] = None
     allies: List[AllianceCard] = field(default_factory=list)
     favors: List[PoliticalFavor] = field(default_factory=list)
+
+    def to_dict(self):
+        return {
+            "id": self.id, "name": self.name,
+            "archetype": self.archetype.to_dict(),
+            "mandate": self.mandate.to_dict(),
+            "pc": self.pc,
+            "current_office": self.current_office.to_dict() if self.current_office else None,
+            "allies": [ally.to_dict() for ally in self.allies],
+            "favors": [favor.to_dict() for favor in self.favors],
+            "is_incumbent": self.is_incumbent
+        }
 
     @property
     def is_incumbent(self) -> bool:

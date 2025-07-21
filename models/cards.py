@@ -11,6 +11,9 @@ class Card:
     title: str
     description: str
 
+    def to_dict(self):
+        return {"id": self.id, "title": self.title, "description": self.description}
+
 @dataclass
 class PoliticalArchetype(Card):
     """A special role defining a player's unique abilities."""
@@ -31,6 +34,11 @@ class EventCard(Card):
     # We'll use an effect_id to link to a handler in the engine.
     effect_id: str
 
+    def to_dict(self):
+        data = super().to_dict()
+        data['effect_id'] = self.effect_id
+        return data
+
 @dataclass
 class ScrutinyCard(EventCard):
     """A negative event card, usually drawn as a result of a scandal."""
@@ -42,6 +50,12 @@ class AllianceCard(Card):
     upkeep_cost: int = 0
     weakness_description: str = ""
     # Effect and weakness logic will be handled by the engine based on the card's ID.
+
+    def to_dict(self):
+        data = super().to_dict()
+        data['upkeep_cost'] = self.upkeep_cost
+        data['weakness_description'] = self.weakness_description
+        return data
 
 # --- Utility Classes ---
 

@@ -86,7 +86,26 @@ class GameState:
     awaiting_results_acknowledgement: bool = False
     last_election_results: Optional[dict] = None
     
-
+    def to_dict(self):
+        """Converts the entire game state to a JSON-serializable dictionary."""
+        return {
+            "players": [p.to_dict() for p in self.players],
+            "offices": {oid: o.to_dict() for oid, o in self.offices.items()},
+            "legislation_options": {lid: l.to_dict() for lid, l in self.legislation_options.items()},
+            "round_marker": self.round_marker,
+            "term_counter": self.term_counter,
+            "public_mood": self.public_mood,
+            "current_player_index": self.current_player_index,
+            "current_phase": self.current_phase,
+            "action_points": self.action_points,
+            "turn_log": self.turn_log,
+            "pending_legislation": self.pending_legislation.legislation_id if self.pending_legislation else None,
+            "active_effects": list(self.active_effects),
+            "awaiting_legislation_resolution": self.awaiting_legislation_resolution,
+            "awaiting_election_resolution": self.awaiting_election_resolution,
+            "awaiting_results_acknowledgement": self.awaiting_results_acknowledgement,
+            "last_election_results": self.last_election_results
+        }
 
     def get_current_player(self) -> Player:
         """Returns the player whose turn it is."""
