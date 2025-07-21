@@ -362,34 +362,39 @@ class CLIGame:
                 
             else:
                 # AI turn - run their entire turn automatically
-                while not self.game.is_human_turn() and not self.game.is_game_over():
-                    current_player_name = self.game.get_current_player_name()
-                    print(f"\n{Colors.BLUE}🤖 {current_player_name} is thinking...{Colors.END}")
+                if not self.game.is_game_over():
+                    current_ai_player_id = self.game.state.get_current_player().id
+                    current_ai_player_name = self.game.get_current_player_name()
                     
-                    # Add a small delay for better UX
-                    time.sleep(1)
+                    print(f"\n{Colors.BLUE}🤖 {current_ai_player_name} is thinking...{Colors.END}")
                     
-                    # Process the AI's action
-                    self.game.process_ai_turn()
-                    
-                    # Display what the AI did
-                    if self.game.state and self.game.state.turn_log:
-                        print(f"\n{Colors.BLUE}🤖 {current_player_name}'s actions:{Colors.END}")
-                        for message in self.game.state.turn_log:
+                    all_ai_actions_log = []
+
+                    # Loop as long as it is the current AI's turn
+                    while not self.game.is_game_over() and self.game.state.get_current_player().id == current_ai_player_id:
+                        time.sleep(1)
+                        
+                        self.game.process_ai_turn()
+                        
+                        # Collect logs and clear them to avoid re-printing
+                        if self.game.state and self.game.state.turn_log:
+                            all_ai_actions_log.extend(self.game.state.turn_log)
+                            self.game.clear_turn_log()
+
+                    # After the AI's turn is fully over, display all their actions.
+                    if all_ai_actions_log:
+                        print(f"\n{Colors.BLUE}🤖 {current_ai_player_name}'s actions:{Colors.END}")
+                        for message in all_ai_actions_log:
                             if message.strip():
-                                # Filter out secret commitment messages
-                                if "secretly commits" in message and current_player_name != "Human":
-                                    print(f"  {Colors.BLUE}•{Colors.END} {current_player_name} made a secret commitment.")
+                                if "secretly commits" in message and current_ai_player_name != "Human":
+                                    print(f"  {Colors.BLUE}•{Colors.END} {current_ai_player_name} made a secret commitment.")
                                 else:
                                     print(f"  {Colors.BLUE}•{Colors.END} {message}")
-                        
-                        # Clear the log after displaying
-                        self.game.clear_turn_log()
 
-                # After the AI's full turn is over, prompt to continue
-                if not self.game.is_game_over():
-                    next_player_name = self.game.get_current_player_name()
-                    self.view.prompt_for_next_turn(next_player_name)
+                    # Prompt to continue to the next player's turn
+                    if not self.game.is_game_over():
+                        next_player_name = self.game.get_current_player_name()
+                        self.view.prompt_for_next_turn(next_player_name)
         
         # Game over
         if self.game.is_game_over():
@@ -458,34 +463,39 @@ class CLIMultiAIGame:
                 
             else:
                 # AI turn - run their entire turn automatically
-                while not self.game.is_human_turn() and not self.game.is_game_over():
-                    current_player_name = self.game.get_current_player_name()
-                    print(f"\n{Colors.BLUE}🤖 {current_player_name} is thinking...{Colors.END}")
+                if not self.game.is_game_over():
+                    current_ai_player_id = self.game.state.get_current_player().id
+                    current_ai_player_name = self.game.get_current_player_name()
+
+                    print(f"\n{Colors.BLUE}🤖 {current_ai_player_name} is thinking...{Colors.END}")
+
+                    all_ai_actions_log = []
+
+                    # Loop as long as it is the current AI's turn
+                    while not self.game.is_game_over() and self.game.state.get_current_player().id == current_ai_player_id:
+                        time.sleep(1)
+
+                        self.game.process_ai_turn()
+
+                        # Collect logs and clear them to avoid re-printing
+                        if self.game.state and self.game.state.turn_log:
+                            all_ai_actions_log.extend(self.game.state.turn_log)
+                            self.game.clear_turn_log()
                     
-                    # Add a small delay for better UX
-                    time.sleep(1)
-                    
-                    # Process the AI's action
-                    self.game.process_ai_turn()
-                    
-                    # Display what the AI did
-                    if self.game.state and self.game.state.turn_log:
-                        print(f"\n{Colors.BLUE}🤖 {current_player_name}'s actions:{Colors.END}")
-                        for message in self.game.state.turn_log:
+                    # After the AI's turn is fully over, display all their actions.
+                    if all_ai_actions_log:
+                        print(f"\n{Colors.BLUE}🤖 {current_ai_player_name}'s actions:{Colors.END}")
+                        for message in all_ai_actions_log:
                             if message.strip():
-                                # Filter out secret commitment messages
-                                if "secretly commits" in message and current_player_name != "Human":
-                                    print(f"  {Colors.BLUE}•{Colors.END} {current_player_name} made a secret commitment.")
+                                if "secretly commits" in message and current_ai_player_name != "Human":
+                                    print(f"  {Colors.BLUE}•{Colors.END} {current_ai_player_name} made a secret commitment.")
                                 else:
                                     print(f"  {Colors.BLUE}•{Colors.END} {message}")
-                        
-                        # Clear the log after displaying
-                        self.game.clear_turn_log()
 
-                # After the AI's full turn is over, prompt to continue
-                if not self.game.is_game_over():
-                    next_player_name = self.game.get_current_player_name()
-                    self.view.prompt_for_next_turn(next_player_name)
+                    # Prompt for next turn
+                    if not self.game.is_game_over():
+                        next_player_name = self.game.get_current_player_name()
+                        self.view.prompt_for_next_turn(next_player_name)
         
         # Game over
         if self.game.is_game_over():
