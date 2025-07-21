@@ -50,7 +50,7 @@ class TerminalUI {
 
         if (state.log && state.log.length > 0) {
             this.term.writeln('\n\x1B[93m📰 Recent Events:\x1B[0m');
-            state.log.slice(-3).forEach(message => {
+            state.log.slice(-10).forEach(message => { // Show more logs
                 if (message.trim()) this.term.writeln(`  \x1B[93m•\x1B[0m ${message}`);
             });
         }
@@ -157,6 +157,7 @@ socket.onmessage = function(event) {
     const gameState = JSON.parse(event.data);
     currentState = gameState;
     ui.displayGameState(gameState);
+
     if (gameState.valid_actions) {
         validActions = gameState.valid_actions;
         ui.promptForAction(validActions);
@@ -165,6 +166,7 @@ socket.onmessage = function(event) {
 
 ui.onEnter = (input) => {
     const command = input.trim().toLowerCase();
+
     if (command === 'help') {
         ui.displayHelp();
         ui.promptForAction(validActions);
@@ -189,6 +191,6 @@ ui.onEnter = (input) => {
         ui.term.writeln(`\nInvalid choice: ${input}`);
         ui.promptForAction(validActions);
     }
-}; 
+};
 
 module.exports = { TerminalUI }; 

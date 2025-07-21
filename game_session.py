@@ -94,6 +94,12 @@ class GameSession:
         self.state = self.engine.process_action(self.state, action)
         logs = list(self.state.turn_log)
         self.state.clear_turn_log()
+
+        # After human action, run all AI turns until it's human's turn again
+        while not self.is_human_turn() and not self.is_game_over():
+            ai_logs = self.run_full_ai_turn()
+            logs.extend(ai_logs)
+            
         return logs
 
     def run_one_ai_action(self) -> List[str]:
