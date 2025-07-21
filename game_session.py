@@ -18,6 +18,7 @@ from personas.economic_persona import EconomicPersona
 from personas.legislative_persona import LegislativePersona
 from personas.balanced_persona import BalancedPersona
 from personas.heuristic_persona import HeuristicPersona
+from engine.actions import ActionPassTurn
 
 
 class GameSession:
@@ -75,65 +76,47 @@ class GameSession:
 
     def process_human_action(self, action_data: Dict[str, Any]) -> List[str]:
         """
-        Processes a single action from the human player and runs subsequent AI turns.
+        Processes a single action from the human player.
         Returns a log of all events that occurred.
         """
         if not self.state or not self.is_human_turn():
             return ["Error: It is not your turn."]
 
-        # Reconstruct the action object from the dictionary
         action = self.engine.action_from_dict(action_data)
         if not action:
             return ["Error: Invalid action data."]
-            
-        # Validate that the action is actually valid
+
         valid_actions = self.engine.get_valid_actions(self.state, self.human_player_id)
         if action not in valid_actions:
-             return ["Error: That action is not valid right now."]
+            return ["Error: That action is not valid right now."]
 
-        # Process the human action and collect logs
         self.state.clear_turn_log()
         self.state = self.engine.process_action(self.state, action)
-        human_logs = list(self.state.turn_log)
+        logs = list(self.state.turn_log)
         self.state.clear_turn_log()
+        return logs
 
-        # After the human action, run all subsequent AI turns
-        ai_logs = self._run_ai_turns()
-        
-        # The game state has been advanced by the AI turns, so the "new" state is the current state
-        final_logs = human_logs + ai_logs
-        
-        # The state has already been advanced by the engine, so we just return the logs
-        return final_logs
-
-    def _run_ai_turns(self) -> List[str]:
+    def run_one_ai_action(self) -> List[str]:
         """
-        Runs all consecutive AI turns until it's the human's turn again.
+        Runs a single action for the current AI player.
+        Returns the logs for that action.
         """
-        if not self.state or self.is_human_turn():
+        if not self.state or self.is_human_turn() or self.is_game_over():
             return []
-            
-        all_ai_logs = []
-        while not self.is_human_turn() and not self.is_game_over():
-            current_player = self.state.get_current_player()
-            persona = self.ai_personas[current_player.id - 1] 
 
-            # AI takes its full turn until it runs out of AP
-            while self.state.action_points[current_player.id] > 0 and not self.is_game_over():
-                self.state.clear_turn_log()
-                action = persona.choose_action(self.state, self.engine)
-                
-                if not action: # If persona returns None, it passes
-                    action = ActionPassTurn(player_id=current_player.id)
+        current_player = self.state.get_current_player()
+        persona = self.ai_personas[current_player.id - 1]
 
-                self.state = self.engine.process_action(self.state, action)
-                all_ai_logs.extend(self.state.turn_log)
+        if self.state.action_points.get(current_player.id, 0) <= 0:
+            action = ActionPassTurn(player_id=current_player.id)
+        else:
+            action = persona.choose_action(self.state, self.engine)
+            if not action:
+                action = ActionPassTurn(player_id=current_player.id)
 
-                # Break if the turn has somehow advanced to a different player
-                if self.state.get_current_player().id != current_player.id:
-                    break
-        
-        return all_ai_logs
+        self.state.clear_turn_log()
+        self.state = self.engine.process_action(self.state, action)
+        return list(self.state.turn_log)
 
     def is_human_turn(self) -> bool:
         if not self.state: return False

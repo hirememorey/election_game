@@ -3,6 +3,7 @@ from fastapi.staticfiles import StaticFiles
 from starlette.websockets import WebSocketDisconnect
 from game_session import GameSession
 import json
+import asyncio
 
 app = FastAPI()
 
@@ -15,6 +16,15 @@ app.mount("/static", StaticFiles(directory="static"), name="static")
 async def read_root():
     from fastapi.responses import RedirectResponse
     return RedirectResponse(url="/static/index.html")
+
+async def run_ai_turns(game: GameSession, websocket: WebSocket):
+    await asyncio.sleep(0.1) 
+    while not game.is_human_turn() and not game.is_game_over():
+        await asyncio.sleep(0.1) 
+        logs = game.run_one_ai_action()
+        new_state = game.get_state_for_client()
+        new_state['log'] = logs
+        await websocket.send_json(new_state)
 
 @app.websocket("/ws")
 async def websocket_endpoint(websocket: WebSocket):
@@ -36,12 +46,15 @@ async def websocket_endpoint(websocket: WebSocket):
             action_data = json.loads(data)
             
             # Process the human's action and get all the logs
-            all_logs = game.process_human_action(action_data)
+            logs = game.process_human_action(action_data)
             
             # Send the new state back to the client
             new_state = game.get_state_for_client()
-            new_state['log'] = all_logs # Make sure the log includes everything that happened
+            new_state['log'] = logs # Make sure the log includes everything that happened
             await websocket.send_json(new_state)
+
+            if not game.is_human_turn():
+                asyncio.create_task(run_ai_turns(game, websocket))
 
     except WebSocketDisconnect:
         print(f"Client {client_id} disconnected.")
