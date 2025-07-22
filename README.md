@@ -6,6 +6,12 @@ Election is a digital adaptation of a political strategy board game. It is a tur
 
 ## Recent Updates (Latest)
 
+### ✅ **Dynamic Legislation Menu System**
+- **Improved User Interface**: Consolidated legislation actions into a single "Legislation Actions" menu option for cleaner navigation.
+- **Context-Aware Sub-Menus**: Dynamic sub-menus that show different options based on game state (sponsor new bill vs. support/oppose pending legislation).
+- **Strategic Commitment System**: Hidden commitment amounts and stance in event log to enhance strategic gameplay and prevent information overload.
+- **Bug Prevention**: Added validation to prevent double-sponsoring of legislation, ensuring proper game flow.
+
 ### ✅ **Critical Bug Fixes**
 - **AI Player Issue Resolved**: Fixed a critical bug where AI players would get stuck during their turn due to incorrect parameter passing in the game session manager.
 - **Server Startup**: Fixed missing uvicorn run command that prevented the server from starting properly.
