@@ -154,13 +154,14 @@ class HumanVsAIGame:
             chosen_action = self.ai_persona.choose_action(self.state, valid_actions)
             print(f"[DEBUG] {current_player.name} chose: {chosen_action.__class__.__name__}")
             
-            # Process the action and capture the log
+            # Process the action, capture the log, and immediately clear it from the state
             self.state.clear_turn_log()
             self.state = self.engine.process_action(self.state, chosen_action)
             turn_logs.extend(self.state.turn_log)
+            self.state.clear_turn_log()
 
-        # After the AI's turn is done, the engine might have triggered events.
-        # We need to capture those logs as well.
+        # After the AI's turn is done, the engine might have triggered other events.
+        # This final check ensures any remaining logs are captured and cleared.
         if self.state.turn_log:
              turn_logs.extend(self.state.turn_log)
              self.state.clear_turn_log()
@@ -362,13 +363,14 @@ class HumanVsMultipleAIGame:
             chosen_action = self.ai_personas[ai_index].choose_action(self.state, valid_actions)
             print(f"[DEBUG] {current_player.name} chose: {chosen_action.__class__.__name__}")
             
-            # Process the action and capture the log
+            # Process the action, capture the log, and immediately clear it from the state
             self.state.clear_turn_log()
             self.state = self.engine.process_action(self.state, chosen_action)
             turn_logs.extend(self.state.turn_log)
+            self.state.clear_turn_log()
 
-        # After the AI's turn is done, the engine might have triggered events.
-        # We need to capture those logs as well.
+        # After the AI's turn is done, the engine might have triggered other events.
+        # This final check ensures any remaining logs are captured and cleared.
         if self.state.turn_log:
              turn_logs.extend(self.state.turn_log)
              self.state.clear_turn_log()

@@ -449,12 +449,12 @@ class CLIGame:
         
         # Main game loop
         while not self.game.is_game_over():
+            # Clear turn log at the start of each player's turn to prevent duplicates
+            self.game.clear_turn_log()
+            
             # Display current state
             if self.game.state:
                 self.view.display_game_state(self.game.state)
-            
-            # Clear turn log at the start of each player's turn
-            self.game.clear_turn_log()
             
             # Check if it's human turn
             if self.game.is_human_turn():
@@ -550,12 +550,12 @@ class CLIMultiAIGame:
         
         # Main game loop
         while not self.game.is_game_over():
+            # Clear turn log at the start of each player's turn to prevent duplicates
+            self.game.clear_turn_log()
+
             # Display current state
             if self.game.state:
                 self.view.display_game_state(self.game.state)
-            
-            # Clear turn log at the start of each player's turn
-            self.game.clear_turn_log()
             
             # Check if it's human turn
             if self.game.is_human_turn():
