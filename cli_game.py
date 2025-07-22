@@ -113,28 +113,53 @@ class CLIGameView:
         
         print(f"\n{Colors.BOLD}{'='*70}{Colors.END}")
     
-    def display_available_actions(self, actions: List[Action]) -> None:
+    def display_available_actions(self, actions: List[Action], state: GameState) -> None:
         """
         Display available actions for the current player with enhanced descriptions.
         
         Args:
             actions: List of valid actions
+            state: The current game state
         """
         if not actions:
             print(f"{Colors.RED}No actions available.{Colors.END}")
             return
         
         print(f"\n{Colors.BOLD}🎮 Available Actions:{Colors.END}")
-        for i, action in enumerate(actions, 1):
-            action_desc = self._get_enhanced_action_description(action)
-            print(f"  {Colors.CYAN}[{i}]{Colors.END} {action_desc}")
+        
+        # Consolidate legislation actions into a single menu item
+        action_map = {}
+        has_legislation_action = False
+        
+        # Basic actions
+        i = 1
+        for action in actions:
+            if not isinstance(action, (ActionSponsorLegislation, ActionSupportLegislation, ActionOpposeLegislation)):
+                action_map[i] = action
+                action_desc = self._get_enhanced_action_description(action)
+                print(f"  {Colors.CYAN}[{i}]{Colors.END} {action_desc}")
+                i += 1
+        
+        # Legislation actions
+        if any(isinstance(a, (ActionSponsorLegislation, ActionSupportLegislation, ActionOpposeLegislation)) for a in actions):
+            has_legislation_action = True
+            action_map['l'] = 'legislation'
+            print(f"  {Colors.CYAN}[L]{Colors.END} {Colors.YELLOW}📜 Legislation Actions{Colors.END} - Sponsor, support, or oppose a bill")
+        
+        # Add pass turn if available
+        pass_action = next((a for a in actions if isinstance(a, ActionPassTurn)), None)
+        if pass_action:
+            action_map['p'] = pass_action
+            print(f"  {Colors.CYAN}[P]{Colors.END} {self._get_enhanced_action_description(pass_action)}")
         
         # Add special commands
         print(f"\n{Colors.BOLD}🔧 Special Commands:{Colors.END}")
         print(f"  {Colors.YELLOW}[info]{Colors.END} View detailed game information")
         print(f"  {Colors.YELLOW}[help]{Colors.END} Show action descriptions")
         print(f"  {Colors.YELLOW}[quit]{Colors.END} Exit the game")
-    
+        
+        return action_map
+
     def _get_enhanced_action_description(self, action: Action) -> str:
         """Get a detailed, human-readable description of an action."""
         if isinstance(action, ActionFundraise):
@@ -142,9 +167,11 @@ class CLIGameView:
         elif isinstance(action, ActionNetwork):
             return f"{Colors.BLUE}🤝 Network{Colors.END} - Build connections to gain PC and potential favors"
         elif isinstance(action, ActionSponsorLegislation):
-            return f"{Colors.YELLOW}📜 Sponsor Legislation{Colors.END} - Propose new legislation (Cost: {action.legislation_id})"
+            bill = self.game.state.legislation_options.get(action.legislation_id)
+            return f"{Colors.YELLOW}📜 Sponsor Legislation{Colors.END} - Propose {bill.title} (Cost: {bill.cost} PC)"
         elif isinstance(action, ActionDeclareCandidacy):
-            return f"{Colors.CYAN}🏛️  Declare Candidacy{Colors.END} - Run for office (Cost: {action.committed_pc} PC)"
+            office = self.game.state.offices.get(action.office_id)
+            return f"{Colors.CYAN}🏛️  Declare Candidacy{Colors.END} - Run for {office.title}"
         elif isinstance(action, ActionUseFavor):
             return f"{Colors.MAGENTA}🎁 Use Favor{Colors.END} - Call in a political favor"
         elif isinstance(action, ActionSupportLegislation):
@@ -156,16 +183,19 @@ class CLIGameView:
         else:
             return f"{Colors.WHITE}{action.__class__.__name__}{Colors.END}"
     
-    def prompt_for_action(self, actions: List[Action]) -> Optional[Action]:
+    def prompt_for_action(self, actions: List[Action], state: GameState) -> Optional[Action]:
         """
         Prompt the user to select an action with enhanced input handling.
         
         Args:
             actions: List of valid actions
+            state: The current game state
             
         Returns:
             Selected action or None if user wants to quit
         """
+        action_map = self.display_available_actions(actions, state)
+        
         while True:
             try:
                 choice = input(f"\n{Colors.BOLD}Enter your choice: {Colors.END}").strip().lower()
@@ -175,25 +205,105 @@ class CLIGameView:
                     return None
                 elif choice == 'info':
                     self._display_game_info()
+                    self.display_available_actions(actions, state)
                     continue
                 elif choice == 'help':
                     self._display_action_help()
+                    self.display_available_actions(actions, state)
                     continue
                 
-                # Handle numeric choice
+                # Handle legislation sub-menu
+                if choice == 'l' and 'l' in action_map:
+                    return self._prompt_for_legislation_action(actions)
+                
+                # Handle numeric and character choices
                 try:
-                    choice_num = int(choice)
-                    if 1 <= choice_num <= len(actions):
-                        return actions[choice_num - 1]
+                    key = int(choice) if choice.isdigit() else choice
+                    if key in action_map:
+                        return action_map[key]
                     else:
-                        print(f"{Colors.RED}Invalid choice. Please enter a number between 1 and {len(actions)}.{Colors.END}")
-                except ValueError:
-                    print(f"{Colors.RED}Please enter a valid number or command.{Colors.END}")
+                        print(f"{Colors.RED}Invalid choice. Please enter a valid option.{Colors.END}")
+                except (ValueError, KeyError):
+                    print(f"{Colors.RED}Please enter a valid option from the list.{Colors.END}")
                     
             except KeyboardInterrupt:
                 print(f"\n{Colors.YELLOW}Game interrupted. Exiting...{Colors.END}")
                 return None
     
+    def _prompt_for_legislation_action(self, all_actions: List[Action]) -> Optional[Action]:
+        """Handle the legislation sub-menu."""
+        state = self.game.state
+        
+        # Scenario A: A bill is pending
+        if state.pending_legislation and not state.pending_legislation.resolved:
+            bill = state.legislation_options[state.pending_legislation.legislation_id]
+            print(f"\n--- {Colors.YELLOW}The '{bill.title}' is currently pending.{Colors.END} ---")
+            print("What is your stance?")
+            
+            support_action = next((a for a in all_actions if isinstance(a, ActionSupportLegislation)), None)
+            oppose_action = next((a for a in all_actions if isinstance(a, ActionOpposeLegislation)), None)
+            
+            options = {}
+            if support_action:
+                options['1'] = ("✅ Support the Legislation", support_action)
+            if oppose_action:
+                options['2'] = ("❌ Oppose the Legislation", oppose_action)
+            options['3'] = ("⏪ Back to Main Menu", None)
+            
+            for key, (desc, _) in options.items():
+                print(f"  [{key}] {desc}")
+            
+            while True:
+                choice = input(f"\nEnter your choice: ").strip().lower()
+                if choice in options:
+                    desc, action = options[choice]
+                    if action:
+                        # Prompt for PC amount
+                        while True:
+                            try:
+                                amount_str = input(f"How much PC to commit? (You have {state.get_current_player().pc}) ").strip()
+                                amount = int(amount_str)
+                                if amount > 0 and amount <= state.get_current_player().pc:
+                                    if isinstance(action, ActionSupportLegislation):
+                                        action.support_amount = amount
+                                    else:
+                                        action.oppose_amount = amount
+                                    return action
+                                else:
+                                    print(f"{Colors.RED}Invalid amount. Please enter a number between 1 and {state.get_current_player().pc}.{Colors.END}")
+                            except ValueError:
+                                print(f"{Colors.RED}Please enter a valid number.{Colors.END}")
+                    else:
+                        return "back" # Sentinel value to re-prompt
+                else:
+                    print(f"{Colors.RED}Invalid choice.{Colors.END}")
+
+        # Scenario B: No bill is pending
+        else:
+            print(f"\n--- {Colors.YELLOW}Sponsor a New Bill{Colors.END} ---")
+            sponsor_actions = [a for a in all_actions if isinstance(a, ActionSponsorLegislation)]
+            
+            options = {}
+            for i, action in enumerate(sponsor_actions, 1):
+                bill = state.legislation_options[action.legislation_id]
+                options[str(i)] = (f"Sponsor {bill.title} (Cost: {bill.cost} PC)", action)
+            
+            options[str(len(sponsor_actions) + 1)] = ("⏪ Back to Main Menu", None)
+
+            for key, (desc, _) in options.items():
+                print(f"  [{key}] {desc}")
+            
+            while True:
+                choice = input(f"\nEnter your choice: ").strip().lower()
+                if choice in options:
+                    desc, action = options[choice]
+                    if action:
+                        return action
+                    else:
+                        return "back" # Sentinel value to re-prompt
+                else:
+                    print(f"{Colors.RED}Invalid choice.{Colors.END}")
+
     def _display_game_info(self):
         """Display detailed game information."""
         if not self.game or not self.game.state:
@@ -349,16 +459,27 @@ class CLIGame:
             # Check if it's human turn
             if self.game.is_human_turn():
                 # Human turn
-                actions = self.game.get_valid_actions()
-                self.view.display_available_actions(actions)
+                action_to_process = None
+                while not action_to_process:
+                    actions = self.game.get_valid_actions()
+                    action = self.view.prompt_for_action(actions, self.game.state)
+                    
+                    if action is None: # User chose to quit
+                        action_to_process = "quit"
+                        break
+                    
+                    if action != "back":
+                        action_to_process = action
+                    else:
+                        # User backed out of sub-menu, redisplay top-level actions
+                        self.view.display_game_state(self.game.state)
                 
-                action = self.view.prompt_for_action(actions)
-                if action is None:
+                if action_to_process == "quit":
                     print(f"{Colors.YELLOW}Game ended by user.{Colors.END}")
                     break
                 
                 # Process human action
-                self.game.process_human_action(action)
+                self.game.process_human_action(action_to_process)
                 
             else:
                 # AI turn - run their entire turn automatically
@@ -440,9 +561,9 @@ class CLIMultiAIGame:
             if self.game.is_human_turn():
                 # Human turn
                 actions = self.game.get_valid_actions()
-                self.view.display_available_actions(actions)
+                self.view.display_available_actions(actions, self.game.state)
                 
-                action = self.view.prompt_for_action(actions)
+                action = self.view.prompt_for_action(actions, self.game.state)
                 if action is None:
                     print(f"{Colors.YELLOW}Game ended by user.{Colors.END}")
                     break

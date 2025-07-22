@@ -265,6 +265,11 @@ def resolve_use_favor(state: GameState, action: ActionUseFavor) -> GameState:
 def resolve_sponsor_legislation(state: GameState, action: ActionSponsorLegislation) -> GameState:
     player = state.get_player_by_id(action.player_id)
     if not player: return state
+
+    # NEW: Check if there's already pending legislation
+    if state.pending_legislation and not state.pending_legislation.resolved:
+        state.add_log(f"Cannot sponsor a new bill while '{state.legislation_options[state.pending_legislation.legislation_id].title}' is pending.")
+        return state
     
     bill = state.legislation_options[action.legislation_id]
     if player.pc < bill.cost:
@@ -276,12 +281,6 @@ def resolve_sponsor_legislation(state: GameState, action: ActionSponsorLegislati
     state.add_log(f"This legislation will be voted on during the end-of-term legislation session.")
     
     # Create pending legislation for other players to respond to during the term
-    # If there's already pending legislation, move it to term_legislation first
-    if state.pending_legislation and not state.pending_legislation.resolved:
-        state.term_legislation.append(state.pending_legislation)
-        state.pending_legislation = None
-    
-    # Create new pending legislation
     state.pending_legislation = PendingLegislation(
         legislation_id=action.legislation_id,
         sponsor_id=player.id
@@ -342,16 +341,15 @@ def resolve_support_legislation(state: GameState, action: ActionSupportLegislati
     # Provide confirmation feedback - only to the acting player, not publicly
     # Secret commitments should not be revealed to other players
     # Only log for human players (AI secret commitments should be hidden)
+    bill = state.legislation_options[action.legislation_id]
     if player.name == "Human":
         if is_sponsor:
-            state.add_log(f"{player.name} secretly commits {action.support_amount} PC to support their own legislation.")
-            state.add_log(f"Secret commitment has been registered.")
+            state.add_log(f"You secretly commit {action.support_amount} PC to support your own legislation.")
         else:
-            state.add_log(f"{player.name} secretly commits {action.support_amount} PC to support the legislation.")
-            state.add_log(f"Secret commitment has been registered.")
-    else:
-        # Public log for AI players
-        state.add_log(f"{player.name} commits {action.support_amount} PC to support the legislation.")
+            state.add_log(f"You secretly commit {action.support_amount} PC to support the {bill.title}.")
+    
+    # Public log for all players (including AI)
+    state.add_log(f"{player.name} makes a commitment to the {bill.title}.")
 
     return state
 
@@ -407,16 +405,15 @@ def resolve_oppose_legislation(state: GameState, action: ActionOpposeLegislation
     # Provide confirmation feedback - only to the acting player, not publicly
     # Secret commitments should not be revealed to other players
     # Only log for human players (AI secret commitments should be hidden)
+    bill = state.legislation_options[action.legislation_id]
     if player.name == "Human":
         if is_sponsor:
-            state.add_log(f"{player.name} secretly commits {action.oppose_amount} PC to oppose their own legislation.")
-            state.add_log(f"Secret commitment has been registered.")
+            state.add_log(f"You secretly commit {action.oppose_amount} PC to oppose your own legislation.")
         else:
-            state.add_log(f"{player.name} secretly commits {action.oppose_amount} PC to oppose the legislation.")
-            state.add_log(f"Secret commitment has been registered.")
-    else:
-        # Public log for AI players
-        state.add_log(f"{player.name} commits {action.oppose_amount} PC to oppose the legislation.")
+            state.add_log(f"You secretly commit {action.oppose_amount} PC to oppose the {bill.title}.")
+
+    # Public log for all players (including AI)
+    state.add_log(f"{player.name} makes a commitment to the {bill.title}.")
 
     return state
 
