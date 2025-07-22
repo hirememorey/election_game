@@ -1,4 +1,5 @@
 const { Terminal } = require('xterm');
+const { FitAddon } = require('xterm-addon-fit');
 
 class TerminalUI {
     constructor() {
@@ -9,7 +10,11 @@ class TerminalUI {
                 foreground: '#d4d4d4',
             }
         });
+        this.fitAddon = new FitAddon();
+        this.term.loadAddon(this.fitAddon);
         this.term.open(document.getElementById('terminal-container'));
+        this.fitAddon.fit();
+        window.addEventListener('resize', () => this.fitAddon.fit());
         this.term.writeln('Welcome to Election: The Game!');
         this.term.writeln('Connecting to server...');
         this.inputBuffer = '';
