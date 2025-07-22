@@ -158,14 +158,26 @@ socket.onmessage = function(event) {
     currentState = gameState;
     ui.displayGameState(gameState);
 
-    if (gameState.valid_actions) {
+    if (gameState.valid_actions && gameState.valid_actions.length > 0) {
         validActions = gameState.valid_actions;
         ui.promptForAction(validActions);
+    } else if (!gameState.is_game_over) {
+        ui.promptToContinue();
     }
 };
 
+ui.promptToContinue = function() {
+    this.term.writeln('\n\x1B[1;93mPress [Enter] to continue...\x1B[0m');
+}
+
 ui.onEnter = (input) => {
     const command = input.trim().toLowerCase();
+
+    // If it's not the human's turn, any 'enter' is a continue.
+    if (!validActions || validActions.length === 0) {
+        socket.send(JSON.stringify({ action_type: 'continue' }));
+        return;
+    }
 
     if (command === 'help') {
         ui.displayHelp();
@@ -187,6 +199,7 @@ ui.onEnter = (input) => {
     if (validActions && choice > 0 && choice <= validActions.length) {
         const action = validActions[choice - 1];
         socket.send(JSON.stringify(action));
+        validActions = []; // Clear actions after sending
     } else {
         ui.term.writeln(`\nInvalid choice: ${input}`);
         ui.promptForAction(validActions);

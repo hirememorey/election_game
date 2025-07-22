@@ -64,6 +64,7 @@ class GameSession:
         # on the GameState and its components. For now, this provides a basic structure.
         state_dict = self.state.to_dict()
         state_dict['log'] = list(self.state.turn_log)
+        state_dict['is_game_over'] = self.is_game_over()
 
 
         # If it's the human's turn, add the available actions to the state payload
@@ -71,36 +72,66 @@ class GameSession:
             valid_actions = self.engine.get_valid_actions(self.state, self.human_player_id)
             # We need to serialize the actions as well
             state_dict['valid_actions'] = [action.to_dict() for action in valid_actions]
+        else:
+            state_dict['valid_actions'] = []
         
         return state_dict
 
-    def process_human_action(self, action_data: Dict[str, Any]) -> List[str]:
+    def process_action(self, action_data: Dict[str, Any]) -> List[str]:
         """
-        Processes a single action from the human player.
+        Processes a single action from the player.
         Returns a log of all events that occurred.
         """
-        if not self.state or not self.is_human_turn():
-            return ["Error: It is not your turn."]
+        if not self.state or self.is_game_over():
+            return ["Error: Game is not active."]
+
+        # Special case for a "continue" action from the client
+        if action_data.get("action_type") == "continue":
+            return []
 
         action = self.engine.action_from_dict(action_data)
         if not action:
             return ["Error: Invalid action data."]
 
-        valid_actions = self.engine.get_valid_actions(self.state, self.human_player_id)
+        valid_actions = self.engine.get_valid_actions(self.state, self.state.get_current_player().id)
         if action not in valid_actions:
-            return ["Error: That action is not valid right now."]
+            # Construct a helpful error message
+            error_msg = f"Error: Invalid action. Valid actions are: {[a.to_dict() for a in valid_actions]}"
+            print(f"Invalid action attempted: {action.to_dict()}")
+            print(f"Current Player: {self.state.get_current_player().id}")
+            return [error_msg]
+
 
         self.state.clear_turn_log()
         self.state = self.engine.process_action(self.state, action)
-        logs = list(self.state.turn_log)
-        self.state.clear_turn_log()
+        return list(self.state.turn_log)
 
-        # After human action, run all AI turns until it's human's turn again
-        while not self.is_human_turn() and not self.is_game_over():
-            ai_logs = self.run_full_ai_turn()
-            logs.extend(ai_logs)
+
+    def run_ai_turn(self) -> List[str]:
+        """
+        Runs a single turn for the current AI player.
+        A turn consists of multiple actions until AP is depleted.
+        """
+        if not self.state or self.is_human_turn() or self.is_game_over():
+            return []
+
+        turn_logs = []
+        current_player_id = self.state.get_current_player().id
+
+        # Loop as long as it's the current AI's turn and they have AP
+        while (not self.is_game_over() and
+               self.state.get_current_player().id == current_player_id and
+               self.state.action_points.get(current_player_id, 0) > 0):
             
-        return logs
+            action_logs = self.run_one_ai_action()
+            turn_logs.extend(action_logs)
+
+        # After the loop, the turn might have auto-passed. Capture any final logs.
+        if self.state.turn_log:
+            turn_logs.extend(self.state.turn_log)
+            self.state.clear_turn_log()
+            
+        return turn_logs
 
     def run_one_ai_action(self) -> List[str]:
         """
@@ -127,29 +158,11 @@ class GameSession:
 
     def run_full_ai_turn(self) -> List[str]:
         """
-        Runs all actions for the current AI player's turn.
-        Returns a consolidated log of all actions taken.
+        DEPRECATED: This method is no longer suitable for the interactive web version.
+        Use run_ai_turn instead.
         """
-        if not self.state or self.is_human_turn() or self.is_game_over():
-            return []
-
-        turn_logs = []
-        current_player_id = self.state.get_current_player().id
-
-        # Loop as long as it's the current AI's turn and they have AP
-        while (not self.is_game_over() and 
-               self.state.get_current_player().id == current_player_id and
-               self.state.action_points.get(current_player_id, 0) > 0):
-            
-            action_logs = self.run_one_ai_action()
-            turn_logs.extend(action_logs)
-
-        # After the loop, the turn might have auto-passed. Capture any final logs.
-        if self.state.turn_log:
-            turn_logs.extend(self.state.turn_log)
-            self.state.clear_turn_log()
-            
-        return turn_logs
+        print("Warning: run_full_ai_turn is deprecated.")
+        return self.run_ai_turn()
 
     def is_human_turn(self) -> bool:
         if not self.state: return False
