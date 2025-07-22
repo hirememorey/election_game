@@ -129,8 +129,18 @@ class GameEngine:
         current_player = new_state.get_current_player()
         if new_state.action_points[current_player.id] <= 0:
             new_state.add_log(f"{current_player.name}'s turn ends.")
-            new_state.current_player_index = (new_state.current_player_index + 1) % len(new_state.players)
-            new_state.add_log(f"It is now {new_state.get_current_player().name}'s turn.")
+            
+            # Check if all players have 0 AP. If so, the round is over.
+            all_players_finished = all(ap <= 0 for ap in new_state.action_points.values())
+            
+            if all_players_finished:
+                # All players have finished their turns, so run upkeep to start the next round
+                new_state.add_log("All players have completed their turns. Advancing to the next round.")
+                return self.run_upkeep_phase(new_state)
+            else:
+                # Not all players are finished, so just advance to the next player
+                new_state.current_player_index = (new_state.current_player_index + 1) % len(new_state.players)
+                new_state.add_log(f"It is now {new_state.get_current_player().name}'s turn.")
 
         return new_state
 
