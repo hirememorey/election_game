@@ -234,20 +234,24 @@ class CLIGameView:
         """Handle the legislation sub-menu."""
         state = self.game.state
         
-        # Scenario A: A bill is pending
-        if state.pending_legislation and not state.pending_legislation.resolved:
-            bill = state.legislation_options[state.pending_legislation.legislation_id]
-            print(f"\n--- {Colors.YELLOW}The '{bill.title}' is currently pending.{Colors.END} ---")
-            print("What is your stance?")
+        # Check for active legislation (bills that can be supported/opposed)
+        active_legislation = [leg for leg in state.term_legislation if not leg.resolved]
+        
+        # Scenario A: There are active bills to support/oppose
+        if active_legislation:
+            print(f"\n--- {Colors.YELLOW}Active Legislation{Colors.END} ---")
+            for i, legislation in enumerate(active_legislation, 1):
+                bill = state.legislation_options[legislation.legislation_id]
+                print(f"  {i}. {bill.title}")
             
             support_action = next((a for a in all_actions if isinstance(a, ActionSupportLegislation)), None)
             oppose_action = next((a for a in all_actions if isinstance(a, ActionOpposeLegislation)), None)
             
             options = {}
             if support_action:
-                options['1'] = ("✅ Support the Legislation", support_action)
+                options['1'] = ("✅ Support Legislation", support_action)
             if oppose_action:
-                options['2'] = ("❌ Oppose the Legislation", oppose_action)
+                options['2'] = ("❌ Oppose Legislation", oppose_action)
             options['3'] = ("⏪ Back to Main Menu", None)
             
             for key, (desc, _) in options.items():
@@ -278,7 +282,7 @@ class CLIGameView:
                 else:
                     print(f"{Colors.RED}Invalid choice.{Colors.END}")
 
-        # Scenario B: No bill is pending
+        # Scenario B: No active bills, can sponsor new legislation
         else:
             print(f"\n--- {Colors.YELLOW}Sponsor a New Bill{Colors.END} ---")
             sponsor_actions = [a for a in all_actions if isinstance(a, ActionSponsorLegislation)]

@@ -174,13 +174,16 @@ def resolve_use_favor(state: GameState, action: ActionUseFavor) -> GameState:
         state.add_log(f"{player.name} uses '{favor.description}' and gains {pc_gain} PC.")
     
     elif favor.id == "LEGISLATIVE_INFLUENCE":
-        if state.pending_legislation:
-            # Add support to pending legislation
-            current_support = state.pending_legislation.support_players.get(player.id, 0)
-            state.pending_legislation.support_players[player.id] = current_support + 5
-            state.add_log(f"{player.name} uses '{favor.description}' to add 5 PC support to pending legislation.")
+        active_legislation = [leg for leg in state.term_legislation if not leg.resolved]
+        if active_legislation:
+            # Add support to the first active legislation
+            target_legislation = active_legislation[0]
+            current_support = target_legislation.support_players.get(player.id, 0)
+            target_legislation.support_players[player.id] = current_support + 5
+            bill = state.legislation_options[target_legislation.legislation_id]
+            state.add_log(f"{player.name} uses '{favor.description}' to add 5 PC support to {bill.title}.")
         else:
-            state.add_log(f"{player.name} uses '{favor.description}' but there's no pending legislation.")
+            state.add_log(f"{player.name} uses '{favor.description}' but there's no active legislation.")
     
     elif favor.id == "MEDIA_SPIN":
         # Improve public mood with incumbent/outsider logic
