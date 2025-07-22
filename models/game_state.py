@@ -56,9 +56,6 @@ class GameState:
     turn_log: List[str] = field(default_factory=list)
     secret_candidacies: List[Candidacy] = field(default_factory=list)
     
-    # New: Track pending legislation and candidacy timing
-    pending_legislation: Optional[PendingLegislation] = None
-    
     # End-of-term legislation session
     term_legislation: List[PendingLegislation] = field(default_factory=list)  # All legislation sponsored this term
     
@@ -100,7 +97,6 @@ class GameState:
             "current_phase": self.current_phase,
             "action_points": self.action_points,
             "turn_log": self.turn_log,
-            "pending_legislation": self.pending_legislation.legislation_id if self.pending_legislation else None,
             "active_effects": list(self.active_effects),
             "awaiting_legislation_resolution": self.awaiting_legislation_resolution,
             "awaiting_election_resolution": self.awaiting_election_resolution,

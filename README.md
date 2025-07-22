@@ -6,6 +6,12 @@ Election is a digital adaptation of a political strategy board game. It is a tur
 
 ## Recent Updates (Latest)
 
+### ✅ **Multiple Legislation System Fix**
+- **Fixed Legislation Bottleneck**: Resolved critical bug where only one piece of legislation could be sponsored per term, preventing players from sponsoring multiple bills simultaneously.
+- **Enhanced Game Flow**: Players can now sponsor multiple pieces of legislation in the same round, allowing for more strategic gameplay and increased player agency.
+- **Improved Action Resolution**: Refactored the game engine to properly handle support and opposition actions across multiple active bills.
+- **Clean Architecture**: Removed obsolete `pending_legislation` attribute and streamlined the legislation management system for better maintainability.
+
 ### ✅ **CLI Game Display Bug Fix**
 - **Fixed Duplicated Log Messages**: Resolved issue where AI turn messages were appearing multiple times in the "Recent Events" section of the CLI game display.
 - **Improved Log Management**: Enhanced the turn log clearing mechanism in both `cli_game.py` and `human_vs_ai.py` to prevent message duplication.

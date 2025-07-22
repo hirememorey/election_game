@@ -200,12 +200,6 @@ class GameEngine:
         for player in state.players:
             state.action_points[player.id] = 0
         
-        # Move any current pending legislation to term legislation
-        if state.pending_legislation and not state.pending_legislation.resolved:
-            print(f"[DEBUG] Moving pending legislation to term legislation: {state.pending_legislation.legislation_id}")
-            state.term_legislation.append(state.pending_legislation)
-            state.pending_legislation = None
-        
         print(f"[DEBUG] After moving pending legislation, term_legislation has {len(state.term_legislation)} items")
         
         # If no legislation was sponsored this term, skip to elections
@@ -331,23 +325,26 @@ class GameEngine:
                 ))
         
         # Support/Oppose Legislation (1 AP each, if there's pending legislation)
-        if state.pending_legislation and not state.pending_legislation.resolved:
+        active_legislation = [leg for leg in state.term_legislation if not leg.resolved]
+        if active_legislation:
             if can_afford_action("ActionSupportLegislation") and player.pc > 0:
-                # Can support with any amount of PC
-                for pc_amount in range(1, min(player.pc + 1, 21)):  # Cap at 20 PC
-                    valid_actions.append(ActionSupportLegislation(
-                        player_id=player_id,
-                        legislation_id=state.pending_legislation.legislation_id,
-                        support_amount=pc_amount
-                    ))
+                for leg in active_legislation:
+                    # Can support with any amount of PC
+                    for pc_amount in range(1, min(player.pc + 1, 21)):  # Cap at 20 PC
+                        valid_actions.append(ActionSupportLegislation(
+                            player_id=player_id,
+                            legislation_id=leg.legislation_id,
+                            support_amount=pc_amount
+                        ))
             if can_afford_action("ActionOpposeLegislation") and player.pc > 0:
-                # Can oppose with any amount of PC
-                for pc_amount in range(1, min(player.pc + 1, 21)):  # Cap at 20 PC
-                    valid_actions.append(ActionOpposeLegislation(
-                        player_id=player_id,
-                        legislation_id=state.pending_legislation.legislation_id,
-                        oppose_amount=pc_amount
-                    ))
+                for leg in active_legislation:
+                    # Can oppose with any amount of PC
+                    for pc_amount in range(1, min(player.pc + 1, 21)):  # Cap at 20 PC
+                        valid_actions.append(ActionOpposeLegislation(
+                            player_id=player_id,
+                            legislation_id=leg.legislation_id,
+                            oppose_amount=pc_amount
+                        ))
         
         # Pass Turn (always available)
         valid_actions.append(ActionPassTurn(player_id=player_id))
@@ -427,8 +424,7 @@ class GameEngine:
         state.add_log("\n--- LEGISLATION SESSION: Resolving All Bills ---")
         for legislation in state.term_legislation:
             if not legislation.resolved:
-                state.pending_legislation = legislation
-                state = resolvers.resolve_pending_legislation(state)
+                state = resolvers._resolve_single_legislation(state, legislation)
         # Clear term legislation and move to elections
         state.term_legislation.clear()
         state.current_player_index = 0  # Reset for new term
@@ -472,8 +468,7 @@ class GameEngine:
                     state.add_log(f"No secret commitments found for {legislation_id}")
                 
                 # Now resolve the legislation using the existing system
-                state.pending_legislation = legislation
-                state = resolvers.resolve_pending_legislation(state)
+                state = resolvers._resolve_single_legislation(state, legislation)
         
         # Clear term legislation and move to elections
         state.term_legislation.clear()

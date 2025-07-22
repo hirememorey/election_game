@@ -266,11 +266,6 @@ def resolve_sponsor_legislation(state: GameState, action: ActionSponsorLegislati
     player = state.get_player_by_id(action.player_id)
     if not player: return state
 
-    # NEW: Check if there's already pending legislation
-    if state.pending_legislation and not state.pending_legislation.resolved:
-        state.add_log(f"Cannot sponsor a new bill while '{state.legislation_options[state.pending_legislation.legislation_id].title}' is pending.")
-        return state
-    
     bill = state.legislation_options[action.legislation_id]
     if player.pc < bill.cost:
         state.add_log(f"Not enough PC to sponsor {bill.title}.")
@@ -281,10 +276,11 @@ def resolve_sponsor_legislation(state: GameState, action: ActionSponsorLegislati
     state.add_log(f"This legislation will be voted on during the end-of-term legislation session.")
     
     # Create pending legislation for other players to respond to during the term
-    state.pending_legislation = PendingLegislation(
+    # MODIFIED: Add to term_legislation list directly
+    state.term_legislation.append(PendingLegislation(
         legislation_id=action.legislation_id,
         sponsor_id=player.id
-    )
+    ))
     
     return state
 
@@ -299,28 +295,16 @@ def resolve_support_legislation(state: GameState, action: ActionSupportLegislati
     
     # Find the legislation to support in pending_legislation or term_legislation
     target_legislation = None
-    
-    # Check pending legislation first
-    if state.pending_legislation and state.pending_legislation.legislation_id == action.legislation_id:
-        target_legislation = state.pending_legislation
-    
-    # If not found in pending, check term legislation
-    if not target_legislation:
-        for legislation in state.term_legislation:
-            if legislation.legislation_id == action.legislation_id and not legislation.resolved:
-                target_legislation = legislation
-                break
+    for legislation in state.term_legislation:
+        if legislation.legislation_id == action.legislation_id and not legislation.resolved:
+            target_legislation = legislation
+            break
     
     if not target_legislation:
         # Provide more detailed error message
-        available_legislation = []
-        if state.pending_legislation:
-            available_legislation.append(f"pending: {state.pending_legislation.legislation_id}")
-        for leg in state.term_legislation:
-            if not leg.resolved:
-                available_legislation.append(f"term: {leg.legislation_id}")
+        available_legislation = [f"term: {leg.legislation_id}" for leg in state.term_legislation if not leg.resolved]
         
-        error_msg = f"There's no legislation to support. Looking for: {action.legislation_id}"
+        error_msg = f"There's no active legislation to support with ID: {action.legislation_id}"
         if available_legislation:
             error_msg += f". Available: {', '.join(available_legislation)}"
         state.add_log(error_msg)
@@ -350,6 +334,10 @@ def resolve_support_legislation(state: GameState, action: ActionSupportLegislati
     
     # Public log for all players (including AI)
     state.add_log(f"{player.name} makes a commitment to the {bill.title}.")
+    
+    # Actually record the commitment
+    current_support = target_legislation.support_players.get(player.id, 0)
+    target_legislation.support_players[player.id] = current_support + action.support_amount
 
     return state
 
@@ -364,27 +352,15 @@ def resolve_oppose_legislation(state: GameState, action: ActionOpposeLegislation
     
     # Find the legislation to oppose in pending_legislation or term_legislation
     target_legislation = None
-    
-    # Check pending legislation first
-    if state.pending_legislation and state.pending_legislation.legislation_id == action.legislation_id:
-        target_legislation = state.pending_legislation
-    
-    # If not found in pending, check term legislation
-    if not target_legislation:
-        for legislation in state.term_legislation:
-            if legislation.legislation_id == action.legislation_id and not legislation.resolved:
-                target_legislation = legislation
-                break
+    for legislation in state.term_legislation:
+        if legislation.legislation_id == action.legislation_id and not legislation.resolved:
+            target_legislation = legislation
+            break
     
     if not target_legislation:
         # Provide more detailed error message
-        available_legislation = []
-        if state.pending_legislation:
-            available_legislation.append(f"pending: {state.pending_legislation.legislation_id}")
-        for leg in state.term_legislation:
-            if not leg.resolved:
-                available_legislation.append(f"term: {leg.legislation_id}")
-        error_msg = f"There's no legislation to oppose. Looking for: {action.legislation_id}"
+        available_legislation = [f"term: {leg.legislation_id}" for leg in state.term_legislation if not leg.resolved]
+        error_msg = f"There's no active legislation to oppose with ID: {action.legislation_id}"
         if available_legislation:
             error_msg += f". Available: {', '.join(available_legislation)}"
         state.add_log(error_msg)
@@ -414,6 +390,10 @@ def resolve_oppose_legislation(state: GameState, action: ActionOpposeLegislation
 
     # Public log for all players (including AI)
     state.add_log(f"{player.name} makes a commitment to the {bill.title}.")
+
+    # Actually record the commitment
+    current_opposition = target_legislation.oppose_players.get(player.id, 0)
+    target_legislation.oppose_players[player.id] = current_opposition + action.oppose_amount
 
     return state
 
@@ -445,11 +425,6 @@ def resolve_declare_candidacy(state: GameState, action: ActionDeclareCandidacy) 
 #--- Phase Resolvers ---
 
 def resolve_upkeep(state: GameState) -> GameState:
-    # Move any pending legislation to term legislation (will be resolved at end of term)
-    if state.pending_legislation and not state.pending_legislation.resolved:
-        state.term_legislation.append(state.pending_legislation)
-        state.pending_legislation = None
-    
     # Reset candidacy flag for new round
     # state.candidacy_declared_this_round = False # This line is removed
     
@@ -507,38 +482,35 @@ def resolve_upkeep(state: GameState) -> GameState:
 
     return state
 
-def resolve_pending_legislation(state: GameState) -> GameState:
-    """Resolves pending legislation using enhanced PC commitment gambling system."""
-    if not state.pending_legislation or state.pending_legislation.resolved:
-        return state
-    
-    pending = state.pending_legislation
-    bill = state.legislation_options[pending.legislation_id]
-    sponsor = state.get_player_by_id(pending.sponsor_id)
+def _resolve_single_legislation(state: GameState, bill_to_resolve: PendingLegislation) -> GameState:
+    """Resolves a single piece of legislation."""
+    bill = state.legislation_options[bill_to_resolve.legislation_id]
+    sponsor = state.get_player_by_id(bill_to_resolve.sponsor_id)
     
     if not sponsor:
-        state.add_log("Error: Sponsor not found for pending legislation.")
+        state.add_log(f"Error: Sponsor not found for {bill.title}.")
+        bill_to_resolve.resolved = True # Mark as resolved to avoid retrying
         return state
     
     state.add_log(f"\n--- Resolving {bill.title} (Enhanced PC Gambling System) ---")
     
     # Calculate total influence committed
-    total_support = sum(pending.support_players.values())
-    total_opposition = sum(pending.oppose_players.values())
+    total_support = sum(bill_to_resolve.support_players.values())
+    total_opposition = sum(bill_to_resolve.oppose_players.values())
     net_influence = total_support - total_opposition
     
     # Show committed amounts
-    if pending.support_players:
+    if bill_to_resolve.support_players:
         support_details = []
-        for player_id, amount in pending.support_players.items():
+        for player_id, amount in bill_to_resolve.support_players.items():
             player = state.get_player_by_id(player_id)
             if player:
                 support_details.append(f"{player.name} ({amount} PC)")
         state.add_log(f"Support: {', '.join(support_details)}")
     
-    if pending.oppose_players:
+    if bill_to_resolve.oppose_players:
         oppose_details = []
-        for player_id, amount in pending.oppose_players.items():
+        for player_id, amount in bill_to_resolve.oppose_players.items():
             player = state.get_player_by_id(player_id)
             if player:
                 oppose_details.append(f"{player.name} ({amount} PC)")
@@ -587,9 +559,9 @@ def resolve_pending_legislation(state: GameState) -> GameState:
     passed = outcome in ["Success", "Critical Success"]
     
     # Reward supporters if legislation passed (gambling-style rewards)
-    if passed and pending.support_players:
+    if passed and bill_to_resolve.support_players:
         state.add_log("--- Supporters Rewards ---")
-        for player_id, amount in pending.support_players.items():
+        for player_id, amount in bill_to_resolve.support_players.items():
             player = state.get_player_by_id(player_id)
             if player:
                 # Bigger commitments get bigger rewards (gambling mechanic)
@@ -609,9 +581,9 @@ def resolve_pending_legislation(state: GameState) -> GameState:
                 player.pc += reward
     
     # Reward opponents if legislation failed (gambling-style rewards)
-    if not passed and pending.oppose_players:
+    if not passed and bill_to_resolve.oppose_players:
         state.add_log("--- Opponents Rewards ---")
-        for player_id, amount in pending.oppose_players.items():
+        for player_id, amount in bill_to_resolve.oppose_players.items():
             player = state.get_player_by_id(player_id)
             if player:
                 # Bigger commitments get bigger rewards (gambling mechanic)
@@ -636,14 +608,13 @@ def resolve_pending_legislation(state: GameState) -> GameState:
         'sponsor_id': sponsor.id, 
         'leg_id': bill.id, 
         'outcome': outcome,
-        'support_players': dict(pending.support_players),
-        'oppose_players': dict(pending.oppose_players),
+        'support_players': dict(bill_to_resolve.support_players),
+        'oppose_players': dict(bill_to_resolve.oppose_players),
         'net_influence': net_influence
     })
     
     # Mark as resolved
-    pending.resolved = True
-    state.pending_legislation = None
+    bill_to_resolve.resolved = True
     
     return state
 
