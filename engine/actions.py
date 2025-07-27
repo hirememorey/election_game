@@ -12,6 +12,16 @@ class Action:
         data['action_type'] = self.__class__.__name__
         return data
 
+    @classmethod
+    def from_dict(cls, data: dict):
+        """Creates an Action object from a dictionary."""
+        # This is a generic implementation. Subclasses with more complex
+        # attributes will need to override this.
+        action_type = data.pop("action_type", None) # action_type is not a constructor argument
+        # For simple actions, the remaining data keys should match the constructor args
+        return cls(**data)
+
+
 # Dictionary to map action type names back to their classes
 ACTION_CLASSES = {}
 

@@ -10,6 +10,7 @@ sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 from engine.engine import GameEngine
 from game_data import load_game_data
 from engine.actions import ActionSponsorLegislation, ActionSupportLegislation, ActionOpposeLegislation
+from engine.ui_actions import UISupportLegislation, UIOpposeLegislation
 
 def test_support_oppose_legislation():
     """Test that support and oppose legislation works correctly."""
@@ -35,47 +36,57 @@ def test_support_oppose_legislation():
     action1 = ActionSponsorLegislation(player_id=0, legislation_id="INFRASTRUCTURE")
     state = engine.process_action(state, action1)
     print(f"Alice PC after sponsoring: {state.players[0].pc}")
-    print(f"Pending legislation: {state.pending_legislation is not None}")
-    if state.pending_legislation:
-        print(f"  - Legislation ID: {state.pending_legislation.legislation_id}")
-        print(f"  - Sponsor ID: {state.pending_legislation.sponsor_id}")
     
-    # Simulate end of round (upkeep) - this moves legislation to term_legislation
-    print("\n--- Simulating end of round (upkeep) ---")
-    from engine.resolvers import resolve_upkeep
-    state = resolve_upkeep(state)
-    print(f"Pending legislation after upkeep: {state.pending_legislation is not None}")
-    print(f"Term legislation count: {len(state.term_legislation)}")
-    if state.term_legislation:
-        for i, leg in enumerate(state.term_legislation):
-            print(f"  {i+1}. {leg.legislation_id} (sponsored by player {leg.sponsor_id})")
+    # Check that support/oppose actions are now available
+    valid_actions = engine.get_valid_actions(state, state.get_current_player().id)
+    action_types = [type(a) for a in valid_actions]
+    assert UISupportLegislation in action_types
+    assert UIOpposeLegislation in action_types
+
+    # Bob supports the legislation
+    print("\n--- Bob supports the bill ---")
     
-    # Set current player to Bob for the test
+    # Set the current player to Bob
     state.current_player_index = 1
     
-    # Bob tries to oppose the legislation (should work now)
-    print("\n--- Bob opposes the Infrastructure Bill ---")
-    action2 = ActionOpposeLegislation(player_id=1, legislation_id="INFRASTRUCTURE", oppose_amount=5)
+    # In the new flow, this would be a two-step process.
+    # Here, we'll construct the action directly to test the engine.
+    action2 = ActionSupportLegislation(
+        player_id=1,
+        legislation_id="INFRASTRUCTURE",
+        support_amount=10
+    )
     state = engine.process_action(state, action2)
-    print(f"Bob PC after opposing: {state.players[1].pc}")
+    print(f"Bob PC after supporting: {state.players[1].pc}")
+    assert state.players[1].pc == 40, "Bob's PC should be deducted by 10"
+
+    # Check the internal state of the term legislation
+    active_bill = None
+    for leg in state.term_legislation:
+        if leg.legislation_id == "INFRASTRUCTURE":
+            active_bill = leg
+            break
+    assert active_bill is not None
+    assert active_bill.support_players[1] == 10, "Bob's support should be recorded"
+
     
-    # Check if the opposition was recorded
-    if state.term_legislation:
-        for leg in state.term_legislation:
-            if leg.legislation_id == "INFRASTRUCTURE":
-                print(f"Opposition players: {leg.oppose_players}")
-                print(f"Support players: {leg.support_players}")
+    # Alice opposes the legislation
+    print("\n--- Alice opposes the bill ---")
     
-    # Set current player back to Alice for the test
+    # Set the current player to Alice
     state.current_player_index = 0
     
-    # Alice tries to support her own legislation (should fail)
-    print("\n--- Alice tries to support her own legislation ---")
-    action3 = ActionSupportLegislation(player_id=0, legislation_id="INFRASTRUCTURE", support_amount=3)
+    action3 = ActionOpposeLegislation(
+        player_id=0,
+        legislation_id="INFRASTRUCTURE",
+        oppose_amount=5
+    )
     state = engine.process_action(state, action3)
-    print(f"Alice PC after trying to support: {state.players[0].pc}")
-    
-    print("\n✅ Support/Oppose legislation test completed!")
+    print(f"Alice PC after opposing: {state.players[0].pc}")
+    assert state.players[0].pc == 40, "Alice's PC should be deducted by 5"
+    assert active_bill.oppose_players[0] == 5, "Alice's opposition should be recorded"
+
+    print("\n✅ Support/Oppose Legislation test passed!")
     print("=" * 60)
     
     return state

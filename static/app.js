@@ -153,6 +153,7 @@ const socket = new WebSocket(`${protocol}//${window.location.host}/ws`);
 
 let validActions = [];
 let currentState = {};
+let isAwaitingSubChoice = false;
 
 socket.onopen = () => {
     ui.term.writeln('Connected to server.');
@@ -163,7 +164,13 @@ socket.onmessage = function(event) {
     currentState = gameState;
     ui.displayGameState(gameState);
 
-    if (gameState.valid_actions && gameState.valid_actions.length > 0) {
+    // Check if the server sent a specific prompt for a sub-choice
+    if (gameState.prompt && gameState.valid_actions) {
+        isAwaitingSubChoice = true;
+        validActions = gameState.valid_actions; // These are now the sub-options
+        ui.promptForSubChoice(gameState.prompt, validActions);
+    } else if (gameState.valid_actions && gameState.valid_actions.length > 0) {
+        isAwaitingSubChoice = false;
         validActions = gameState.valid_actions;
         ui.promptForAction(validActions);
     } else if (!gameState.is_game_over) {
@@ -174,6 +181,17 @@ socket.onmessage = function(event) {
 ui.promptToContinue = function() {
     this.term.writeln('\n\x1B[1;93mPress [Enter] to continue...\x1B[0m');
 }
+
+// New function to handle sub-prompts
+ui.promptForSubChoice = function(prompt, options) {
+    this.term.writeln(`\n\x1B[1;96m${prompt}\x1B[0m`);
+    options.forEach((action, index) => {
+        // Assuming the sub-options have a user-friendly text description
+        this.term.writeln(`  \x1B[1;93m[${index + 1}]\x1B[0m ${action.text || action.legislation_id}`);
+    });
+    this.term.write('\nEnter your choice: ');
+};
+
 
 ui.onEnter = (input) => {
     const command = input.trim().toLowerCase();
@@ -200,10 +218,35 @@ ui.onEnter = (input) => {
         return;
     }
 
+    if (isAwaitingSubChoice) {
+        const choice = parseInt(command, 10);
+        if (validActions && choice > 0 && choice <= validActions.length) {
+            const action = validActions[choice - 1];
+            // For sub-choices, we send a simplified object back
+            socket.send(JSON.stringify({
+                action_type: action.action_type,
+                choice: action.legislation_id // Or other identifier like office_id
+            }));
+            isAwaitingSubChoice = false;
+            validActions = [];
+        } else {
+            ui.term.writeln(`\nInvalid choice: ${input}`);
+            ui.promptForSubChoice(currentState.prompt, validActions);
+        }
+        return;
+    }
+
     const choice = parseInt(command, 10);
     if (validActions && choice > 0 && choice <= validActions.length) {
         const action = validActions[choice - 1];
-        socket.send(JSON.stringify(action));
+        
+        // If it's a UI action, we just send it. The backend will prompt for more.
+        if (action.is_ui_action) {
+            socket.send(JSON.stringify(action));
+        } else {
+            // This handles regular, one-step actions
+            socket.send(JSON.stringify(action));
+        }
         validActions = []; // Clear actions after sending
     } else {
         ui.term.writeln(`\nInvalid choice: ${input}`);

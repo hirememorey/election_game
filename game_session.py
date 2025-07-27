@@ -19,39 +19,38 @@ from personas.legislative_persona import LegislativePersona
 from personas.balanced_persona import BalancedPersona
 from personas.heuristic_persona import HeuristicPersona
 from engine.actions import ActionPassTurn
+import json
+from fastapi.responses import FileResponse
 
 
 class GameSession:
     """
-    Manages a single, headless game session.
+    Manages a single game session, including the game state, players, 
+    and the interaction between the core game engine and a client.
     """
-    
-    def __init__(self, ai_personas: Optional[List[str]] = None):
-        self.game_data = load_game_data()
-        self.engine = GameEngine(self.game_data)
-        
-        if ai_personas is None:
-            ai_personas = ["heuristic", "economic", "legislative"]
-        
-        self.ai_personas = [self._get_persona_class(persona)() for persona in ai_personas]
+    def __init__(self):
+        self.engine = GameEngine(load_game_data())
         self.state: Optional[GameState] = None
-        self.human_player_id = 0
-        
-    def _get_persona_class(self, persona_name: str) -> type:
-        persona_map = {
-            "random": RandomPersona, "economic": EconomicPersona,
-            "legislative": LegislativePersona, "balanced": BalancedPersona,
-            "heuristic": HeuristicPersona,
-        }
-        return persona_map.get(persona_name, HeuristicPersona)
+        self.human_player_id: int = 0
+        self.ai_opponents: List[BasePersona] = []
+        self.pending_ui_action: Optional[Dict[str, Any]] = None
 
-    def start_game(self, human_name: str = "Human") -> None:
+    def start_game(self, human_name: str = "Human", num_ai: int = 3):
         """
         Initializes a new game state.
         """
-        player_names = [human_name] + [f"AI-{i+1}" for i in range(len(self.ai_personas))]
+        player_names = [human_name] + [f"AI-{i+1}" for i in range(num_ai)]
         self.state = self.engine.start_new_game(player_names)
-        self.state = self.engine.run_event_phase(self.state)
+        self.human_player_id = self.state.players[0].id
+
+        # Create AI opponents
+        self.ai_opponents = [
+            RandomPersona(),
+            EconomicPersona(),
+            LegislativePersona(),
+            BalancedPersona(),
+            HeuristicPersona()
+        ]
 
     def get_state_for_client(self) -> Dict[str, Any]:
         """
@@ -68,7 +67,10 @@ class GameSession:
 
 
         # If it's the human's turn, add the available actions to the state payload
-        if self.is_human_turn():
+        if self.is_human_turn() and self.pending_ui_action:
+            state_dict['valid_actions'] = self.pending_ui_action['options']
+            state_dict['prompt'] = self.pending_ui_action['prompt']
+        elif self.is_human_turn():
             valid_actions = self.engine.get_valid_actions(self.state, self.human_player_id)
             # We need to serialize the actions as well
             state_dict['valid_actions'] = [action.to_dict() for action in valid_actions]
@@ -79,33 +81,127 @@ class GameSession:
 
     def process_action(self, action_data: Dict[str, Any]) -> List[str]:
         """
-        Processes a single action from the player.
-        Returns a log of all events that occurred.
+        Processes an action from the client, advances the game state,
+        and runs AI turns until it's the human's turn again.
+        Returns a log of events that occurred.
+        """
+        if self.pending_ui_action:
+            # The user is responding to a sub-prompt (e.g., choosing a bill)
+            action_type = self.pending_ui_action['action_type']
+            
+            # Find the chosen option
+            choice = action_data.get('choice')
+            chosen_action_dict = None
+            for option in self.pending_ui_action['options']:
+                if option['action_type'] == action_type and option.get('legislation_id') == choice:
+                     chosen_action_dict = option
+                     break
+                # TODO: Add other potential identifiers here like office_id, favor_id etc.
+
+            if not chosen_action_dict:
+                 # Invalid choice, just return the prompt again
+                return ["Invalid choice. Please try again."]
+
+            # Reconstruct the action object from the dictionary
+            action_class = self.engine.ACTION_CLASSES[chosen_action_dict['action_type']]
+            action = action_class.from_dict(chosen_action_dict)
+            
+            self.pending_ui_action = None # Clear pending action
+            return self._execute_action_and_run_ais(action)
+
+
+        action_type = action_data.get("action_type")
+        
+        if action_type == 'continue':
+            # This is for events or other pauses
+            return self._run_ai_turns()
+
+        # Handle UI actions that require a second step
+        if action_type in ["UISponsorLegislation", "UISupportLegislation", "UIOpposeLegislation"]:
+            return self._handle_ui_action(action_data)
+
+        # For all other actions, they should have a direct mapping in the engine
+        try:
+            action_class = self.engine.ACTION_CLASSES.get(action_type)
+            if not action_class:
+                raise ValueError(f"Unknown action type: {action_type}")
+            
+            action = action_class.from_dict(action_data)
+            return self._execute_action_and_run_ais(action)
+        except Exception as e:
+            print(f"Error processing action: {e}")
+            return [f"Error: {str(e)}"]
+
+    def _handle_ui_action(self, action_data: Dict[str, Any]) -> List[str]:
+        action_type = action_data.get("action_type")
+        player_id = action_data.get("player_id")
+
+        if action_type == "UISponsorLegislation":
+            # Get available legislation to sponsor
+            options = [
+                ActionSponsorLegislation(player_id=player_id, legislation_id=leg_id).to_dict()
+                for leg_id in self.state.legislation_options
+            ]
+            self.pending_ui_action = {
+                "action_type": "ActionSponsorLegislation",
+                "prompt": "Which bill would you like to sponsor?",
+                "options": options
+            }
+        
+        elif action_type == "UISupportLegislation":
+            # Get active legislation to support
+            options = [
+                ActionSupportLegislation(player_id=player_id, legislation_id=leg.legislation_id, support_amount=5).to_dict() # Temp amount
+                for leg in self.state.term_legislation if not leg.resolved
+            ]
+            self.pending_ui_action = {
+                "action_type": "ActionSupportLegislation",
+                "prompt": "Which bill would you like to support?",
+                "options": options
+            }
+
+        elif action_type == "UIOpposeLegislation":
+            # Get active legislation to oppose
+            options = [
+                ActionOpposeLegislation(player_id=player_id, legislation_id=leg.legislation_id, oppose_amount=5).to_dict() # Temp amount
+                for leg in self.state.term_legislation if not leg.resolved
+            ]
+            self.pending_ui_action = {
+                "action_type": "ActionOpposeLegislation",
+                "prompt": "Which bill would you like to oppose?",
+                "options": options
+            }
+        
+        # We don't run any game logic here, just return an empty log. 
+        # The new state with the prompt will be sent back to the client.
+        return []
+
+
+    def _execute_action_and_run_ais(self, action: Action) -> List[str]:
+        """
+        Processes a single action and then runs AI turns.
         """
         if not self.state or self.is_game_over():
             return ["Error: Game is not active."]
 
-        # Special case for a "continue" action from the client
-        if action_data.get("action_type") == "continue":
-            return []
-
-        action = self.engine.action_from_dict(action_data)
-        if not action:
-            return ["Error: Invalid action data."]
-
-        valid_actions = self.engine.get_valid_actions(self.state, self.state.get_current_player().id)
-        if action not in valid_actions:
-            # Construct a helpful error message
-            error_msg = f"Error: Invalid action. Valid actions are: {[a.to_dict() for a in valid_actions]}"
-            print(f"Invalid action attempted: {action.to_dict()}")
-            print(f"Current Player: {self.state.get_current_player().id}")
-            return [error_msg]
-
-
         self.state.clear_turn_log()
         self.state = self.engine.process_action(self.state, action)
-        return list(self.state.turn_log)
 
+        # Run AI turns until it's the human's turn again
+        turn_logs = []
+        while (not self.is_game_over() and
+               self.state.get_current_player().id == self.human_player_id and
+               self.state.action_points.get(self.human_player_id, 0) > 0):
+            
+            action_logs = self.run_one_ai_action()
+            turn_logs.extend(action_logs)
+
+        # After the loop, the turn might have auto-passed. Capture any final logs.
+        if self.state.turn_log:
+            turn_logs.extend(self.state.turn_log)
+            self.state.clear_turn_log()
+            
+        return turn_logs
 
     def run_ai_turn(self) -> List[str]:
         """
@@ -142,7 +238,7 @@ class GameSession:
             return []
 
         current_player = self.state.get_current_player()
-        persona = self.ai_personas[current_player.id - 1]
+        persona = self.ai_opponents[current_player.id - 1] # Changed from ai_personas to ai_opponents
 
         if self.state.action_points.get(current_player.id, 0) <= 0:
             action = ActionPassTurn(player_id=current_player.id)

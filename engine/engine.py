@@ -5,16 +5,35 @@ from models.cards import Deck, PoliticalArchetype, PersonalMandate
 from engine import resolvers
 from engine.actions import Action
 from engine.scoring import calculate_final_scores
-from typing import List
+from typing import List, Dict, Any
 from engine.actions import (
     ActionFundraise, ActionNetwork, ActionSponsorLegislation, ActionDeclareCandidacy, 
     ActionUseFavor, ActionSupportLegislation, ActionOpposeLegislation, ActionPassTurn, 
     ActionResolveLegislation, ActionResolveElections, ActionAcknowledgeResults,
     ACTION_CLASSES
 )
+from .ui_actions import UISponsorLegislation, UISupportLegislation, UIOpposeLegislation
 
 class GameEngine:
-    def __init__(self, game_data):
+    """The central rule enforcement and state-management authority for the game."""
+
+    ACTION_CLASSES = {
+        "ActionPassTurn": ActionPassTurn,
+        "ActionFundraise": ActionFundraise,
+        "ActionNetwork": ActionNetwork,
+        "ActionSponsorLegislation": ActionSponsorLegislation,
+        "ActionSupportLegislation": ActionSupportLegislation,
+        "ActionOpposeLegislation": ActionOpposeLegislation,
+        "ActionDeclareCandidacy": ActionDeclareCandidacy,
+        "ActionUseFavor": ActionUseFavor,
+        "ActionResolveLegislation": ActionResolveLegislation,
+        "ActionResolveElections": ActionResolveElections,
+        "UISponsorLegislation": UISponsorLegislation,
+        "UISupportLegislation": UISupportLegislation,
+        "UIOpposeLegislation": UIOpposeLegislation
+    }
+    
+    def __init__(self, game_data: Dict[str, Any]):
         self.game_data = game_data
         # Action point costs
         self.action_point_costs = {
@@ -301,11 +320,8 @@ class GameEngine:
         
         # Sponsor Legislation (2 AP, if player has enough PC and AP)
         if player.pc >= 5 and can_afford_action("ActionSponsorLegislation"):
-            for leg_id in state.legislation_options:
-                valid_actions.append(ActionSponsorLegislation(
-                    player_id=player_id, 
-                    legislation_id=leg_id
-                ))
+            if state.legislation_options:
+                valid_actions.append(UISponsorLegislation(player_id=player_id))
         
         # Declare Candidacy (2 AP, only in round 4)
         if state.round_marker == 4 and can_afford_action("ActionDeclareCandidacy"):
@@ -336,25 +352,11 @@ class GameEngine:
         
         # Support/Oppose Legislation (1 AP each, if there's pending legislation)
         active_legislation = [leg for leg in state.term_legislation if not leg.resolved]
-        if active_legislation:
-            if can_afford_action("ActionSupportLegislation") and player.pc > 0:
-                for leg in active_legislation:
-                    # Can support with any amount of PC
-                    for pc_amount in range(1, min(player.pc + 1, 21)):  # Cap at 20 PC
-                        valid_actions.append(ActionSupportLegislation(
-                            player_id=player_id,
-                            legislation_id=leg.legislation_id,
-                            support_amount=pc_amount
-                        ))
-            if can_afford_action("ActionOpposeLegislation") and player.pc > 0:
-                for leg in active_legislation:
-                    # Can oppose with any amount of PC
-                    for pc_amount in range(1, min(player.pc + 1, 21)):  # Cap at 20 PC
-                        valid_actions.append(ActionOpposeLegislation(
-                            player_id=player_id,
-                            legislation_id=leg.legislation_id,
-                            oppose_amount=pc_amount
-                        ))
+        if active_legislation and player.pc > 0:
+            if can_afford_action("ActionSupportLegislation"):
+                valid_actions.append(UISupportLegislation(player_id=player_id))
+            if can_afford_action("ActionOpposeLegislation"):
+                valid_actions.append(UIOpposeLegislation(player_id=player_id))
         
         # Pass Turn (always available)
         valid_actions.append(ActionPassTurn(player_id=player_id))
