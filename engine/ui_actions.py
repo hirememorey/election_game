@@ -1,27 +1,23 @@
-from .actions import Action
+from dataclasses import dataclass
+from engine.actions import Action
 
+@dataclass
 class UIAction(Action):
-    """Base class for actions that are primarily for UI grouping and require a second step."""
-    def __init__(self, player_id: int, text: str):
-        super().__init__(player_id)
-        self.text = text
+    """
+    Base class for actions that only exist to trigger a UI sub-menu.
+    These actions do not have a resolver in the engine because they are handled
+    by the GameSession before reaching the engine.
+    """
+    is_ui_action: bool = True
 
-    def to_dict(self):
-        return {
-            "action_type": self.__class__.__name__,
-            "player_id": self.player_id,
-            "text": self.text,
-            "is_ui_action": True
-        }
-
+@dataclass
 class UISponsorLegislation(UIAction):
-    def __init__(self, player_id: int):
-        super().__init__(player_id, "Sponsor Legislation")
+    pass
 
+@dataclass
 class UISupportLegislation(UIAction):
-    def __init__(self, player_id: int):
-        super().__init__(player_id, "Support Legislation")
+    pass
 
+@dataclass
 class UIOpposeLegislation(UIAction):
-    def __init__(self, player_id: int):
-        super().__init__(player_id, "Oppose Legislation") 
+    pass 

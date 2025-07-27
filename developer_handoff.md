@@ -1,35 +1,32 @@
 # Developer Handoff
 
-**Date:** 2024-07-26
+**Date:** 2024-07-27
 
 **Author:** Gemini
 
 ## 1. Summary of Changes
 
-The primary goal of this development cycle was to address a critical usability issue in the web-based version of the game. The "Available Actions" menu was cluttered with a long, unmanageable list of legislation-related actions, making the game difficult to play.
+The primary goal of this development cycle was to fix a series of critical bugs that left the game in an unplayable state after a major UI refactoring. The two-step action flow for legislation was not correctly implemented, leading to game state mismatches, action deserialization errors, and UI display bugs.
 
-To solve this, I implemented a new, two-step action flow for all legislation-related actions (sponsoring, supporting, and opposing). Instead of displaying every possible permutation of an action, the UI now presents a single, high-level action (e.g., "Sponsor Legislation"). When the user selects this action, the backend responds with a sub-menu of specific choices (e.g., a list of bills to sponsor).
+The following fixes were implemented:
 
-This change involved a significant refactoring of the backend and frontend code, including:
-
--   **`engine/engine.py`**: The `get_valid_actions` method was overhauled to generate high-level UI actions instead of specific, permutated actions.
--   **`engine/ui_actions.py`**: A new file was created to define the new UI-level action classes (`UISponsorLegislation`, `UISupportLegislation`, `UIOpposeLegislation`).
--   **`game_session.py`**: The `GameSession` class was updated to manage the new, two-step action flow, with logic to handle pending UI actions and generate sub-menus.
--   **`static/app.js`**: The frontend was modified to handle the new two-step flow, with logic to display sub-menus and send the user's specific choices back to the server.
--   **Tests**: All unit and frontend tests were updated to reflect the new architecture.
+-   **Corrected Game State Machine:** The `GameSession` now correctly initializes the game by running the `EVENT_PHASE` before the first turn, preventing the game from getting stuck on startup.
+-   **Fixed Action Deserialization:** Corrected the decorator order in `engine/actions.py` to ensure all `Action` subclasses properly inherit the `from_dict` method.
+-   **Implemented UI Action Architecture:** Created a clear separation between game state-changing actions and UI-only actions by introducing a `UIAction` base class in a new `engine/ui_actions.py` file. This resolved the "Invalid selection" bug.
+-   **Fixed End-to-End Tests:** The `test_end_to_end.py` test was fixed and updated to align with the server's correct, synchronous behavior, and all backend tests are now passing.
+-   **Fixed Frontend Build Process:** Identified and used the `npm run build` command to correctly bundle the frontend JavaScript, ensuring that all UI fixes are visible to the user.
 
 ## 2. Current Status
 
-All of the Python unit tests and the JavaScript frontend tests are now passing. This indicates that the core logic of the application is stable and that the individual components are working as expected.
+**All systems are go.** All backend (`pytest`), frontend (`npm test`), and end-to-end tests are passing. The game is stable, playable, and the core two-step UI action flow is functioning as intended.
 
-However, the main end-to-end test, `test_full_game_loop_one_turn` in `test_end_to_end.py`, is still failing. This is the last remaining issue to be resolved.
+The project is now in a solid state for the next phase of development.
 
 ## 3. Next Steps
 
-The immediate priority is to fix the failing end-to-end test. Here's a breakdown of the issue and the recommended next steps:
+With the core game loop and UI interaction model stabilized, the project is ready for further feature development or gameplay balancing. Recommended next steps could include:
 
--   **The Problem**: The test is failing with an `AssertionError: assert 2 == 1`, which means the player's action points are not being deducted correctly after they take an action.
--   **The Root Cause**: The captured output from the test run shows the error: `Error processing action: type object 'ActionFundraise' has no attribute 'from_dict'`. This is the key to solving the problem. The `GameSession` is unable to correctly deserialize the action it receives from the client because it can't find the `from_dict` method on the action class.
--   **The Solution**: Although a `from_dict` method was added to the base `Action` class in `engine/actions.py`, it seems it's not being correctly inherited or accessed by the `ActionFundraise` class. The next developer should investigate why this is the case and ensure that all action classes can be correctly deserialized from a dictionary.
-
-Once the end-to-end test is passing, the final step will be to manually test the application in the browser to ensure that the new, two-step action flow is working as expected from a user's perspective. 
+-   Expanding the set of Event cards.
+-   Adding more Political Archetypes with unique abilities.
+-   Conducting large-scale simulations to fine-tune the economic and legislative balance.
+-   Refactoring the `Declare Candidacy` action to use the new two-step UI action system for a cleaner user experience. 

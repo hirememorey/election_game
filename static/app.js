@@ -96,6 +96,9 @@ class TerminalUI {
             case 'ActionSupportLegislation': return `\x1B[92m✅ Support Legislation\x1B[0m: ${action.legislation_id}`;
             case 'ActionOpposeLegislation': return `\x1B[91m❌ Oppose Legislation\x1B[0m: ${action.legislation_id}`;
             case 'ActionPassTurn': return '\x1B[93m⏭️  Pass Turn\x1B[0m';
+            case 'UISponsorLegislation': return `\x1B[93m📜 Sponsor Legislation\x1B[0m`;
+            case 'UISupportLegislation': return `\x1B[92m✅ Support Legislation\x1B[0m`;
+            case 'UIOpposeLegislation': return `\x1B[91m❌ Oppose Legislation\x1B[0m`;
             default: return `\x1B[97m${action.action_type}\x1B[0m`;
         }
     }

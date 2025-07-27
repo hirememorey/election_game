@@ -52,6 +52,9 @@ class GameSession:
             HeuristicPersona()
         ]
 
+        # Immediately run the first event phase to properly set up the game
+        self.state = self.engine.run_event_phase(self.state)
+
     def get_state_for_client(self) -> Dict[str, Any]:
         """
         Returns a JSON-serializable representation of the current game state,
@@ -188,18 +191,17 @@ class GameSession:
         self.state = self.engine.process_action(self.state, action)
 
         # Run AI turns until it's the human's turn again
-        turn_logs = []
-        while (not self.is_game_over() and
-               self.state.get_current_player().id == self.human_player_id and
-               self.state.action_points.get(self.human_player_id, 0) > 0):
-            
-            action_logs = self.run_one_ai_action()
-            turn_logs.extend(action_logs)
+        while not self.is_game_over() and not self.is_human_turn():
+            self.run_one_ai_action()
 
-        # After the loop, the turn might have auto-passed. Capture any final logs.
-        if self.state.turn_log:
-            turn_logs.extend(self.state.turn_log)
-            self.state.clear_turn_log()
+        # After all turns, check if the round is over
+        all_players_finished = all(ap <= 0 for ap in self.state.action_points.values())
+        if all_players_finished:
+            self.state = self.engine.run_upkeep_phase(self.state)
+
+        # Capture any final logs from the processed actions or upkeep
+        turn_logs = list(self.state.turn_log)
+        self.state.clear_turn_log()
             
         return turn_logs
 
@@ -217,7 +219,7 @@ class GameSession:
         # Loop as long as it's the current AI's turn and they have AP
         while (not self.is_game_over() and
                self.state.get_current_player().id == current_player_id and
-               self.state.action_points.get(current_player_id, 0) > 0):
+               self.state.action_points.get(current_player.id, 0) > 0):
             
             action_logs = self.run_one_ai_action()
             turn_logs.extend(action_logs)

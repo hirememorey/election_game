@@ -12,26 +12,14 @@ from engine.actions import (
     ActionResolveLegislation, ActionResolveElections, ActionAcknowledgeResults,
     ACTION_CLASSES
 )
-from .ui_actions import UISponsorLegislation, UISupportLegislation, UIOpposeLegislation
+from engine.ui_actions import UISponsorLegislation, UISupportLegislation, UIOpposeLegislation
 
 class GameEngine:
     """The central rule enforcement and state-management authority for the game."""
 
-    ACTION_CLASSES = {
-        "ActionPassTurn": ActionPassTurn,
-        "ActionFundraise": ActionFundraise,
-        "ActionNetwork": ActionNetwork,
-        "ActionSponsorLegislation": ActionSponsorLegislation,
-        "ActionSupportLegislation": ActionSupportLegislation,
-        "ActionOpposeLegislation": ActionOpposeLegislation,
-        "ActionDeclareCandidacy": ActionDeclareCandidacy,
-        "ActionUseFavor": ActionUseFavor,
-        "ActionResolveLegislation": ActionResolveLegislation,
-        "ActionResolveElections": ActionResolveElections,
-        "UISponsorLegislation": UISponsorLegislation,
-        "UISupportLegislation": UISupportLegislation,
-        "UIOpposeLegislation": UIOpposeLegislation
-    }
+    # Use the ACTION_CLASSES dictionary imported from engine.actions
+    # This is the single source of truth, automatically populated by decorators.
+    ACTION_CLASSES = ACTION_CLASSES
     
     def __init__(self, game_data: Dict[str, Any]):
         self.game_data = game_data
@@ -149,17 +137,9 @@ class GameEngine:
         if new_state.action_points[current_player.id] <= 0:
             new_state.add_log(f"{current_player.name}'s turn ends.")
             
-            # Check if all players have 0 AP. If so, the round is over.
-            all_players_finished = all(ap <= 0 for ap in new_state.action_points.values())
-            
-            if all_players_finished:
-                # All players have finished their turns, so run upkeep to start the next round
-                new_state.add_log("All players have completed their turns. Advancing to the next round.")
-                return self.run_upkeep_phase(new_state)
-            else:
-                # Not all players are finished, so just advance to the next player
-                new_state.current_player_index = (new_state.current_player_index + 1) % len(new_state.players)
-                new_state.add_log(f"It is now {new_state.get_current_player().name}'s turn.")
+            # Advance to the next player
+            new_state.current_player_index = (new_state.current_player_index + 1) % len(new_state.players)
+            new_state.add_log(f"It is now {new_state.get_current_player().name}'s turn.")
 
         return new_state
 
@@ -319,12 +299,17 @@ class GameEngine:
             valid_actions.append(ActionNetwork(player_id=player_id))
         
         # Sponsor Legislation (2 AP, if player has enough PC and AP)
-        if player.pc >= 5 and can_afford_action("ActionSponsorLegislation"):
-            if state.legislation_options:
+        # Replaced the loop to generate a single UI action
+        if can_afford_action("ActionSponsorLegislation"):
+            # Check if there are any affordable bills
+            can_sponsor_any = any(player.pc >= leg.cost for leg in state.legislation_options.values())
+            if can_sponsor_any:
                 valid_actions.append(UISponsorLegislation(player_id=player_id))
         
         # Declare Candidacy (2 AP, only in round 4)
         if state.round_marker == 4 and can_afford_action("ActionDeclareCandidacy"):
+            # This action now needs to be a UI action as well to simplify the list.
+            # For now, leaving the detailed generation to ensure it works, but this is a candidate for UI refactoring.
             for office_id in state.offices:
                 office = state.offices[office_id]
                 if office.candidacy_cost <= player.pc:
