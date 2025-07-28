@@ -1027,5 +1027,26 @@ def resolve_acknowledge_results(state: GameState, action) -> GameState:
     """System action to acknowledge results and start new term."""
     # This will be handled by the engine's start_next_term method
     # The harness will call the engine method directly
-    state.add_log("System: Acknowledging results and starting new term.")
+    state.awaiting_results_acknowledgement = False
+    state.add_log("Results acknowledged. Starting next term.")
+    
+    # This should now call the engine's method to start the next term
+    # from engine.engine import GameEngine
+    # ge = GameEngine({}) # This is problematic, need to refactor later
+    # return ge.start_next_term(state)
     return state
+
+
+def resolve_acknowledge_ai_turn(state: GameState, action: 'AcknowledgeAITurn') -> GameState:
+    """
+    Resolves the acknowledgement of an AI's turn. 
+    This action does nothing but allow the game loop to proceed after an AI action.
+    """
+    # No state change is needed, just return the state.
+    # The engine will handle advancing to the next player.
+    return state
+
+
+def _calculate_election_influence(state: GameState, player: 'Player', office: 'Office', disable_dice_roll: bool = False) -> int:
+    """Helper function to calculate total influence for a single candidate in an election."""
+    base_influence = 0

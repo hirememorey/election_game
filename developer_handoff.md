@@ -15,10 +15,12 @@ The following fixes were implemented:
 -   **Implemented UI Action Architecture:** Created a clear separation between game state-changing actions and UI-only actions by introducing a `UIAction` base class in a new `engine/ui_actions.py` file. This resolved the "Invalid selection" bug.
 -   **Fixed End-to-End Tests:** The `test_end_to_end.py` test was fixed and updated to align with the server's correct, synchronous behavior, and all backend tests are now passing.
 -   **Fixed Frontend Build Process:** Identified and used the `npm run build` command to correctly bundle the frontend JavaScript, ensuring that all UI fixes are visible to the user.
+-   **Restored AI Turn Visibility:** Implemented a new `AcknowledgeAITurn` action and updated the web frontend to pause after each AI turn, allowing players to see what the AI did before continuing. This restores the original "press Enter to continue" functionality that was lost during the previous refactoring.
+-   **Enhanced Error Handling:** Added robust error handling to the websocket endpoint to prevent server crashes and improve stability.
 
 ## 2. Current Status
 
-**All systems are go.** All backend (`pytest`), frontend (`npm test`), and end-to-end tests are passing. The game is stable, playable, and the core two-step UI action flow is functioning as intended.
+**All systems are go.** All backend (`pytest`), frontend (`npm test`), and end-to-end tests are passing. The game is stable, playable, and the core two-step UI action flow is functioning as intended. The web version now correctly pauses after each AI turn, allowing players to see what the AI did before proceeding.
 
 The project is now in a solid state for the next phase of development.
 

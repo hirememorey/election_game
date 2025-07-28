@@ -121,3 +121,9 @@ class ActionResolveElections(Action):
 class ActionAcknowledgeResults(Action):
     """System action to acknowledge results and start new term."""
     player_id: int = -1  # System action, no specific player
+
+
+class AcknowledgeAITurn(Action):
+    """A special action used by the human player to acknowledge the AI's turn."""
+    action_type: str = "AcknowledgeAITurn"
+    player_id: int

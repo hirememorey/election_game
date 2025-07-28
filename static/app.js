@@ -167,6 +167,11 @@ socket.onmessage = function(event) {
     currentState = gameState;
     ui.displayGameState(gameState);
 
+    if (gameState.awaiting_ai_acknowledgement) {
+        ui.promptToContinue();
+        return;
+    }
+
     // Check if the server sent a specific prompt for a sub-choice
     if (gameState.prompt && gameState.valid_actions) {
         isAwaitingSubChoice = true;
@@ -198,6 +203,11 @@ ui.promptForSubChoice = function(prompt, options) {
 
 ui.onEnter = (input) => {
     const command = input.trim().toLowerCase();
+
+    if (currentState.awaiting_ai_acknowledgement) {
+        socket.send(JSON.stringify({ action_type: 'AcknowledgeAITurn', player_id: 0 })); // Assuming human is player 0
+        return;
+    }
 
     // If it's not the human's turn, any 'enter' is a continue.
     if (!validActions || validActions.length === 0) {

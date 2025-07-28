@@ -34,6 +34,7 @@ class GameSession:
         self.human_player_id: int = 0
         self.ai_opponents: List[BasePersona] = []
         self.pending_ui_action: Optional[Dict[str, Any]] = None
+        self.awaiting_ai_acknowledgement: bool = False
 
     def start_game(self, human_name: str = "Human", num_ai: int = 3):
         """
@@ -79,6 +80,8 @@ class GameSession:
             state_dict['valid_actions'] = [action.to_dict() for action in valid_actions]
         else:
             state_dict['valid_actions'] = []
+
+        state_dict['awaiting_ai_acknowledgement'] = self.awaiting_ai_acknowledgement
         
         return state_dict
 
@@ -117,6 +120,11 @@ class GameSession:
         
         if action_type == 'continue':
             # This is for events or other pauses
+            return self._run_ai_turns()
+
+        if action_type == "AcknowledgeAITurn":
+            self.awaiting_ai_acknowledgement = False
+            # Now that the AI turn is acknowledged, run the next one if it's still not the human's turn
             return self._run_ai_turns()
 
         # Handle UI actions that require a second step
@@ -190,14 +198,10 @@ class GameSession:
         self.state.clear_turn_log()
         self.state = self.engine.process_action(self.state, action)
 
-        # Run AI turns until it's the human's turn again
-        while not self.is_game_over() and not self.is_human_turn():
-            self.run_one_ai_action()
+        # After the human action, run the first AI turn if it's now an AI's turn
+        if not self.is_human_turn():
+            return self._run_ai_turns()
 
-        # After all turns, check if the round is over
-        all_players_finished = all(ap <= 0 for ap in self.state.action_points.values())
-        if all_players_finished:
-            self.state = self.engine.run_upkeep_phase(self.state)
 
         # Capture any final logs from the processed actions or upkeep
         turn_logs = list(self.state.turn_log)
@@ -205,31 +209,22 @@ class GameSession:
             
         return turn_logs
 
-    def run_ai_turn(self) -> List[str]:
+    def _run_ai_turns(self) -> List[str]:
         """
-        Runs a single turn for the current AI player.
-        A turn consists of multiple actions until AP is depleted.
+        Runs AI turns one by one, pausing for acknowledgement after each.
         """
-        if not self.state or self.is_human_turn() or self.is_game_over():
+        if self.is_game_over() or self.is_human_turn():
             return []
 
-        turn_logs = []
-        current_player_id = self.state.get_current_player().id
+        # Run a single AI action
+        action_logs = self.run_one_ai_action()
+        
+        # After the AI action, if it's not the human's turn, we need to wait for acknowledgement
+        if not self.is_human_turn():
+            self.awaiting_ai_acknowledgement = True
+        
+        return action_logs
 
-        # Loop as long as it's the current AI's turn and they have AP
-        while (not self.is_game_over() and
-               self.state.get_current_player().id == current_player_id and
-               self.state.action_points.get(current_player.id, 0) > 0):
-            
-            action_logs = self.run_one_ai_action()
-            turn_logs.extend(action_logs)
-
-        # After the loop, the turn might have auto-passed. Capture any final logs.
-        if self.state.turn_log:
-            turn_logs.extend(self.state.turn_log)
-            self.state.clear_turn_log()
-            
-        return turn_logs
 
     def run_one_ai_action(self) -> List[str]:
         """
@@ -246,21 +241,16 @@ class GameSession:
             action = ActionPassTurn(player_id=current_player.id)
         else:
             valid_actions = self.engine.get_valid_actions(self.state, current_player.id)
-            action = persona.choose_action(self.state, valid_actions)
-            if not action:
+            if not valid_actions: # Check if list is empty
                 action = ActionPassTurn(player_id=current_player.id)
+            else:
+                action = persona.choose_action(self.state, valid_actions)
+                if not action:
+                    action = ActionPassTurn(player_id=current_player.id)
 
         self.state.clear_turn_log()
         self.state = self.engine.process_action(self.state, action)
         return list(self.state.turn_log)
-
-    def run_full_ai_turn(self) -> List[str]:
-        """
-        DEPRECATED: This method is no longer suitable for the interactive web version.
-        Use run_ai_turn instead.
-        """
-        print("Warning: run_full_ai_turn is deprecated.")
-        return self.run_ai_turn()
 
     def is_human_turn(self) -> bool:
         if not self.state: return False

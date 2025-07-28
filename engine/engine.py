@@ -14,6 +14,10 @@ from engine.actions import (
 )
 from engine.ui_actions import UISponsorLegislation, UISupportLegislation, UIOpposeLegislation
 
+class AcknowledgeAITurn(Action):
+    """A special action used by the human player to acknowledge the AI's turn."""
+    action_type: str = "AcknowledgeAITurn"
+
 class GameEngine:
     """The central rule enforcement and state-management authority for the game."""
 
@@ -51,6 +55,7 @@ class GameEngine:
             "ActionResolveLegislation": resolvers.resolve_resolve_legislation,
             "ActionResolveElections": resolvers.resolve_resolve_elections,
             "ActionAcknowledgeResults": resolvers.resolve_acknowledge_results,
+            "AcknowledgeAITurn": resolvers.resolve_acknowledge_ai_turn,
             # Trading actions removed
         }
 

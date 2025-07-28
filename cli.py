@@ -1,4 +1,4 @@
-from typing import Optional
+from typing import Optional, Dict, Any
 from models.game_state import GameState
 from models.components import Player
 from engine.actions import (
@@ -6,39 +6,41 @@ from engine.actions import (
     ActionSponsorLegislation, ActionDeclareCandidacy
 )
 
-def display_game_state(state: GameState):
-    """Prints a comprehensive, human-readable summary of the game state."""
+def display_game_state(state: Dict[str, Any]):
+    """Prints a comprehensive, human-readable summary of the game state from a dictionary."""
     print("\n" + "="*60)
-    print(f"ROUND: {state.round_marker}/4  |  PUBLIC MOOD: {state.public_mood} ({mood_to_string(state.public_mood)})  |  PHASE: {state.current_phase}")
+    print(f"ROUND: {state['round_marker']}/4  |  PUBLIC MOOD: {state['public_mood']} ({mood_to_string(state['public_mood'])})  |  PHASE: {state['current_phase']}")
     print("="*60)
 
-    if state.turn_log:
-        for message in state.turn_log:
+    if state.get('turn_log'):
+        for message in state['turn_log']:
             print(f"[LOG] {message}")
         print("-"*60)
 
     print("PLAYERS:")
-    for p in state.players:
-        office_title = p.current_office.title if p.current_office else "Outsider"
-        is_current = ">>>" if p.id == state.get_current_player().id and state.current_phase == "ACTION_PHASE" else ""
-        print(f"  {is_current}{p.name} ({p.archetype.title})")
-        print(f"    PC: {p.pc} | Office: {office_title}")
-        if p.allies:
-            print(f"    Ally: {p.allies[0].title} ({p.allies[0].description})")
-        if p.favors:
-            print(f"    Favors: {len(p.favors)}")
+    for p in state['players']:
+        office_title = p.get('current_office_title', "Outsider")
+        is_current = ">>>" if p['id'] == state['current_player_index'] and state['current_phase'] == "ACTION_PHASE" else ""
+        print(f"  {is_current}{p['name']} ({p['archetype']['title']})")
+        print(f"    PC: {p['pc']} | Office: {office_title}")
+        if p.get('allies'):
+            print(f"    Ally: {p['allies'][0]['title']} ({p['allies'][0]['description']})")
+        if p.get('favors'):
+            print(f"    Favors: {len(p['favors'])}")
     print("="*60)
 
-def get_player_action(state: GameState) -> Optional[Action]:
+def get_player_action(state: Dict[str, Any]) -> Optional[Action]:
     """Prompts the current player for their move and returns a structured Action object."""
-    player = state.get_current_player()
+    player_id = state['current_player_index']
+    player_name = state['players'][player_id]['name']
+
 
     while True:
-        print(f"\nIt's your turn, {player.name}. What is your action?")
+        print(f"\nIt's your turn, {player_name}. What is your action?")
         print("  [1] Fundraise")
         print("  [2] Network")
         print("  [3] Sponsor Legislation")
-        if state.round_marker == 4:
+        if state['round_marker'] == 4:
             print("  [4] Declare Candidacy for an Office")
         print("---")
         print("  [info] View Game Info (Offices, Mandate, etc.)")
@@ -48,15 +50,15 @@ def get_player_action(state: GameState) -> Optional[Action]:
         choice = input("> ").lower()
 
         if choice == '1':
-            return ActionFundraise(player_id=player.id)
+            return ActionFundraise(player_id=player_id)
         elif choice == '2':
-            return ActionNetwork(player_id=player.id)
+            return ActionNetwork(player_id=player_id)
         elif choice == '3':
-            return _prompt_for_legislation(state, player)
-        elif choice == '4' and state.round_marker == 4:
-            return _prompt_for_candidacy(state, player)
+            return _prompt_for_legislation(state, player_id)
+        elif choice == '4' and state['round_marker'] == 4:
+            return _prompt_for_candidacy(state, player_id)
         elif choice == 'info':
-            _display_info_menu(state, player)
+            _display_info_menu(state, player_id)
             continue
         elif choice == 'rules':
             _display_rules()
@@ -64,12 +66,13 @@ def get_player_action(state: GameState) -> Optional[Action]:
         else:
             print("Invalid input. Please try again.")
 
-def _prompt_for_legislation(state: GameState, player: Player) -> Optional[Action]:
+def _prompt_for_legislation(state: Dict[str, Any], player_id: int) -> Optional[Action]:
     """Handles the multi-step process of sponsoring a bill. Co-sponsorship is NOT yet implemented."""
     print("Which bill would you like to sponsor?")
-    options = list(state.legislation_options.items())
+    player_pc = state['players'][player_id]['pc']
+    options = list(state['legislation_options'].items())
     for i, (leg_id, leg) in enumerate(options):
-        print(f"  [{i+1}] {leg.title} (Cost: {leg.cost} PC)")
+        print(f"  [{i+1}] {leg['title']} (Cost: {leg['cost']} PC)")
     print(f"  [{len(options)+1}] Cancel")
     
     while True:
@@ -77,10 +80,10 @@ def _prompt_for_legislation(state: GameState, player: Player) -> Optional[Action
             choice = int(input("> ")) - 1
             if 0 <= choice < len(options):
                 leg_id, leg = options[choice]
-                if player.pc >= leg.cost:
+                if player_pc >= leg['cost']:
                     # TODO: Implement co-sponsorship prompt here
-                    print(f"You chose to sponsor the {leg.title}.")
-                    return ActionSponsorLegislation(player_id=player.id, legislation_id=leg_id)
+                    print(f"You chose to sponsor the {leg['title']}.")
+                    return ActionSponsorLegislation(player_id=player_id, legislation_id=leg_id)
                 else:
                     print("You do not have enough PC to sponsor this bill.")
                     return None
@@ -92,12 +95,13 @@ def _prompt_for_legislation(state: GameState, player: Player) -> Optional[Action
             print("Please enter a number.")
     return None # Fallback
 
-def _prompt_for_candidacy(state: GameState, player: Player) -> Optional[Action]:
+def _prompt_for_candidacy(state: Dict[str, Any], player_id: int) -> Optional[Action]:
     """Helper to handle declaring candidacy."""
     print("Which office will you run for?")
-    options = list(state.offices.values())
+    player_pc = state['players'][player_id]['pc']
+    options = list(state['offices'].values())
     for i, office in enumerate(options):
-        print(f"  [{i+1}] {office.title} (Cost: {office.candidacy_cost} PC)")
+        print(f"  [{i+1}] {office['title']} (Cost: {office['candidacy_cost']} PC)")
     print(f"  [{len(options)+1}] Cancel")
 
     while True:
@@ -109,24 +113,25 @@ def _prompt_for_candidacy(state: GameState, player: Player) -> Optional[Action]:
                 continue
             
             chosen_office = options[office_choice]
-            if player.pc < chosen_office.candidacy_cost:
+            if player_pc < chosen_office['candidacy_cost']:
                 print("You don't have enough PC for the candidacy cost.")
                 continue
 
-            max_commit = player.pc - chosen_office.candidacy_cost
+            max_commit = player_pc - chosen_office['candidacy_cost']
             print(f"You have {max_commit} PC remaining after the fee.")
-            commit_pc = int(input(f"How much PC will you secretly commit to the {chosen_office.title} race? (0-{max_commit}) > "))
+            commit_pc = int(input(f"How much PC will you secretly commit to the {chosen_office['title']} race? (0-{max_commit}) > "))
 
             if 0 <= commit_pc <= max_commit:
-                return ActionDeclareCandidacy(player_id=player.id, office_id=chosen_office.id, committed_pc=commit_pc)
+                return ActionDeclareCandidacy(player_id=player_id, office_id=chosen_office['id'], committed_pc=commit_pc)
             else:
                 print(f"Invalid commitment. Must be between 0 and {max_commit}.")
         except ValueError:
             print("Please enter a valid number.")
     return None # Fallback
 
-def _display_info_menu(state: GameState, player: Player):
+def _display_info_menu(state: Dict[str, Any], player_id: int):
     """Shows a menu for viewing game information."""
+    player = state['players'][player_id]
     while True:
         print("\n--- INFO MENU ---")
         print("  [1] View My Personal Mandate")
@@ -135,13 +140,13 @@ def _display_info_menu(state: GameState, player: Player):
         print("  [4] Return to action menu")
         choice = input("> ")
         if choice == '1':
-            print(f"Your Secret Mandate: {player.mandate.title} - {player.mandate.description}")
+            print(f"Your Secret Mandate: {player['mandate']['title']} - {player['mandate']['description']}")
         elif choice == '2':
-            for office in state.offices.values():
-                print(f"  - {office.title} (Tier {office.tier}): Income {office.income} PC, NPC Bonus +{office.npc_challenger_bonus}")
+            for office in state['offices'].values():
+                print(f"  - {office['title']} (Tier {office['tier']}): Income {office['income']} PC, NPC Bonus +{office['npc_challenger_bonus']}")
         elif choice == '3':
-             for leg in state.legislation_options.values():
-                print(f"  - {leg.title}: Cost {leg.cost}, Reward {leg.success_reward}/{leg.crit_reward} PC")
+             for leg in state['legislation_options'].values():
+                print(f"  - {leg['title']}: Cost {leg['cost']}, Reward {leg['success_reward']}/{leg['crit_reward']} PC")
         elif choice == '4':
             break
         else:
@@ -155,20 +160,20 @@ def _display_rules():
     print("Sponsor Legislation: Pay PC cost to propose a bill. Roll a d6 to determine outcome. Other players may co-sponsor.")
     print("Declare Candidacy: In Round 4 only, pay a fee to run for an office and secretly commit funds to the race.")
 
-def display_game_over(state: GameState):
+def display_game_over(state: Dict[str, Any]):
     """Displays the final game over message."""
     print("\n" + "#"*50)
     print("#" + "GAME OVER".center(48) + "#")
     print("#"*50)
     
     winner = None
-    for p in state.players:
-        if p.current_office and p.current_office.id == "PRESIDENT":
+    for p in state['players']:
+        if p.get('current_office') and p['current_office']['id'] == "PRESIDENT":
             winner = p
             break
             
     if winner:
-        print(f"\nCongratulations, {winner.name}! You have won the Presidency!")
+        print(f"\nCongratulations, {winner['name']}! You have won the Presidency!")
     else:
         print("\nNo winner was declared this game.")
 
