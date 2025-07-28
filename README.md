@@ -94,6 +94,7 @@ npm run build
 
 ## Recent Updates
 
+- **Round Advancement Fix**: Fixed critical bug where the game would get stuck in Round 1. The game now properly advances through rounds when all players use their action points
 - **AI Turn Visibility**: The web version now pauses after each AI action, allowing players to see what the AI did before continuing
 - **Enhanced Error Handling**: Improved server stability and error recovery
 - **UI Improvements**: Better game state display and action prompts

@@ -145,6 +145,13 @@ class GameEngine:
             # Advance to the next player
             new_state.current_player_index = (new_state.current_player_index + 1) % len(new_state.players)
             new_state.add_log(f"It is now {new_state.get_current_player().name}'s turn.")
+            
+            # Check if all players have 0 action points (round is complete)
+            all_players_out_of_ap = all(new_state.action_points.get(p.id, 0) <= 0 for p in new_state.players)
+            if all_players_out_of_ap:
+                new_state.add_log("\n--- ROUND COMPLETE ---")
+                new_state.add_log("All players have used their action points. Moving to upkeep phase.")
+                return self.run_upkeep_phase(new_state)
 
         return new_state
 
