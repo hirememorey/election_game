@@ -194,8 +194,8 @@ ui.promptToContinue = function() {
 ui.promptForSubChoice = function(prompt, options) {
     this.term.writeln(`\n\x1B[1;96m${prompt}\x1B[0m`);
     options.forEach((action, index) => {
-        // Assuming the sub-options have a user-friendly text description
-        this.term.writeln(`  \x1B[1;93m[${index + 1}]\x1B[0m ${action.text || action.legislation_id}`);
+        // Use the new display_name field from the backend
+        this.term.writeln(`  \x1B[1;93m[${index + 1}]\x1B[0m ${action.display_name}`);
     });
     this.term.write('\nEnter your choice: ');
 };
@@ -235,10 +235,10 @@ ui.onEnter = (input) => {
         const choice = parseInt(command, 10);
         if (validActions && choice > 0 && choice <= validActions.length) {
             const action = validActions[choice - 1];
-            // For sub-choices, we send a simplified object back
+            // For sub-choices, we send a simplified object back with the choice as 'id'
             socket.send(JSON.stringify({
-                action_type: action.action_type,
-                choice: action.legislation_id // Or other identifier like office_id
+                player_id: 0,
+                choice: action.id
             }));
             isAwaitingSubChoice = false;
             validActions = [];

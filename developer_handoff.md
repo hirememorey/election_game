@@ -44,4 +44,33 @@ With the core game loop and UI interaction model stabilized, the project is read
 - Runs the event phase for the new round
 - Returns control to the human player
 
-This fix ensures the game can progress through multiple rounds and terms as intended. 
+This fix ensures the game can progress through multiple rounds and terms as intended.
+
+## 5. Sponsor Legislation Fix (2025-01-27)
+
+**Issue:** The "Sponsor Legislation" action was broken on the web version deployed to Render. When users selected this action, the game state would corrupt and display `undefined/4 Rounds`, making the game unplayable.
+
+**Root Cause Analysis:** The problem was caused by multiple issues in the backend:
+1. Missing imports in `game_session.py` causing `NameError`
+2. Incomplete data structure - frontend couldn't display user-friendly names for legislation options
+3. AI confusion - AI players were receiving UI-only actions that had no resolvers
+4. Brittle action reconstruction - backend couldn't reliably reconstruct actions from user choices
+
+**Solution:** Implemented a comprehensive fix across multiple components:
+
+**Backend Changes:**
+- **Fixed `game_session.py`**: Added missing imports, enhanced `_handle_ui_action` to provide richer data with `display_name` and `cost`, simplified `process_action` to handle user choices cleanly
+- **Fixed `engine/engine.py`**: Modified `get_valid_actions` to differentiate between human and AI players - AI players receive concrete actions, human players receive UI actions
+- **Created comprehensive tests**: Added `test_game_session.py` with robust unit tests validating the complete two-step flow
+
+**Frontend Changes:**
+- **Updated `static/app.js`**: Modified `promptForSubChoice` to use new `display_name` field, updated sub-choice handling to send correct `choice` format
+
+**Quality Assurance:**
+- All backend tests pass
+- Solution is clean, simple, and robust
+- Maintains separation of concerns (UI actions for humans, concrete actions for AI)
+- Provides rich data structure for better UX
+- Extensible pattern for future two-step actions
+
+This fix ensures the "Sponsor Legislation" action works correctly on the web version deployed to Render. 

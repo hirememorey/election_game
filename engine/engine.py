@@ -304,6 +304,9 @@ class GameEngine:
                     base_cost += 1
             return ap >= base_cost
             
+        # Helper function to check if the player is an AI
+        is_ai = not player.name == "Human"
+
         # Always available actions (1 AP each)
         if can_afford_action("ActionFundraise"):
             valid_actions.append(ActionFundraise(player_id=player_id))
@@ -311,13 +314,18 @@ class GameEngine:
             valid_actions.append(ActionNetwork(player_id=player_id))
         
         # Sponsor Legislation (2 AP, if player has enough PC and AP)
-        # Replaced the loop to generate a single UI action
         if can_afford_action("ActionSponsorLegislation"):
-            # Check if there are any affordable bills
-            can_sponsor_any = any(player.pc >= leg.cost for leg in state.legislation_options.values())
-            if can_sponsor_any:
-                valid_actions.append(UISponsorLegislation(player_id=player_id))
-        
+            if is_ai:
+                # AI gets concrete actions
+                for leg_id, leg in state.legislation_options.items():
+                    if player.pc >= leg.cost:
+                        valid_actions.append(ActionSponsorLegislation(player_id=player_id, legislation_id=leg_id))
+            else:
+                # Human gets a UI action
+                can_sponsor_any = any(player.pc >= leg.cost for leg in state.legislation_options.values())
+                if can_sponsor_any:
+                    valid_actions.append(UISponsorLegislation(player_id=player_id))
+
         # Declare Candidacy (2 AP, only in round 4)
         if state.round_marker == 4 and can_afford_action("ActionDeclareCandidacy"):
             # This action now needs to be a UI action as well to simplify the list.
@@ -351,9 +359,25 @@ class GameEngine:
         active_legislation = [leg for leg in state.term_legislation if not leg.resolved]
         if active_legislation and player.pc > 0:
             if can_afford_action("ActionSupportLegislation"):
-                valid_actions.append(UISupportLegislation(player_id=player_id))
+                if is_ai:
+                    # AI gets concrete actions for different commitment levels
+                    for leg in active_legislation:
+                        for amount in [1, 5, 10]:
+                            if player.pc >= amount:
+                                valid_actions.append(ActionSupportLegislation(player_id=player_id, legislation_id=leg.legislation_id, support_amount=amount))
+                else:
+                    # Human gets a UI action
+                    valid_actions.append(UISupportLegislation(player_id=player_id))
             if can_afford_action("ActionOpposeLegislation"):
-                valid_actions.append(UIOpposeLegislation(player_id=player_id))
+                if is_ai:
+                    # AI gets concrete actions for different commitment levels
+                    for leg in active_legislation:
+                        for amount in [1, 5, 10]:
+                            if player.pc >= amount:
+                                valid_actions.append(ActionOpposeLegislation(player_id=player_id, legislation_id=leg.legislation_id, oppose_amount=amount))
+                else:
+                    # Human gets a UI action
+                    valid_actions.append(UIOpposeLegislation(player_id=player_id))
         
         # Pass Turn (always available)
         valid_actions.append(ActionPassTurn(player_id=player_id))
