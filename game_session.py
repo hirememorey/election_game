@@ -10,7 +10,7 @@ external interface, such as a web server, without containing any I/O itself.
 from typing import List, Optional, Dict, Any
 from engine.engine import GameEngine
 from models.game_state import GameState
-from engine.actions import Action, ActionSponsorLegislation, ActionSupportLegislation, ActionOpposeLegislation
+from engine.actions import Action, ActionSponsorLegislation, ActionSupportLegislation, ActionOpposeLegislation, ActionDeclareCandidacy
 from game_data import load_game_data
 from personas.base_persona import BasePersona
 from personas.random_persona import RandomPersona
@@ -106,6 +106,8 @@ class GameSession:
             # For sponsoring, the choice is the legislation_id
             if action_data['action_type'] == 'ActionSponsorLegislation':
                 action_data['legislation_id'] = choice
+            elif action_data['action_type'] == 'ActionDeclareCandidacy':
+                action_data['office_id'] = choice
             # TODO: Add logic for other two-step actions here
             
             action_class = self.engine.ACTION_CLASSES[action_data['action_type']]
@@ -127,7 +129,7 @@ class GameSession:
             return self._run_ai_turns()
 
         # Handle UI actions that require a second step
-        if action_type in ["UISponsorLegislation", "UISupportLegislation", "UIOpposeLegislation"]:
+        if action_type in ["UISponsorLegislation", "UISupportLegislation", "UIOpposeLegislation", "UIDeclareCandidacy"]:
             return self._handle_ui_action(action_data)
 
         # For all other actions, they should have a direct mapping in the engine
@@ -163,6 +165,23 @@ class GameSession:
                 "options": options
             }
         
+        elif action_type == "UIDeclareCandidacy":
+            options = []
+            player = self.state.get_player_by_id(player_id)
+            for office_id, office_details in self.state.offices.items():
+                if player.pc >= office_details.candidacy_cost:
+                    options.append({
+                        "id": office_id,
+                        "display_name": f"{office_details.title} (Cost: {office_details.candidacy_cost} PC)",
+                        "cost": office_details.candidacy_cost
+                    })
+            
+            self.pending_ui_action = {
+                "action": {"action_type": "ActionDeclareCandidacy", "player_id": player_id},
+                "prompt": "Which office would you like to run for?",
+                "options": options
+            }
+
         elif action_type == "UISupportLegislation":
             # This part is not being fixed yet, but shows the pattern
             # ...

@@ -1,5 +1,5 @@
 from dataclasses import dataclass, field, asdict
-from typing import List, Dict, Any
+from typing import List, Dict, Any, Type
 
 @dataclass
 class Action:
@@ -23,7 +23,9 @@ class Action:
 
 
 # Dictionary to map action type names back to their classes
-ACTION_CLASSES = {}
+ACTION_CLASSES: Dict[str, Type[Action]] = {
+    cls.action_type: cls for cls in Action.__subclasses__()
+}
 
 def _register_action(cls):
     ACTION_CLASSES[cls.__name__] = cls

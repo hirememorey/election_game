@@ -12,7 +12,7 @@ from engine.actions import (
     ActionResolveLegislation, ActionResolveElections, ActionAcknowledgeResults,
     ACTION_CLASSES
 )
-from engine.ui_actions import UISponsorLegislation, UISupportLegislation, UIOpposeLegislation
+from engine.ui_actions import UISponsorLegislation, UISupportLegislation, UIOpposeLegislation, UIDeclareCandidacy
 
 class AcknowledgeAITurn(Action):
     """A special action used by the human player to acknowledge the AI's turn."""
@@ -328,25 +328,27 @@ class GameEngine:
 
         # Declare Candidacy (2 AP, only in round 4)
         if state.round_marker == 4 and can_afford_action("ActionDeclareCandidacy"):
-            # This action now needs to be a UI action as well to simplify the list.
-            # For now, leaving the detailed generation to ensure it works, but this is a candidate for UI refactoring.
-            for office_id in state.offices:
-                office = state.offices[office_id]
-                if office.candidacy_cost <= player.pc:
-                    # Can declare with 0 PC commitment
-                    valid_actions.append(ActionDeclareCandidacy(
-                        player_id=player_id,
-                        office_id=office_id,
-                        committed_pc=0
-                    ))
-                    # Can also declare with additional PC commitment
-                    if player.pc > office.candidacy_cost:
+            if is_ai:
+                for office_id in state.offices:
+                    office = state.offices[office_id]
+                    if office.candidacy_cost <= player.pc:
                         valid_actions.append(ActionDeclareCandidacy(
                             player_id=player_id,
                             office_id=office_id,
-                            committed_pc=min(10, player.pc - office.candidacy_cost)
+                            committed_pc=0
                         ))
-        
+                        if player.pc > office.candidacy_cost:
+                            valid_actions.append(ActionDeclareCandidacy(
+                                player_id=player_id,
+                                office_id=office_id,
+                                committed_pc=min(10, player.pc - office.candidacy_cost)
+                            ))
+            else:
+                # For humans, just show one UI action if they can afford any office
+                can_run_for_any_office = any(player.pc >= office.candidacy_cost for office in state.offices.values())
+                if can_run_for_any_office:
+                    valid_actions.append(UIDeclareCandidacy(player_id=player_id))
+
         # Use Favor (1 AP, if player has favors)
         if player.favors and can_afford_action("ActionUseFavor"):
             for favor in player.favors:

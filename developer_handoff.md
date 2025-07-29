@@ -46,7 +46,54 @@ With the core game loop and UI interaction model stabilized, the project is read
 
 This fix ensures the game can progress through multiple rounds and terms as intended.
 
-## 5. Sponsor Legislation Fix (2025-01-27)
+## 5. Declare Candidacy Fix (2025-01-27)
+
+**Issue:** The "Declare Candidacy" action was not available to human players in Round 4, despite being a core game mechanic. This prevented players from running for office, which is essential for winning the game.
+
+**Root Cause Analysis:** The problem was in the `get_valid_actions` method in `engine/engine.py`. While the logic for checking if it was Round 4 was correct, the action was only being generated for AI players, not human players. Additionally, the action needed to be integrated into the two-step UI action system for consistency.
+
+**Solution:** Implemented a comprehensive fix across multiple components:
+
+**Backend Changes:**
+- **Updated `engine/engine.py`**: Modified `get_valid_actions` to return `UIDeclareCandidacy` for human players in Round 4, while AI players continue to receive concrete `ActionDeclareCandidacy` actions
+- **Updated `game_session.py`**: Added handling for `UIDeclareCandidacy` in `_handle_ui_action` to generate a list of available offices for the player to choose from
+- **Updated `engine/ui_actions.py`**: Added `UIDeclareCandidacy` class to the UI action system
+- **Updated `engine/actions.py`**: Fixed the `ACTION_CLASSES` dictionary to properly register all action subclasses
+
+**Frontend Changes:**
+- **Updated `static/app.js`**: Added case for `UIDeclareCandidacy` in `getActionDescription` to display the action correctly in the UI
+
+**Testing:**
+- **Added `test_declare_candidacy_flow`**: Created comprehensive test in `test_game_session.py` to verify the two-step flow works correctly
+- **All tests passing**: Verified that the changes don't introduce regressions
+
+**Quality Assurance:**
+- All backend and frontend tests pass
+- Solution maintains consistency with existing UI action patterns
+- Provides proper two-step flow for office selection
+- Maintains separation of concerns (UI actions for humans, concrete actions for AI)
+
+This fix ensures the "Declare Candidacy" action is available to human players in Round 4 and works correctly with the web interface.
+
+## 6. CLI Version Removal (2025-01-27)
+
+**Decision:** Removed the local CLI version of the game to simplify the project and avoid confusion. The web application now serves as the single interface for the game.
+
+**Files Removed:**
+- `main.py`: Entry point for the local CLI game
+- `cli.py`: Command-line interface display and user input handling
+- `human_vs_ai.py`: Game loop for human vs AI on command line
+- `cli_game.py`: Main CLI game experience
+- `test_cli_game.py`: Tests for the CLI game
+- `test_end_to_end.py`: CLI-specific end-to-end tests
+
+**Benefits:**
+- Simplified project structure
+- Reduced maintenance burden
+- Clear focus on web application
+- Eliminated potential confusion between CLI and web versions
+
+## 7. Sponsor Legislation Fix (2025-01-27)
 
 **Issue:** The "Sponsor Legislation" action was broken on the web version deployed to Render. When users selected this action, the game state would corrupt and display `undefined/4 Rounds`, making the game unplayable.
 

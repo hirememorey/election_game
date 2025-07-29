@@ -13,7 +13,7 @@ A competitive political strategy game where players manage resources, sponsor an
 
 ## Quick Start
 
-### Web Version (Recommended)
+### Web Version
 
 1. Install dependencies:
    ```bash
@@ -38,13 +38,6 @@ The web version features:
 - AI turn visibility (press Enter to continue after each AI action)
 - Modern terminal-style interface
 - Full game state display
-
-### Command Line Version
-
-For a simpler experience, you can also run:
-```bash
-python3 main.py
-```
 
 ## Game Rules
 
@@ -73,18 +66,14 @@ Win by having the most **Influence** at the end of the final term. Influence is 
 - `personas/`: AI player personalities
 - `static/`: Web frontend files
 - `server.py`: Web server for the browser version
-- `main.py`: Command-line entry point
 
 ### Testing
 ```bash
 # Backend tests
-pytest
+python3 -m unittest discover -s .
 
 # Frontend tests
 npm test
-
-# End-to-end tests
-python3 test_end_to_end.py
 ```
 
 ### Building for Production
@@ -94,6 +83,8 @@ npm run build
 
 ## Recent Updates
 
+- **Declare Candidacy Fix**: Fixed critical bug where the "Declare Candidacy" action was not available in Round 4. Implemented proper two-step UI flow for office selection
+- **CLI Version Removal**: Simplified the project by removing the local CLI version to focus on the web application
 - **Round Advancement Fix**: Fixed critical bug where the game would get stuck in Round 1. The game now properly advances through rounds when all players use their action points
 - **AI Turn Visibility**: The web version now pauses after each AI action, allowing players to see what the AI did before continuing
 - **Enhanced Error Handling**: Improved server stability and error recovery

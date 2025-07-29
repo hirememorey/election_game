@@ -16,8 +16,12 @@ class UISponsorLegislation(UIAction):
 
 @dataclass
 class UISupportLegislation(UIAction):
-    pass
+    action_type: str = "UISupportLegislation"
 
 @dataclass
 class UIOpposeLegislation(UIAction):
-    pass 
+    action_type: str = "UIOpposeLegislation"
+
+@dataclass
+class UIDeclareCandidacy(UIAction):
+    action_type: str = "UIDeclareCandidacy"
