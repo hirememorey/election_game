@@ -318,11 +318,11 @@ class GameEngine:
             if is_ai:
                 # AI gets concrete actions
                 for leg_id, leg in state.legislation_options.items():
-                    if player.pc >= leg.cost:
+                    if player.pc >= leg.cost and leg_id not in [l.legislation_id for l in state.term_legislation]:
                         valid_actions.append(ActionSponsorLegislation(player_id=player_id, legislation_id=leg_id))
             else:
                 # Human gets a UI action
-                can_sponsor_any = any(player.pc >= leg.cost for leg in state.legislation_options.values())
+                can_sponsor_any = any(player.pc >= leg.cost and leg_id not in [l.legislation_id for l in state.term_legislation] for leg_id, leg in state.legislation_options.items())
                 if can_sponsor_any:
                     valid_actions.append(UISponsorLegislation(player_id=player_id))
 

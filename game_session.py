@@ -108,7 +108,12 @@ class GameSession:
                 action_data['legislation_id'] = choice
             elif action_data['action_type'] == 'ActionDeclareCandidacy':
                 action_data['office_id'] = choice
-            # TODO: Add logic for other two-step actions here
+            elif action_data['action_type'] == 'ActionSupportLegislation':
+                action_data['legislation_id'] = choice
+                action_data['support_amount'] = 1  # Default amount, could be made configurable
+            elif action_data['action_type'] == 'ActionOpposeLegislation':
+                action_data['legislation_id'] = choice
+                action_data['oppose_amount'] = 1  # Default amount, could be made configurable
             
             action_class = self.engine.ACTION_CLASSES[action_data['action_type']]
             action = action_class.from_dict(action_data)
@@ -151,8 +156,9 @@ class GameSession:
         if action_type == "UISponsorLegislation":
             # Get available legislation to sponsor with richer data
             options = []
+            sponsored_ids = {leg.legislation_id for leg in self.state.term_legislation}
             for leg_id, leg_details in self.state.legislation_options.items():
-                if self.state.get_player_by_id(player_id).pc >= leg_details.cost:
+                if leg_id not in sponsored_ids and self.state.get_player_by_id(player_id).pc >= leg_details.cost:
                     options.append({
                         "id": leg_id,
                         "display_name": f"{leg_details.title} (Cost: {leg_details.cost} PC)",
@@ -183,14 +189,36 @@ class GameSession:
             }
 
         elif action_type == "UISupportLegislation":
-            # This part is not being fixed yet, but shows the pattern
-            # ...
-            pass
+            options = []
+            for leg in self.state.term_legislation:
+                if not leg.resolved:
+                    leg_details = self.state.legislation_options[leg.legislation_id]
+                    options.append({
+                        "id": leg.legislation_id,
+                        "display_name": f"{leg_details.title}",
+                    })
+            
+            self.pending_ui_action = {
+                "action": {"action_type": "ActionSupportLegislation", "player_id": player_id},
+                "prompt": "Which bill would you like to secretly support?",
+                "options": options
+            }
 
         elif action_type == "UIOpposeLegislation":
-            # This part is not being fixed yet, but shows the pattern
-            # ...
-            pass
+            options = []
+            for leg in self.state.term_legislation:
+                if not leg.resolved:
+                    leg_details = self.state.legislation_options[leg.legislation_id]
+                    options.append({
+                        "id": leg.legislation_id,
+                        "display_name": f"{leg_details.title}",
+                    })
+
+            self.pending_ui_action = {
+                "action": {"action_type": "ActionOpposeLegislation", "player_id": player_id},
+                "prompt": "Which bill would you like to secretly oppose?",
+                "options": options
+            }
         
         return []
 

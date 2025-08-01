@@ -120,4 +120,34 @@ This fix ensures the "Declare Candidacy" action is available to human players in
 - Provides rich data structure for better UX
 - Extensible pattern for future two-step actions
 
-This fix ensures the "Sponsor Legislation" action works correctly on the web version deployed to Render. 
+This fix ensures the "Sponsor Legislation" action works correctly on the web version deployed to Render.
+
+## 8. Legislation Sponsorship and Support/Oppose Fix (2025-01-27)
+
+**Issue:** Players could re-sponsor already active legislation and could not support or oppose their own sponsored bills, breaking the core game mechanics.
+
+**Root Cause Analysis:**
+1. **Re-sponsoring Active Bills:** The `get_valid_actions` method in `engine/engine.py` and the UI handling in `game_session.py` did not filter out already sponsored legislation when presenting sponsorship options.
+2. **Cannot Support Own Bills:** The UI actions for support/oppose legislation were not implemented in `game_session.py`, preventing players from committing PC to any active bills.
+3. **Serialization Issues:** The `PendingLegislation` class lacked a `to_dict()` method, causing tuple serialization errors, and `term_legislation` was not included in the game state sent to the frontend.
+
+**Solution:** Implemented comprehensive fixes across multiple components:
+
+**Backend Changes:**
+- **Updated `engine/engine.py`**: Modified `get_valid_actions` to filter out already sponsored legislation when generating sponsorship options for both AI and human players
+- **Updated `game_session.py`**:
+  - Implemented `UISupportLegislation` and `UIOpposeLegislation` handlers in `_handle_ui_action`
+  - Added support for legislation choice mapping in `process_action`
+  - Added filtering to prevent re-sponsoring active legislation in the UI
+- **Updated `models/game_state.py`**:
+  - Added `to_dict()` method to `PendingLegislation` class for proper JSON serialization
+  - Included `term_legislation` in `GameState.to_dict()` method
+
+**Quality Assurance:**
+- All backend tests continue to pass
+- Solution maintains clean separation between UI actions and concrete game actions
+- Fixes both server-side tuple errors and frontend JavaScript errors
+- Enables proper two-step flow for legislation support/oppose actions
+- Prevents duplicate sponsorship of active bills
+
+This fix ensures players can properly sponsor legislation in one round and then support or oppose any active legislation (including their own) in subsequent rounds, aligning with the physical game rules. 

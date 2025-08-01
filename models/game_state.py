@@ -25,6 +25,16 @@ class PendingLegislation:
     support_players: Dict[int, int] = field(default_factory=dict)  # player_id -> pc_amount
     oppose_players: Dict[int, int] = field(default_factory=dict)   # player_id -> pc_amount
     resolved: bool = False
+    
+    def to_dict(self):
+        """Converts the PendingLegislation to a JSON-serializable dictionary."""
+        return {
+            "legislation_id": self.legislation_id,
+            "sponsor_id": self.sponsor_id,
+            "support_players": self.support_players,
+            "oppose_players": self.oppose_players,
+            "resolved": self.resolved
+        }
 
 @dataclass
 class GameState:
@@ -89,6 +99,7 @@ class GameState:
             "players": [p.to_dict() for p in self.players],
             "offices": {oid: o.to_dict() for oid, o in self.offices.items()},
             "legislation_options": {lid: l.to_dict() for lid, l in self.legislation_options.items()},
+            "term_legislation": [leg.to_dict() for leg in self.term_legislation],
             "round_marker": self.round_marker,
             "term_counter": self.term_counter,
             "public_mood": self.public_mood,

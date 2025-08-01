@@ -83,6 +83,7 @@ npm run build
 
 ## Recent Updates
 
+- **Legislation Sponsorship & Support/Oppose Fix**: Fixed critical issues where players could re-sponsor active legislation and couldn't support/oppose their own bills. Players can now properly sponsor legislation in one round and support/oppose any active legislation (including their own) in subsequent rounds
 - **Declare Candidacy Fix**: Fixed critical bug where the "Declare Candidacy" action was not available in Round 4. Implemented proper two-step UI flow for office selection
 - **CLI Version Removal**: Simplified the project by removing the local CLI version to focus on the web application
 - **Round Advancement Fix**: Fixed critical bug where the game would get stuck in Round 1. The game now properly advances through rounds when all players use their action points
