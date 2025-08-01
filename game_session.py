@@ -161,8 +161,7 @@ class GameSession:
                 if leg_id not in sponsored_ids and self.state.get_player_by_id(player_id).pc >= leg_details.cost:
                     options.append({
                         "id": leg_id,
-                        "display_name": f"{leg_details.title} (Cost: {leg_details.cost} PC)",
-                        "cost": leg_details.cost
+                        "display_name": f"{leg_details.title} (Cost: {leg_details.cost} PC)"
                     })
 
             self.pending_ui_action = {
@@ -178,8 +177,7 @@ class GameSession:
                 if player.pc >= office_details.candidacy_cost:
                     options.append({
                         "id": office_id,
-                        "display_name": f"{office_details.title} (Cost: {office_details.candidacy_cost} PC)",
-                        "cost": office_details.candidacy_cost
+                        "display_name": f"{office_details.title} (Cost: {office_details.candidacy_cost} PC)"
                     })
             
             self.pending_ui_action = {
@@ -195,7 +193,7 @@ class GameSession:
                     leg_details = self.state.legislation_options[leg.legislation_id]
                     options.append({
                         "id": leg.legislation_id,
-                        "display_name": f"{leg_details.title}",
+                        "display_name": f"{leg_details.title}"
                     })
             
             self.pending_ui_action = {
@@ -211,7 +209,7 @@ class GameSession:
                     leg_details = self.state.legislation_options[leg.legislation_id]
                     options.append({
                         "id": leg.legislation_id,
-                        "display_name": f"{leg_details.title}",
+                        "display_name": f"{leg_details.title}"
                     })
 
             self.pending_ui_action = {

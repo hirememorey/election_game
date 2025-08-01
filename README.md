@@ -83,6 +83,7 @@ npm run build
 
 ## Recent Updates
 
+- **Legislation "Undefined" Fix**: Fixed critical issue where users would see "undefined" options when selecting legislation to sponsor. The backend was correctly generating the data, but users needed to clear browser cache and restart the server to get the latest frontend JavaScript
 - **Legislation Sponsorship & Support/Oppose Fix**: Fixed critical issues where players could re-sponsor active legislation and couldn't support/oppose their own bills. Players can now properly sponsor legislation in one round and support/oppose any active legislation (including their own) in subsequent rounds
 - **Declare Candidacy Fix**: Fixed critical bug where the "Declare Candidacy" action was not available in Round 4. Implemented proper two-step UI flow for office selection
 - **CLI Version Removal**: Simplified the project by removing the local CLI version to focus on the web application

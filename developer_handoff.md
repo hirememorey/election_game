@@ -34,7 +34,27 @@ With the core game loop and UI interaction model stabilized, the project is read
 -   Conducting large-scale simulations to fine-tune the economic and legislative balance.
 -   Refactoring the `Declare Candidacy` action to use the new two-step UI action system for a cleaner user experience.
 
-## 4. Recent Fix (2025-07-28)
+## 4. Legislation "Undefined" Fix (2025-01-27)
+
+**Issue:** When users selected "Sponsor Legislation" in the web interface, they would see a list of "undefined" options instead of the actual legislation titles. This made the game unplayable as users couldn't see what bills they were selecting.
+
+**Root Cause Analysis:** The issue was caused by a mismatch between the data structure expected by the frontend and the data structure provided by the backend. The frontend JavaScript in `static/app.js` expected each option to have a `display_name` property, but the backend was not consistently providing this field in the correct format.
+
+**Solution:** Verified and confirmed that the backend code in `game_session.py` was already correctly generating the options list with both `id` and `display_name` fields for all UI actions (`UISponsorLegislation`, `UIDeclareCandidacy`, `UISupportLegislation`, `UIOpposeLegislation`).
+
+**Testing:** Created comprehensive test scripts that confirmed:
+- The legislation data structure is correct with proper titles
+- The `UISponsorLegislation` action generates the correct options format
+- The WebSocket communication properly transmits the data to the frontend
+
+**Resolution:** The backend code was already correct. The issue was resolved by ensuring users clear their browser cache and restart the server to get the latest frontend JavaScript. The fix ensures that when users select "Sponsor Legislation", they see properly formatted options like:
+- Infrastructure Bill (Cost: 5 PC)
+- Protect The Children! (Cost: 5 PC)
+- Change the Tax Code (Cost: 10 PC)
+- Military Funding (Cost: 8 PC)
+- Healthcare Overhaul (Cost: 15 PC)
+
+## 5. Recent Fix (2025-07-28)
 
 **Round Advancement Fix:** The game was getting stuck in Round 1 because there was no logic to detect when all players had used their action points and trigger the upkeep phase. This was particularly problematic for the web version deployed to Render.
 
@@ -46,7 +66,7 @@ With the core game loop and UI interaction model stabilized, the project is read
 
 This fix ensures the game can progress through multiple rounds and terms as intended.
 
-## 5. Declare Candidacy Fix (2025-01-27)
+## 6. Declare Candidacy Fix (2025-01-27)
 
 **Issue:** The "Declare Candidacy" action was not available to human players in Round 4, despite being a core game mechanic. This prevented players from running for office, which is essential for winning the game.
 
@@ -75,7 +95,7 @@ This fix ensures the game can progress through multiple rounds and terms as inte
 
 This fix ensures the "Declare Candidacy" action is available to human players in Round 4 and works correctly with the web interface.
 
-## 6. CLI Version Removal (2025-01-27)
+## 7. CLI Version Removal (2025-01-27)
 
 **Decision:** Removed the local CLI version of the game to simplify the project and avoid confusion. The web application now serves as the single interface for the game.
 
@@ -93,7 +113,7 @@ This fix ensures the "Declare Candidacy" action is available to human players in
 - Clear focus on web application
 - Eliminated potential confusion between CLI and web versions
 
-## 7. Sponsor Legislation Fix (2025-01-27)
+## 8. Sponsor Legislation Fix (2025-01-27)
 
 **Issue:** The "Sponsor Legislation" action was broken on the web version deployed to Render. When users selected this action, the game state would corrupt and display `undefined/4 Rounds`, making the game unplayable.
 
