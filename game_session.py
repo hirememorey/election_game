@@ -74,6 +74,7 @@ class GameSession:
         if self.is_human_turn() and self.pending_ui_action:
             state_dict['valid_actions'] = self.pending_ui_action['options']
             state_dict['prompt'] = self.pending_ui_action['prompt']
+            state_dict['expects_input'] = self.pending_ui_action.get('expects_input')
         elif self.is_human_turn():
             valid_actions = self.engine.get_valid_actions(self.state, self.human_player_id)
             # We need to serialize the actions as well
@@ -92,35 +93,7 @@ class GameSession:
         Returns a log of events that occurred.
         """
         if self.pending_ui_action:
-            # The user is responding to a sub-prompt (e.g., choosing a bill)
-            action_template = self.pending_ui_action['action']
-            choice = action_data.get('choice')
-
-            if not choice:
-                return ["Invalid choice. Please try again."]
-
-            # Build the final action from the template and the user's choice
-            action_data = action_template.copy()
-            
-            # This is where we map the 'choice' to the correct field in the action
-            # For sponsoring, the choice is the legislation_id
-            if action_data['action_type'] == 'ActionSponsorLegislation':
-                action_data['legislation_id'] = choice
-            elif action_data['action_type'] == 'ActionDeclareCandidacy':
-                action_data['office_id'] = choice
-            elif action_data['action_type'] == 'ActionSupportLegislation':
-                action_data['legislation_id'] = choice
-                action_data['support_amount'] = 1  # Default amount, could be made configurable
-            elif action_data['action_type'] == 'ActionOpposeLegislation':
-                action_data['legislation_id'] = choice
-                action_data['oppose_amount'] = 1  # Default amount, could be made configurable
-            
-            action_class = self.engine.ACTION_CLASSES[action_data['action_type']]
-            action = action_class.from_dict(action_data)
-
-            self.pending_ui_action = None # Clear pending action
-            return self._execute_action_and_run_ais(action)
-
+            return self._process_pending_action(action_data)
 
         action_type = action_data.get("action_type")
         
@@ -152,6 +125,7 @@ class GameSession:
     def _handle_ui_action(self, action_data: Dict[str, Any]) -> List[str]:
         action_type = action_data.get("action_type")
         player_id = action_data.get("player_id")
+        player = self.state.get_player_by_id(player_id)
 
         if action_type == "UISponsorLegislation":
             # Get available legislation to sponsor with richer data
@@ -165,9 +139,10 @@ class GameSession:
                     })
 
             self.pending_ui_action = {
-                "action": {"action_type": "ActionSponsorLegislation", "player_id": player_id},
+                "action_template": {"action_type": "ActionSponsorLegislation", "player_id": player_id},
                 "prompt": "Which bill would you like to sponsor?",
-                "options": options
+                "options": options,
+                "step": "choose_entity"
             }
         
         elif action_type == "UIDeclareCandidacy":
@@ -181,12 +156,13 @@ class GameSession:
                     })
             
             self.pending_ui_action = {
-                "action": {"action_type": "ActionDeclareCandidacy", "player_id": player_id},
+                "action_template": {"action_type": "ActionDeclareCandidacy", "player_id": player_id},
                 "prompt": "Which office would you like to run for?",
-                "options": options
+                "options": options,
+                "step": "choose_entity"
             }
 
-        elif action_type == "UISupportLegislation":
+        elif action_type in ["UISupportLegislation", "UIOpposeLegislation"]:
             options = []
             for leg in self.state.term_legislation:
                 if not leg.resolved:
@@ -196,30 +172,76 @@ class GameSession:
                         "display_name": f"{leg_details.title}"
                     })
             
-            self.pending_ui_action = {
-                "action": {"action_type": "ActionSupportLegislation", "player_id": player_id},
-                "prompt": "Which bill would you like to secretly support?",
-                "options": options
-            }
+            if not options:
+                return ["There is no active legislation to influence right now."]
 
-        elif action_type == "UIOpposeLegislation":
-            options = []
-            for leg in self.state.term_legislation:
-                if not leg.resolved:
-                    leg_details = self.state.legislation_options[leg.legislation_id]
-                    options.append({
-                        "id": leg.legislation_id,
-                        "display_name": f"{leg_details.title}"
-                    })
+            is_support = action_type == "UISupportLegislation"
+            final_action_type = "ActionSupportLegislation" if is_support else "ActionOpposeLegislation"
+            prompt = "Which bill would you like to secretly support?" if is_support else "Which bill would you like to secretly oppose?"
 
             self.pending_ui_action = {
-                "action": {"action_type": "ActionOpposeLegislation", "player_id": player_id},
-                "prompt": "Which bill would you like to secretly oppose?",
-                "options": options
+                "action_template": {"action_type": final_action_type, "player_id": player_id},
+                "prompt": prompt,
+                "options": options,
+                "step": "choose_entity"
             }
-        
+
         return []
 
+    def _process_pending_action(self, action_data: Dict[str, Any]) -> List[str]:
+        """Handles the multi-step action flow."""
+        choice = action_data.get('choice')
+        pending_action = self.pending_ui_action
+        action_template = pending_action['action_template']
+        player_id = action_template['player_id']
+        player = self.state.get_player_by_id(player_id)
+
+        # Step 1: Player chooses the entity (legislation, office, etc.)
+        if pending_action.get("step") == "choose_entity":
+            action_type = action_template['action_type']
+
+            # For Support/Oppose, we need to ask for an amount next
+            if action_type in ["ActionSupportLegislation", "ActionOpposeLegislation"]:
+                pending_action["action_template"]["legislation_id"] = choice
+                pending_action["step"] = "choose_amount"
+                is_support = action_type == "ActionSupportLegislation"
+                prompt = "support with" if is_support else "oppose with"
+                pending_action["prompt"] = f"How much PC to {prompt}? (1 - {player.pc})"
+                pending_action["options"] = []
+                pending_action["expects_input"] = "amount"
+                return [] # Wait for the amount
+            
+            # For other actions, this is the final step
+            if action_type == 'ActionSponsorLegislation':
+                action_template['legislation_id'] = choice
+            elif action_type == 'ActionDeclareCandidacy':
+                action_template['office_id'] = choice
+
+            action_class = self.engine.ACTION_CLASSES[action_type]
+            action = action_class.from_dict(action_template)
+            self.pending_ui_action = None
+            return self._execute_action_and_run_ais(action)
+
+        # Step 2: Player chooses the amount (for Support/Oppose)
+        elif pending_action.get("step") == "choose_amount":
+            amount = choice
+            if not isinstance(amount, int) or not (1 <= amount <= player.pc):
+                # Resend the prompt on invalid input
+                pending_action["prompt"] = f"Invalid amount. How much PC? (1 - {player.pc})"
+                return []
+            
+            action_type = action_template['action_type']
+            if action_type == 'ActionSupportLegislation':
+                action_template['support_amount'] = amount
+            elif action_type == 'ActionOpposeLegislation':
+                action_template['oppose_amount'] = amount
+
+            action_class = self.engine.ACTION_CLASSES[action_type]
+            action = action_class.from_dict(action_template)
+            self.pending_ui_action = None
+            return self._execute_action_and_run_ais(action)
+
+        return ["Invalid state in pending action processing."]
 
     def _execute_action_and_run_ais(self, action: Action) -> List[str]:
         """

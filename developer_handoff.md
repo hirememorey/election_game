@@ -171,3 +171,41 @@ This fix ensures the "Sponsor Legislation" action works correctly on the web ver
 - Prevents duplicate sponsorship of active bills
 
 This fix ensures players can properly sponsor legislation in one round and then support or oppose any active legislation (including their own) in subsequent rounds, aligning with the physical game rules. 
+
+## 9. Precise PC Commitment System (2025-01-27)
+
+**Issue:** Players were limited to committing fixed amounts of Political Capital (PC) when supporting or opposing legislation, which limited strategic depth and didn't align with the physical game's design where players can commit any amount of PC they choose.
+
+**Root Cause Analysis:** The existing two-step UI action system only handled the selection of which bill to support/oppose, but then defaulted to committing 1 PC regardless of the player's choice. The system lacked a third step to prompt for the specific amount of PC to commit.
+
+**Solution:** Implemented a comprehensive three-step action flow for supporting and opposing legislation:
+
+**Backend Changes:**
+- **Enhanced `game_session.py`**: 
+  - Refactored the `_process_pending_action` method to handle multi-step flows with a `step` field
+  - Added support for `choose_entity` (select bill) and `choose_amount` (specify PC amount) steps
+  - Implemented validation to ensure the committed amount is within the player's available PC
+  - Added the `expects_input` flag to the state payload sent to the frontend
+- **Updated `_handle_ui_action`**: Modified to create pending actions with proper step tracking for support/oppose legislation
+
+**Frontend Changes:**
+- **Enhanced `static/app.js`**: 
+  - Added logic to detect when the backend expects free-form numeric input (`expects_input === "amount"`)
+  - Implemented proper parsing and validation of numeric input for PC amounts
+  - Added error handling for invalid amounts with user-friendly prompts
+
+**Quality Assurance:**
+- All existing functionality continues to work (sponsor legislation, declare candidacy)
+- New three-step flow: 1) Choose action, 2) Select bill, 3) Specify PC amount
+- Proper validation ensures players cannot commit more PC than they have
+- Clean error handling with helpful prompts for invalid input
+- Maintains consistency with existing UI patterns
+
+**User Experience:**
+Players now experience a natural flow:
+1. Select "Support Legislation" or "Oppose Legislation"
+2. Choose which bill to influence from the available options
+3. Enter the exact amount of PC to commit (e.g., "25" for 25 PC)
+4. The system validates the input and processes the action
+
+This enhancement significantly improves strategic depth by allowing players to make precise risk/reward decisions about their PC commitments, aligning with the physical game's design philosophy. 

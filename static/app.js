@@ -194,10 +194,12 @@ ui.promptToContinue = function() {
 // New function to handle sub-prompts
 ui.promptForSubChoice = function(prompt, options) {
     this.term.writeln(`\n\x1B[1;96m${prompt}\x1B[0m`);
-    options.forEach((action, index) => {
-        // Use the new display_name field from the backend
-        this.term.writeln(`  \x1B[1;93m[${index + 1}]\x1B[0m ${action.display_name}`);
-    });
+    if (options.length > 0) {
+        options.forEach((action, index) => {
+            // Use the new display_name field from the backend
+            this.term.writeln(`  \x1B[1;93m[${index + 1}]\x1B[0m ${action.display_name}`);
+        });
+    }
     this.term.write('\nEnter your choice: ');
 };
 
@@ -211,7 +213,7 @@ ui.onEnter = (input) => {
     }
 
     // If it's not the human's turn, any 'enter' is a continue.
-    if (!validActions || validActions.length === 0) {
+    if ((!validActions || validActions.length === 0) && !isAwaitingSubChoice) {
         socket.send(JSON.stringify({ action_type: 'continue' }));
         return;
     }
@@ -233,6 +235,23 @@ ui.onEnter = (input) => {
     }
 
     if (isAwaitingSubChoice) {
+        // Handle case where we expect a free-form number input (e.g., for PC amount)
+        if (currentState.expects_input === "amount") {
+            const amount = parseInt(command, 10);
+            if (!isNaN(amount) && amount > 0) {
+                socket.send(JSON.stringify({
+                    player_id: 0,
+                    choice: amount
+                }));
+                isAwaitingSubChoice = false;
+                validActions = [];
+            } else {
+                ui.term.writeln(`\nInvalid amount: ${input}`);
+                ui.promptForSubChoice(currentState.prompt, []);
+            }
+            return;
+        }
+
         const choice = parseInt(command, 10);
         if (validActions && choice > 0 && choice <= validActions.length) {
             const action = validActions[choice - 1];

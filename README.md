@@ -83,6 +83,7 @@ npm run build
 
 ## Recent Updates
 
+- **Precise PC Commitment System**: Players can now specify exact amounts of Political Capital when supporting or opposing legislation, rather than being limited to fixed amounts. This enhances strategic depth by allowing players to commit precisely the amount of PC they want to risk on each bill.
 - **Legislation "Undefined" Fix**: Fixed critical issue where users would see "undefined" options when selecting legislation to sponsor. The backend was correctly generating the data, but users needed to clear browser cache and restart the server to get the latest frontend JavaScript
 - **Legislation Sponsorship & Support/Oppose Fix**: Fixed critical issues where players could re-sponsor active legislation and couldn't support/oppose their own bills. Players can now properly sponsor legislation in one round and support/oppose any active legislation (including their own) in subsequent rounds
 - **Declare Candidacy Fix**: Fixed critical bug where the "Declare Candidacy" action was not available in Round 4. Implemented proper two-step UI flow for office selection
