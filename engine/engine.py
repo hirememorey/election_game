@@ -101,45 +101,6 @@ class GameEngine:
         
         return state
 
-    def _check_and_advance_turn(self, state: GameState) -> GameState:
-        """
-        Checks if the current player's turn is over and advances to the next player.
-        This is a separate, explicit step.
-        """
-        current_player = state.get_current_player()
-        if state.action_points.get(current_player.id, 0) <= 0:
-            state.add_log(f"{current_player.name}'s turn ends.")
-            
-            # Advance to the next player
-            state.current_player_index = (state.current_player_index + 1) % len(state.players)
-            state.add_log(f"It is now {state.get_current_player().name}'s turn.")
-        
-        return state
-
-    def _check_and_trigger_upkeep(self, state: GameState) -> GameState:
-        """Checks if all players are out of AP and triggers the upkeep phase."""
-        all_players_out_of_ap = all(state.action_points.get(p.id, 0) <= 0 for p in state.players)
-        if all_players_out_of_ap:
-            state.add_log("\n--- ROUND COMPLETE ---")
-            state.add_log("All players have used their action points. Moving to upkeep phase.")
-            # This was calling run_upkeep_phase, which is now being consolidated here.
-            
-            state.current_phase = "UPKEEP_PHASE"
-            state.add_log("\n--- UPKEEP PHASE ---")
-            state = resolvers.resolve_upkeep(state)
-            state.round_marker += 1
-            
-            if state.round_marker >= 5:
-                state.round_marker = 4 
-                state.add_log("\n--- END OF TERM ---")
-                state.add_log("Round 4 complete. Moving to legislation session.")
-                return self.run_legislation_session(state)
-            else:
-                state.add_log(f"\n--- ROUND {state.round_marker} ---")
-                state.add_log("\n--- EVENT PHASE ---")
-                return self.run_event_phase(state)
-        return state
-
     def process_action(self, state: GameState, action: Action) -> GameState:
         """
         Processes a single action and returns the new game state.
@@ -168,9 +129,45 @@ class GameEngine:
         if new_state.next_action_to_process:
             follow_up_action = new_state.next_action_to_process
             new_state.next_action_to_process = None  # Clear it before processing
-            return self.process_action(new_state, follow_up_action)
+            new_state = self.process_action(new_state, follow_up_action)
             
         return new_state
+
+    def advance_round_or_term(self, state: GameState) -> GameState:
+        """
+        Checks if the round or term has ended and returns a new state if it has.
+        This is a pure function, intended to be called by the GameSession's game loop.
+        """
+        current_player = state.get_current_player()
+        
+        # First, check if the current player's turn should end and advance the player index
+        if state.action_points.get(current_player.id, 0) <= 0:
+            state.add_log(f"{current_player.name}'s turn ends.")
+            state.current_player_index = (state.current_player_index + 1) % len(state.players)
+            state.add_log(f"It is now {state.get_current_player().name}'s turn.")
+
+        # Second, check if the round is over for ALL players
+        all_players_out_of_ap = all(state.action_points.get(p.id, 0) <= 0 for p in state.players)
+        if all_players_out_of_ap:
+            state.add_log("\n--- ROUND COMPLETE ---")
+            state.add_log("All players have used their action points. Moving to upkeep phase.")
+            
+            state.current_phase = "UPKEEP_PHASE"
+            state.add_log("\n--- UPKEEP PHASE ---")
+            state = resolvers.resolve_upkeep(state)
+            state.round_marker += 1
+            
+            if state.round_marker >= 5:
+                state.round_marker = 4 
+                state.add_log("\n--- END OF TERM ---")
+                state.add_log("Round 4 complete. Moving to legislation session.")
+                return self.run_legislation_session(state)
+            else:
+                state.add_log(f"\n--- ROUND {state.round_marker} ---")
+                state.add_log("\n--- EVENT PHASE ---")
+                return self.run_event_phase(state)
+        
+        return state
 
     def _advance_turn_after_action(self, state: GameState) -> GameState:
         """DEPRECATED"""

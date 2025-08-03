@@ -125,21 +125,36 @@ class GameSession:
 
         # The AI turn should run if it's not the human's turn after the action.
         if not self.is_human_turn():
-            self.run_ai_turn()
+            self._run_game_loop_until_human_turn()
 
         return list(self.state.turn_log) if self.state else []
 
-    def run_ai_turn(self):
+    def _run_game_loop_until_human_turn(self):
         """
-        Checks if the game state requires an AI to take a turn, and if so,
-        executes it.
+        Continuously processes AI and system turns until control returns to the human player
+        or the game ends.
+        """
+        if not self.state:
+            return
+
+        while not self.is_human_turn() and not self.is_game_over():
+            system_actions = self.engine.get_valid_system_actions(self.state)
+            if system_actions:
+                # Always prioritize system actions (like resolving legislation)
+                self._execute_action(system_actions[0])
+            else:
+                self._execute_one_ai_turn()
+            
+            # After every action in the loop, check if the round/term needs to advance
+            self.state = self.engine.advance_round_or_term(self.state)
+
+    def _execute_one_ai_turn(self):
+        """
+        Executes a single turn for the current AI player.
         """
         if self.is_game_over() or self.is_human_turn():
             return
 
-        if self.engine.get_valid_system_actions(self.state):
-            return
-        
         current_player = self.state.get_current_player()
         persona = self.ai_opponents[current_player.id - 1]
         
@@ -155,10 +170,6 @@ class GameSession:
                     action = ActionPassTurn(player_id=current_player.id)
 
         self._execute_action(action)
-
-        if not self.is_human_turn():
-            # This is now handled by the frontend implicitly by observing state changes.
-            pass
 
     def _execute_action(self, action: Action):
         """Processes a single, concrete action through the engine."""

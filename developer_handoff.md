@@ -3,6 +3,16 @@
 **Date:** 2025-08-02
 **Author:** Assistant
 
+## State of the Project (Post-Game Loop Refactor)
+
+The core game loop has been refactored to be fully server-driven, resolving a critical architectural flaw that caused state desynchronization and incorrect turn progression.
+
+*   **Problem:** The previous implementation relied on the client to implicitly drive the AI turn sequence, leading to a fragile, "chatty" interface where the game could hang or process actions against stale state.
+*   **Solution:** A robust, server-side game loop has been implemented in `game_session.py`. After a human player acts, the `GameSession` now authoritatively executes all subsequent AI and system turns in a loop until control explicitly returns to the human. This makes the server the single source of truth for game progression.
+*   **Status:** The architecture is now fully aligned with the principles in `STATE_DRIVEN_REFACTOR.md`. The `GameEngine` is a pure, stateless rulebook, and the `GameSession` is the sole stateful "conductor." All tests are passing, and the game is stable.
+
+---
+
 ## Architectural Pivot: State-Driven Refactor (Complete)
 
 **This project has completed a significant architectural refactor.**
