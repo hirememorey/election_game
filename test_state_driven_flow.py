@@ -35,8 +35,15 @@ class TestStateDrivenFlow(unittest.TestCase):
 
         # 5. Verify the player's resources were updated correctly
         player_in_new_state = new_state.get_player_by_id(self.human_player_id)
+        # --- VERIFICATION ---
+        # The player's PC should have increased by the fundraising amount
         self.assertEqual(player_in_new_state.pc, starting_pc + 5)
-        self.assertEqual(player_in_new_state.action_points, starting_ap - 1)
+        
+        # The player's action points should have been deducted
+        self.assertEqual(new_state.action_points[self.human_player_id], starting_ap - 1)
+
+        # The turn log in the new state should reflect the action
+        self.assertIn("takes the Fundraise action", " ".join(new_state.turn_log))
 
         # 6. Verify the turn has not advanced
         self.assertEqual(new_state.get_current_player().id, self.human_player_id)

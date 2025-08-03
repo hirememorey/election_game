@@ -35,10 +35,12 @@ The new architecture will be guided by the following principles:
 2.  **~~Establish a Test-Driven Foundation~~:** **Done.**
     *   ~~Create a new test file, `test_state_driven_flow.py`.~~ **Done.**
     *   ~~Write a "golden path" test for a single, complete round of a 2-player game. This test will initially fail but will serve as our guide.~~ **Done.** The initial test for a single action is passing.
-3.  **~~Refactor the Core Engine (`engine.py`)~~:** **Done.**
-    *   ~~Strip all stateful logic from `GameEngine`.~~ **Done.** `process_action` is now stateless.
-    *   ~~Rewrite `process_action` and `get_valid_actions` to be pure functions that accept `GameState` as their first argument.~~ **Done for `process_action`**.
-4.  **Refactor the Session Manager (`game_session.py`):**
+    *   **Update:** The comprehensive end-of-term test (`test_term_flow.py`) is also now passing, validating the full game loop.
+3.  **Refactor the Core Engine (`engine.py`):**
+    *   ~~Strip all stateful logic from `GameEngine`.~~ **Done.**
+    *   ~~Rewrite `process_action` to be a pure function that accepts `GameState` as its first argument.~~ **Done.**
+    *   **Update:** Turn-advancement logic has been separated from `process_action`, and all action resolvers now correctly deduct AP. The engine is now stateless.
+4.  **Refactor the Session Manager (`game_session.py`):** **In Progress.**
     *   Make `GameSession` the sole owner of the `GameState` object.
     *   Rewrite its methods to follow the new unidirectional flow.
 5.  **Simplify the Frontend (`static/app.js`):**

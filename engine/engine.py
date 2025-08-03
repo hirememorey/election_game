@@ -32,16 +32,12 @@ class GameEngine:
         self.action_point_costs = {
             "ActionFundraise": 1,
             "ActionNetwork": 1,
-            "ActionSponsorLegislation": 2,
-            "ActionDeclareCandidacy": 2,
-            "ActionUseFavor": 1,  # Now costs 1 AP
+            "ActionSponsorLegislation": 1, # Corrected from 2
+            "ActionDeclareCandidacy": 1, # Corrected from 2
+            "ActionUseFavor": 1,
             "ActionSupportLegislation": 1,
             "ActionOpposeLegislation": 1,
-            "ActionProposeTrade": 0,  # Free during trading phase
-            "ActionAcceptTrade": 0,   # Free during trading phase
-            "ActionDeclineTrade": 0,  # Free during trading phase
-            "ActionCompleteTrading": 0,  # Free during trading phase
-            "ActionPassTurn": 0,  # Free action to pass turn
+            "ActionPassTurn": 0,
         }
         # A dispatch table to map action classes to their resolver functions
         self.action_resolvers = {
@@ -88,6 +84,10 @@ class GameEngine:
             favor_supply=list(self.game_data['favors'])
         )
 
+        # Initialize action points for all players in the state
+        for p in state.players:
+            state.action_points[p.id] = 2
+
         # Apply archetype-specific setup rules
         for p in state.players:
             if p.archetype.id == "INSIDER":
@@ -95,10 +95,45 @@ class GameEngine:
                 p.current_office = state.offices["STATE_SENATOR"]
                 state.add_log(f"{p.name} starts as The Insider, holding the State Senator office with 15 PC.")
         
-        # Initialize action points for all players
-        for p in state.players:
-            p.action_points = 2
+        return state
+
+    def _check_and_advance_turn(self, state: GameState) -> GameState:
+        """
+        Checks if the current player's turn is over and advances to the next player.
+        This is a separate, explicit step.
+        """
+        current_player = state.get_current_player()
+        if state.action_points.get(current_player.id, 0) <= 0:
+            state.add_log(f"{current_player.name}'s turn ends.")
+            
+            # Advance to the next player
+            state.current_player_index = (state.current_player_index + 1) % len(state.players)
+            state.add_log(f"It is now {state.get_current_player().name}'s turn.")
         
+        return state
+
+    def _check_and_trigger_upkeep(self, state: GameState) -> GameState:
+        """Checks if all players are out of AP and triggers the upkeep phase."""
+        all_players_out_of_ap = all(state.action_points.get(p.id, 0) <= 0 for p in state.players)
+        if all_players_out_of_ap:
+            state.add_log("\n--- ROUND COMPLETE ---")
+            state.add_log("All players have used their action points. Moving to upkeep phase.")
+            # This was calling run_upkeep_phase, which is now being consolidated here.
+            
+            state.current_phase = "UPKEEP_PHASE"
+            state.add_log("\n--- UPKEEP PHASE ---")
+            state = resolvers.resolve_upkeep(state)
+            state.round_marker += 1
+            
+            if state.round_marker >= 5:
+                state.round_marker = 4 
+                state.add_log("\n--- END OF TERM ---")
+                state.add_log("Round 4 complete. Moving to legislation session.")
+                return self.run_legislation_session(state)
+            else:
+                state.add_log(f"\n--- ROUND {state.round_marker} ---")
+                state.add_log("\n--- EVENT PHASE ---")
+                return self.run_event_phase(state)
         return state
 
     def process_action(self, state: GameState, action: Action) -> GameState:
@@ -119,45 +154,15 @@ class GameEngine:
             raise ValueError("It's not your turn or the player is invalid.")
         
         # Check action point cost
-        action_cost = self.action_point_costs.get(action.__class__.__name__, 0)
-        
-        # Apply public gaffe effect (increased AP cost for public actions)
-        if player.id in new_state.public_gaffe_players:
-            if action.__class__.__name__ in ["ActionSponsorLegislation", "ActionDeclareCandidacy"]:
-                action_cost += 1
-                new_state.add_log(f"{player.name} must pay +1 AP due to public gaffe effect.")
-                # Remove the effect after it's applied
-                new_state.public_gaffe_players.discard(player.id)
-        
-        if player.action_points < action_cost:
-            raise ValueError(f"Not enough action points. Need {action_cost}, have {player.action_points}.")
+        # THIS IS NOW HANDLED IN THE RESOLVER to keep the engine pure.
         
         resolver = self.action_resolvers.get(action.__class__.__name__)
         if not resolver:
             raise ValueError(f"No resolver found for action: {action.__class__.__name__}")
         
-        # Deduct action points
-        player.action_points -= action_cost
-        
         # The resolver function will handle the logic and return the new state
         resolved_state = resolver(new_state, action)
         
-        # After an action, check if the player's turn should end.
-        current_player = resolved_state.get_current_player()
-        if resolved_state.get_player_by_id(current_player.id).action_points <= 0:
-            resolved_state.add_log(f"{current_player.name}'s turn ends.")
-            
-            # Advance to the next player
-            resolved_state.current_player_index = (resolved_state.current_player_index + 1) % len(resolved_state.players)
-            resolved_state.add_log(f"It is now {resolved_state.get_current_player().name}'s turn.")
-            
-            # Check if all players have 0 action points (round is complete)
-            all_players_out_of_ap = all(p.action_points <= 0 for p in resolved_state.players)
-            if all_players_out_of_ap:
-                resolved_state.add_log("\n--- ROUND COMPLETE ---")
-                resolved_state.add_log("All players have used their action points. Moving to upkeep phase.")
-                return self.run_upkeep_phase(resolved_state)
-
         return resolved_state
 
     def _advance_turn_after_action(self, state: GameState) -> GameState:
@@ -297,8 +302,9 @@ class GameEngine:
         ap = player.action_points
         if ap <= 0:
             # Only Pass Turn is available
-            valid_actions.append(ActionPassTurn(player_id=player_id))
-            return valid_actions
+            # This check is flawed, as Pass Turn should always be available.
+            # The action deduction logic is now in the resolver.
+            pass
             
         # Helper function to check if player can afford an action
         def can_afford_action(action_class_name: str) -> bool:
@@ -560,4 +566,5 @@ class GameEngine:
         state = self.run_event_phase(state)
         
         state.add_log("\n--- NEW TERM BEGINS ---")
+        state.round_marker = 1 # Reset round marker for the new term
         return state

@@ -65,6 +65,9 @@ def resolve_fundraise(state: GameState, action: ActionFundraise) -> GameState:
     if not player:
         return state
 
+    # Deduct AP cost
+    state.action_points[player.id] -= 1
+
     pc_gain = 5
 
     # Example of how to handle archetype bonuses in a stateless way
@@ -79,6 +82,10 @@ def resolve_fundraise(state: GameState, action: ActionFundraise) -> GameState:
 def resolve_network(state: GameState, action: ActionNetwork) -> GameState:
     player = state.get_player_by_id(action.player_id)
     if not player: return state
+    
+    # Deduct AP cost
+    state.action_points[player.id] -= 1
+
     player.pc += 2
     if state.favor_supply:
         favor = state.favor_supply.pop(random.randrange(len(state.favor_supply)))
@@ -131,6 +138,9 @@ def resolve_network(state: GameState, action: ActionNetwork) -> GameState:
 def resolve_use_favor(state: GameState, action: ActionUseFavor) -> GameState:
     player = state.get_player_by_id(action.player_id)
     if not player: return state
+    
+    # Deduct AP cost
+    state.action_points[player.id] -= 1
     
     # Find the favor in player's hand
     favor = None
@@ -256,6 +266,7 @@ def resolve_sponsor_legislation(state: GameState, action: ActionSponsorLegislati
         return state
     
     player.pc -= bill.cost
+    state.action_points[player.id] -= 1 # Deduct the AP cost for the action
     state.add_log(f"{player.name} sponsors the {bill.title} for {bill.cost} PC.")
     state.add_log(f"This legislation will be voted on during the end-of-term legislation session.")
     
@@ -310,6 +321,10 @@ def resolve_support_legislation(state: GameState, action: ActionSupportLegislati
     # Secret commitments should not be revealed to other players
     # Only log for human players (AI secret commitments should be hidden)
     bill = state.legislation_options[action.legislation_id]
+    
+    # Deduct AP cost
+    state.action_points[player.id] -= 1
+    
     if player.name == "Human":
         if is_sponsor:
             state.add_log(f"You secretly commit {action.support_amount} PC to support your own legislation.")
@@ -366,6 +381,10 @@ def resolve_oppose_legislation(state: GameState, action: ActionOpposeLegislation
     # Secret commitments should not be revealed to other players
     # Only log for human players (AI secret commitments should be hidden)
     bill = state.legislation_options[action.legislation_id]
+
+    # Deduct AP cost
+    state.action_points[player.id] -= 1
+
     if player.name == "Human":
         if is_sponsor:
             state.add_log(f"You secretly commit {action.oppose_amount} PC to oppose your own legislation.")
@@ -398,6 +417,9 @@ def resolve_declare_candidacy(state: GameState, action: ActionDeclareCandidacy) 
         state.add_log("Not enough PC to pay candidacy and commitment.")
         return state
     
+    # Deduct AP cost
+    state.action_points[player.id] -= 1
+
     player.pc -= (cost + action.committed_pc)
     candidacy = Candidacy(player_id=player.id, office_id=action.office_id, committed_pc=action.committed_pc)
     state.secret_candidacies.append(candidacy)

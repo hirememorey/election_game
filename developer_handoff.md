@@ -16,7 +16,9 @@ The previous development cycle involved fixing a series of cascading bugs, which
 *   The initial phase of the state-driven refactor is **complete**.
 *   The `GameEngine`'s `process_action` method has been refactored to be stateless (operating on a copy of the game state).
 *   A "golden path" test (`test_state_driven_flow.py`) has been created and is **passing**, validating the core stateless flow for a single action.
+*   **Update:** The more comprehensive `test_term_flow.py` is also **passing**, confirming the end-to-end game loop is stable.
 *   The project is on the `feature/state-driven-refactor` branch.
+*   All backend tests are passing.
 
 ---
 
@@ -251,3 +253,5 @@ The test attempts to validate the fix by jumping to the end of a term and checki
 1.  **Fix the Test:** The immediate next step is to fix the test in `test_term_flow.py`. The test needs to be rewritten to correctly and explicitly play out the final round, ensuring a bill is successfully sponsored *before* the term ends.
 2.  **Validate:** Once the test is passing, the core fix will be validated.
 3.  **Cleanup:** The debug `[DEBUG]` print statements that were added to `engine/engine.py` can be removed. 
+
+**UPDATE (2025-07-31):** The `test_term_flow.py` has been fixed and all backend tests are now passing. The core game engine has been successfully refactored to be stateless, with clean separation of concerns for action processing and turn advancement. The project is in a stable state for the next phase of the refactor, which is to simplify the `GameSession` and the frontend. 
