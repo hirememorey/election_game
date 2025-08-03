@@ -1,9 +1,14 @@
+from __future__ import annotations
 from dataclasses import dataclass, field
-from typing import List, Dict, Optional, Set
+from typing import List, Dict, Optional, Set, Any
 import copy
 
 from models.components import Player, Office, Legislation, PoliticalFavor, Candidacy, Pledge
 from models.cards import Deck
+
+# Forward declaration for type hinting
+class Action:
+    pass
 
 @dataclass
 class TradeOffer:
@@ -94,7 +99,8 @@ class GameState:
     last_election_results: Optional[dict] = None
 
     # --- NEW: State-driven UI action management ---
-    pending_ui_action: Optional[Dict] = field(default_factory=dict)
+    pending_ui_action: Optional[Dict[str, Any]] = field(default_factory=dict)
+    next_action_to_process: Optional[Action] = None
     
     def to_dict(self):
         """Converts the entire game state to a JSON-serializable dictionary."""
@@ -128,6 +134,13 @@ class GameState:
         for p in self.players:
             if p.id == player_id:
                 return p
+        return None
+
+    def get_legislation_by_id(self, legislation_id: str) -> Optional[PendingLegislation]:
+        """Returns a pending legislation object by its ID."""
+        for leg in self.term_legislation:
+            if leg.legislation_id == legislation_id:
+                return leg
         return None
 
     def deep_copy(self) -> 'GameState':

@@ -50,6 +50,7 @@ class GameEngine:
             "ActionResolveElections": resolvers.resolve_resolve_elections,
             "ActionAcknowledgeResults": resolvers.resolve_acknowledge_results,
             "ActionInitiateSupportLegislation": resolvers.resolve_initiate_support_legislation,
+            "ActionInitiateOpposeLegislation": resolvers.resolve_initiate_oppose_legislation,
             "ActionSubmitLegislationChoice": resolvers.resolve_submit_legislation_choice,
             "ActionSubmitAmount": resolvers.resolve_submit_amount,
             # Trading actions removed
@@ -136,44 +137,36 @@ class GameEngine:
         return state
 
     def process_action(self, state: GameState, action: Action) -> GameState:
-        """Routes an action to the correct resolver and advances the game state."""
-
-        # Create a deep copy of the state to ensure the original is not mutated.
-        # This is the core of the state-driven refactor.
+        """
+        Processes a single action and returns the new game state.
+        This is a pure function that does not modify the engine's state.
+        """
         new_state = deepcopy(state)
-
-        # Start every action with a clean slate for the turn log.
-        new_state.clear_turn_log()
-
-        # Harden the backend: reject actions during non-action phases.
-        if (new_state.awaiting_results_acknowledgement or
-            new_state.awaiting_legislation_resolution or
-            new_state.awaiting_election_resolution):
-            new_state.add_log("Invalid action: The game is awaiting resolution or acknowledgement.")
+        
+        resolver = self.action_resolvers.get(type(action).__name__)
+        
+        if resolver:
+            try:
+                new_state = resolver(new_state, action)
+            except Exception as e:
+                # Log the error and return the last valid state
+                error_msg = f"Error processing action '{type(action).__name__}': {e}"
+                print(error_msg) # Or use a proper logger
+                new_state.add_log(error_msg)
+                return new_state # Return the state before the error
+        else:
+            error_msg = f"No resolver found for action: {type(action).__name__}"
+            print(error_msg)
+            new_state.add_log(error_msg)
             return new_state
+
+        # NEW: If a resolver sets a follow-up action, process it immediately.
+        if new_state.next_action_to_process:
+            follow_up_action = new_state.next_action_to_process
+            new_state.next_action_to_process = None  # Clear it before processing
+            return self.process_action(new_state, follow_up_action)
             
-        player = new_state.get_player_by_id(action.player_id)
-        if not player or new_state.get_current_player().id != player.id:
-            new_state.add_log("Error: It's not your turn or the player is invalid.")
-            return new_state
-        
-        # Check action point cost
-        # THIS IS NOW HANDLED IN THE RESOLVER to keep the engine pure.
-        
-        resolver = self.action_resolvers.get(action.__class__.__name__)
-        if not resolver:
-            new_state.add_log(f"Error: No resolver found for action: {action.__class__.__name__}")
-            return new_state
-        
-        # The resolver function will handle the logic and return the new state
-        try:
-            resolved_state = resolver(new_state, action)
-            return resolved_state
-        except Exception as e:
-            error_message = f"Error processing action '{action.__class__.__name__}': {str(e)}"
-            print(error_message) # Keep console log for debugging
-            new_state.add_log(error_message)
-            return new_state
+        return new_state
 
     def _advance_turn_after_action(self, state: GameState) -> GameState:
         """DEPRECATED"""
@@ -402,7 +395,7 @@ class GameEngine:
                                 valid_actions.append(ActionOpposeLegislation(player_id=player_id, legislation_id=leg.legislation_id, oppose_amount=amount))
                 else:
                     # Human gets a UI action
-                    valid_actions.append(UIOpposeLegislation(player_id=player_id))
+                    valid_actions.append(ActionInitiateOpposeLegislation(player_id=player_id))
         
         # Pass Turn (always available)
         valid_actions.append(ActionPassTurn(player_id=player_id))

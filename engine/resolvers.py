@@ -39,6 +39,7 @@ def resolve_initiate_support_legislation(state: GameState, action: ActionInitiat
         return state
 
     state.pending_ui_action = {
+        "original_action_type": "ActionInitiateSupportLegislation", # Add this line
         "action_type": "ActionInitiateSupportLegislation",
         "player_id": action.player_id,
         "prompt": "Which bill would you like to secretly support?",
@@ -47,46 +48,103 @@ def resolve_initiate_support_legislation(state: GameState, action: ActionInitiat
     }
     return state
 
+def resolve_initiate_oppose_legislation(state: GameState, action: Action) -> GameState:
+    """Sets up the game state to ask the player which legislation to oppose."""
+    player = state.get_player_by_id(action.player_id)
+    if not player:
+        return state
+
+    options = []
+    active_legislation = [leg for leg in state.term_legislation if not leg.resolved]
+    for leg in active_legislation:
+        leg_details = state.legislation_options[leg.legislation_id]
+        options.append({
+            "id": leg.legislation_id,
+            "display_name": f"{leg_details.title}"
+        })
+
+    if not options:
+        state.add_log("There is no active legislation to oppose right now.")
+        return state
+
+    state.pending_ui_action = {
+        "original_action_type": "ActionInitiateOpposeLegislation", # Add this line
+        "action_type": "ActionInitiateOpposeLegislation",
+        "player_id": action.player_id,
+        "prompt": "Which bill would you like to secretly oppose?",
+        "options": options,
+        "next_action": "ActionSubmitLegislationChoice",
+    }
+    return state
+
 def resolve_submit_legislation_choice(state: GameState, action: ActionSubmitLegislationChoice) -> GameState:
     """Updates the pending action state with the chosen legislation and asks for an amount."""
     player = state.get_player_by_id(action.player_id)
-    if not player:
+    if not player or not state.pending_ui_action:
         return state
+
+    # Determine the context (support or oppose) from the original pending action
+    original_action_type = state.pending_ui_action.get("action_type")
     
-    # Update the pending action with the choice
-    state.pending_ui_action['legislation_id'] = action.legislation_id
-    state.pending_ui_action['prompt'] = f"How much PC to support with? (1 - {player.pc})"
-    state.pending_ui_action['options'] = []
-    state.pending_ui_action['expects_input'] = "amount"
-    state.pending_ui_action['next_action'] = "ActionSubmitAmount"
-    
+    if original_action_type == "ActionInitiateSupportLegislation":
+        prompt = f"How much Political Capital (PC) will you secretly commit to support the {action.choice}? (1-{player.pc})"
+    elif original_action_type == "ActionInitiateOpposeLegislation":
+        prompt = f"How much Political Capital (PC) will you secretly commit to oppose the {action.choice}? (1-{player.pc})"
+    else:
+        # Fallback or error
+        prompt = f"How much PC will you commit? (1-{player.pc})"
+
+    # Update the pending action to ask for an amount
+    state.pending_ui_action.update({
+        "action_type": "ActionSubmitLegislationChoice", # Mark that we've processed this step
+        "selected_legislation": action.choice,
+        "prompt": prompt,
+        "options": [], # No more choices, expecting free-form input
+        "next_action": "ActionSubmitAmount",
+        "min_amount": 1,
+        "max_amount": player.pc,
+        # Preserve the original action type for the final step
+        "original_action_type": original_action_type 
+    })
     return state
 
 def resolve_submit_amount(state: GameState, action: ActionSubmitAmount) -> GameState:
-    """Finalizes the UI action, creates a concrete action, and resolves it."""
+    """Finalizes the UI action, creates a concrete action, and clears the pending state."""
     player = state.get_player_by_id(action.player_id)
-    if not player:
+    if not player or not state.pending_ui_action:
         return state
-    
+        
+    pending_action_data = state.pending_ui_action
     amount = action.amount
-    if not isinstance(amount, int) or not (1 <= amount <= player.pc):
-        state.pending_ui_action['prompt'] = f"Invalid amount. How much PC? (1 - {player.pc})"
+    
+    # Validate the amount
+    if not isinstance(amount, int) or not (pending_action_data.get('min_amount', 1) <= amount <= pending_action_data.get('max_amount', player.pc)):
+        state.pending_ui_action['prompt'] = f"Invalid amount. How much PC? ({pending_action_data.get('min_amount', 1)}-{pending_action_data.get('max_amount', player.pc)})"
         return state
-    
-    # We have all the info. Create the concrete action.
-    legislation_id = state.pending_ui_action['legislation_id']
-    concrete_action = ActionSupportLegislation(
-        player_id=action.player_id,
-        legislation_id=legislation_id,
-        support_amount=amount
-    )
-    
-    # Clear the pending UI action *before* resolving the concrete one.
-    state.pending_ui_action = {}
-    
-    # Now, call the resolver for the concrete action.
-    # This is a key part of the pattern: one resolver calling another.
-    return resolve_support_legislation(state, concrete_action)
+
+    # Create the concrete action based on the original context.
+    legislation_id = pending_action_data.get("selected_legislation")
+    original_action_type = pending_action_data.get("original_action_type")
+
+    concrete_action = None
+    if original_action_type == "ActionInitiateSupportLegislation":
+        concrete_action = ActionSupportLegislation(
+            player_id=action.player_id,
+            legislation_id=legislation_id,
+            support_amount=amount
+        )
+    elif original_action_type == "ActionInitiateOpposeLegislation":
+        concrete_action = ActionOpposeLegislation(
+            player_id=action.player_id,
+            legislation_id=legislation_id,
+            oppose_amount=amount
+        )
+
+    # Clear the pending UI action and set the next concrete action to be processed.
+    state.pending_ui_action = None
+    state.next_action_to_process = concrete_action
+        
+    return state
 
 
 def apply_public_mood_effect(state: GameState, mood_change: int, pc_bonus: int = 5):
@@ -415,59 +473,31 @@ def resolve_oppose_legislation(state: GameState, action: ActionOpposeLegislation
     player = state.get_player_by_id(action.player_id)
     if not player: return state
     
-    print(f"[DEBUG] resolve_oppose_legislation: Player {player.name} (ID: {player.id}) has {player.pc} PC, trying to commit {action.oppose_amount} PC")
-    
-    # NEW: Secret Commitment System - only validate, don't update public state
-    # The actual commitment is stored secretly on the server
-    
-    # Find the legislation to oppose in pending_legislation or term_legislation
+    # Find the legislation to oppose
     target_legislation = None
-    for legislation in state.term_legislation:
-        if legislation.legislation_id == action.legislation_id and not legislation.resolved:
-            target_legislation = legislation
+    for leg in state.term_legislation:
+        if leg.legislation_id == action.legislation_id:
+            target_legislation = leg
             break
     
     if not target_legislation:
-        # Provide more detailed error message
-        available_legislation = [f"term: {leg.legislation_id}" for leg in state.term_legislation if not leg.resolved]
-        error_msg = f"There's no active legislation to oppose with ID: {action.legislation_id}"
-        if available_legislation:
-            error_msg += f". Available: {', '.join(available_legislation)}"
-        state.add_log(error_msg)
+        state.add_log(f"There's no active legislation to oppose with ID: {action.legislation_id}")
         return state
-    
-    # Allow sponsors to oppose their own legislation (for strategic reasons)
-    is_sponsor = player.id == target_legislation.sponsor_id
     
     if player.pc < action.oppose_amount:
         state.add_log(f"{player.name} doesn't have enough PC to provide that much opposition.")
         return state
     
-    # FIXED: Deduct PC immediately when commitment is made
-    old_pc = player.pc
+    # Deduct PC immediately
     player.pc -= action.oppose_amount
-    print(f"[DEBUG] resolve_oppose_legislation: Deducted {action.oppose_amount} PC from {player.name}. Old PC: {old_pc}, New PC: {player.pc}")
     
-    # Provide confirmation feedback - only to the acting player, not publicly
-    # Secret commitments should not be revealed to other players
-    # Only log for human players (AI secret commitments should be hidden)
-    bill = state.legislation_options[action.legislation_id]
-
-    # Deduct AP cost
+    # Record the secret opposition
+    target_legislation.oppose_players[player.id] = target_legislation.oppose_players.get(player.id, 0) + action.oppose_amount
+    
+    # Deduct AP cost and add a log entry
     state.action_points[player.id] -= 1
-
-    if player.name == "Human":
-        if is_sponsor:
-            state.add_log(f"You secretly commit {action.oppose_amount} PC to oppose your own legislation.")
-        else:
-            state.add_log(f"You secretly commit {action.oppose_amount} PC to oppose the {bill.title}.")
-
-    # Public log for all players (including AI)
-    state.add_log(f"{player.name} makes a commitment to the {bill.title}.")
-
-    # Actually record the commitment
-    current_opposition = target_legislation.oppose_players.get(player.id, 0)
-    target_legislation.oppose_players[player.id] = current_opposition + action.oppose_amount
+    bill_title = state.legislation_options[action.legislation_id].title
+    state.add_log(f"{player.name} secretly committed {action.oppose_amount} PC to oppose the {bill_title}")
 
     return state
 
@@ -834,243 +864,6 @@ def resolve_event_card(state: GameState) -> GameState:
             state.add_log(f"Warning: No resolver found for event ID '{event.effect_id}'. No effect.")
     else:
         state.add_log(f"Warning: Event card '{event.title}' is not a valid EventCard. No effect.")
-    return state
-
-def _event_economic_boom(state: GameState) -> GameState:
-    return apply_public_mood_effect(state, mood_change=2, pc_bonus=5)
-
-def _event_recession_hits(state: GameState) -> GameState:
-    return apply_public_mood_effect(state, mood_change=-2, pc_bonus=5)
-
-def _event_scandal(state: GameState) -> GameState:
-    if not state.players: return state
-    
-    # Check for media darling immunity
-    if "MEDIA_DARLING_IMMUNITY" in state.active_effects:
-        state.add_log("A player is immune to scandal due to being a Media Darling!")
-        state.active_effects.remove("MEDIA_DARLING_IMMUNITY")
-        return state
-    
-    richest_player = max(state.players, key=lambda p: p.pc)
-    richest_player.pc -= 15
-    state.add_log(f"{richest_player.name} is caught in a scandal! They lose 15 PC.")
-    scrutiny_card = state.scrutiny_deck.draw()
-    if scrutiny_card and isinstance(scrutiny_card, ScrutinyCard):
-        state.add_log(f"They must also face scrutiny: {scrutiny_card.title} - {scrutiny_card.description}")
-        if scrutiny_card.effect_id == "PAY_PC_10":
-            richest_player.pc -= 10
-    else:
-        state.add_log("The Scrutiny Deck is empty or card has no effect.")
-    return state
-
-def _event_unexpected_surplus(state: GameState) -> GameState:
-    apply_public_mood_effect(state, mood_change=1, pc_bonus=3)
-    state.active_effects.add("UNEXPECTED_SURPLUS")
-    state.add_log("Incumbents will receive double income this round.")
-    return state
-
-def _event_last_bill_dud(state: GameState) -> GameState:
-    apply_public_mood_effect(state, mood_change=-1, pc_bonus=3)
-    
-    last_sponsor_info = state.last_sponsor_result
-    if last_sponsor_info and last_sponsor_info.get('passed'):
-        player_id = last_sponsor_info.get('player_id')
-        if player_id is not None:
-            player = state.get_player_by_id(player_id)
-            if player:
-                player.pc -= 10
-                state.add_log(f"{player.name}, who sponsored the last successful bill, loses 10 PC.")
-            else:
-                state.add_log("Could not find the player who sponsored the last bill.")
-        else:
-            state.add_log("Sponsor player ID not found in records.")
-    else:
-        state.add_log("No legislation was successfully sponsored recently, so this event has no target.")
-    
-    return state
-
-def _event_foreign_policy_crisis(state: GameState) -> GameState:
-    if not state.players: return state
-    
-    # Randomly select a player
-    selected_player = random.choice(state.players)
-    state.add_log(f"{selected_player.name} is affected by the Foreign Policy Crisis.")
-    
-    # Roll a d6
-    roll = random.randint(1, 6)
-    state.add_log(f"{selected_player.name} rolls a {roll}.")
-    
-    # Apply effect based on roll
-    if roll <= 3:
-        selected_player.pc -= 10
-        state.add_log(f"{selected_player.name} loses 10 PC from the crisis.")
-    else:
-        selected_player.pc += 10
-        state.add_log(f"{selected_player.name} gains 10 PC from handling the crisis well.")
-    
-    return state
-
-def _event_supreme_court_vacancy(state: GameState) -> GameState:
-    state.active_effects.add("SUPREME_COURT_VACANCY")
-    state.add_log("A Supreme Court vacancy has opened! The next President will gain an additional 20 PC upon victory.")
-    return state
-
-def _event_last_bill_hit(state: GameState) -> GameState:
-    apply_public_mood_effect(state, mood_change=1, pc_bonus=3)
-    
-    last_sponsor_info = state.last_sponsor_result
-    if last_sponsor_info and last_sponsor_info.get('passed'):
-        player_id = last_sponsor_info.get('player_id')
-        if player_id is not None:
-            player = state.get_player_by_id(player_id)
-            if player:
-                player.pc += 10
-                state.add_log(f"{player.name}, who sponsored the last successful bill, gains 10 PC.")
-            else:
-                state.add_log("Could not find the player who sponsored the last bill.")
-        else:
-            state.add_log("Sponsor player ID not found in records.")
-    else:
-        state.add_log("No legislation was successfully sponsored recently, so this event has no target.")
-    
-    return state
-
-def _event_bipartisan_breakthrough(state: GameState) -> GameState:
-    congress_offices = {"CONGRESS_SEAT", "US_SENATOR"}
-    eligible_players = [p for p in state.players if p.current_office and p.current_office.id in congress_offices]
-    
-    if not eligible_players:
-        state.add_log("No players are in Congress or Senate positions.")
-        return state
-    
-    state.add_log("Bipartisan Breakthrough! Congress and Senate members may pay 5 PC to gain 10 PC.")
-    
-    for player in eligible_players:
-        if player.current_office and player.pc >= 5:
-            player.pc -= 5
-            player.pc += 10
-            state.add_log(f"{player.name} (in {player.current_office.title}) pays 5 PC and gains 10 PC.")
-        elif player.current_office:
-            state.add_log(f"{player.name} (in {player.current_office.title}) cannot afford the 5 PC cost.")
-    
-    return state
-
-def _event_war_breaks_out(state: GameState) -> GameState:
-    state.active_effects.add("WAR_BREAKS_OUT")
-    state.add_log("War has broken out! Public Mood is locked and legislation faces a -2 penalty for the rest of the term.")
-    return state
-
-def _event_tech_leap(state: GameState) -> GameState:
-    apply_public_mood_effect(state, mood_change=1, pc_bonus=3)
-    
-    if not state.players: return state
-    
-    # Find player with least PC
-    poorest_player = min(state.players, key=lambda p: p.pc)
-    poorest_player.pc += 10
-    state.add_log(f"{poorest_player.name}, with the least PC, gains 10 PC from the technological leap.")
-    
-    return state
-
-def _event_natural_disaster(state: GameState) -> GameState:
-    apply_public_mood_effect(state, mood_change=-1, pc_bonus=3)
-    
-    if not state.players: return state
-    
-    # Find Governors first
-    governors = [p for p in state.players if p.current_office and p.current_office.id == "GOVERNOR"]
-    
-    if governors:
-        # Select random Governor
-        affected_player = random.choice(governors)
-        state.add_log(f"{affected_player.name} (Governor) must respond to the natural disaster.")
-    else:
-        # Select random player if no Governors
-        affected_player = random.choice(state.players)
-        state.add_log(f"{affected_player.name} must respond to the natural disaster.")
-    
-    affected_player.pc -= 10
-    state.add_log(f"{affected_player.name} loses 10 PC responding to the crisis.")
-    
-    return state
-
-def _event_media_darling(state: GameState) -> GameState:
-    if not state.players: return state
-    
-    # For now, randomly select a player (in a full implementation, this would be player choice)
-    # TODO: Implement player choice mechanism
-    selected_player = random.choice(state.players)
-    selected_player.pc += 5
-    state.active_effects.add("MEDIA_DARLING_IMMUNITY")
-    state.add_log(f"{selected_player.name} becomes a Media Darling! They gain 5 PC and are immune to the next Scandal event.")
-    
-    return state
-
-def _event_gaffe(state: GameState) -> GameState:
-    if not state.players: return state
-    
-    # For now, randomly select an opponent (in a full implementation, this would be player choice)
-    # TODO: Implement player choice mechanism
-    selected_player = random.choice(state.players)
-    selected_player.pc -= 8
-    state.add_log(f"{selected_player.name} makes a gaffe on the trail and loses 8 PC.")
-    
-    return state
-
-def _event_endorsement(state: GameState) -> GameState:
-    current_player = state.get_current_player()
-    current_player.pc += 10
-    state.add_log(f"{current_player.name} receives a surprise endorsement and gains 10 PC!")
-    
-    return state
-
-def _event_grassroots(state: GameState) -> GameState:
-    if not state.players: return state
-    
-    # Count offices for each player (0 if no office)
-    office_counts = []
-    for player in state.players:
-        count = 1 if player.current_office else 0
-        office_counts.append((player, count))
-    
-    # Find player with fewest offices
-    player_with_fewest = min(office_counts, key=lambda x: x[1])[0]
-    player_with_fewest.pc += 10
-    state.add_log(f"{player_with_fewest.name}, with the fewest offices, gains 10 PC from the grassroots movement.")
-    
-    return state
-
-def _event_voter_apathy(state: GameState) -> GameState:
-    state.active_effects.add("VOTER_APATHY")
-    state.add_log("Voter Apathy sets in! Committed PC will be only half as effective in the next election.")
-    return state
-
-def _event_midterm_fury(state: GameState) -> GameState:
-    # Check timing restriction
-    if state.round_marker not in [2, 3]:
-        state.add_log("Midterm Fury can only occur in Round 2 or 3 of a Term. This event has no effect.")
-        return state
-    
-    # Move Public Mood 2 spaces towards "Very Angry" (-2) with incumbent/outsider logic
-    apply_public_mood_effect(state, mood_change=-2, pc_bonus=3)
-    state.add_log("Midterm Fury! Public Mood moves 2 spaces towards 'Very Angry'.")
-    
-    return state
-
-def _event_stock_crash(state: GameState) -> GameState:
-    apply_public_mood_effect(state, mood_change=-3, pc_bonus=3)
-    state.active_effects.add("STOCK_CRASH")
-    state.add_log("Stock Market Crash! Public Mood worsens by 3 spaces. Fundraising this round will cost 5 PC instead of gaining it.")
-    return state
-
-def _event_celeb_politician(state: GameState) -> GameState:
-    if not state.players: return state
-    
-    # Find player with lowest PC
-    poorest_player = min(state.players, key=lambda p: p.pc)
-    poorest_player.pc += 15
-    state.add_log(f"{poorest_player.name}, with the lowest PC, gains 15 PC from becoming a celebrity politician.")
-    
     return state
 
 def resolve_pass_turn(state: GameState, action: ActionPassTurn) -> GameState:

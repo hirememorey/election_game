@@ -80,9 +80,15 @@ class ActionInitiateSupportLegislation(Action):
 
 @dataclass
 @_register_action
+class ActionInitiateOpposeLegislation(Action):
+    """UI action to start the process of opposing legislation."""
+    pass
+
+@dataclass
+@_register_action
 class ActionSubmitLegislationChoice(Action):
     """UI action to submit the choice of which legislation to influence."""
-    legislation_id: str
+    choice: str
 
 @dataclass
 @_register_action
