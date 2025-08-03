@@ -170,6 +170,8 @@ const socket = new WebSocket(`${protocol}//${window.location.host}/ws`);
 let validActions = [];
 let currentState = {};
 let isAwaitingSubChoice = false;
+let lastPlayerName = ''; // New: To track player changes
+let isAwaitingAcknowledgement = false; // New: Client-side flag
 
 socket.onopen = () => {
     ui.term.writeln('Connected to server.');
@@ -177,10 +179,18 @@ socket.onopen = () => {
 
 socket.onmessage = function(event) {
     const gameState = JSON.parse(event.data);
+
+    // New logic to detect when to pause
+    const currentPlayerName = gameState.current_player;
+    if (lastPlayerName === 'Human' && currentPlayerName !== 'Human' && !isAwaitingAcknowledgement) {
+        isAwaitingAcknowledgement = true;
+    }
+    lastPlayerName = currentPlayerName;
+    
     currentState = gameState;
     ui.displayGameState(gameState);
 
-    if (gameState.awaiting_ai_acknowledgement) {
+    if (isAwaitingAcknowledgement) {
         ui.promptToContinue();
         return;
     }
@@ -219,14 +229,21 @@ ui.promptForSubChoice = function(prompt, options) {
 ui.onEnter = (input) => {
     const command = input.trim().toLowerCase();
 
-    if (currentState.awaiting_ai_acknowledgement) {
-        socket.send(JSON.stringify({ action_type: 'AcknowledgeAITurn', player_id: 0 })); // Assuming human is player 0
+    if (isAwaitingAcknowledgement) {
+        isAwaitingAcknowledgement = false;
+        // Re-render the game state without the "continue" prompt
+        ui.displayGameState(currentState);
+        // After acknowledgement, we might need to prompt for action if it's our turn again
+        if (currentState.valid_actions && currentState.valid_actions.length > 0) {
+             ui.promptForAction(currentState.valid_actions);
+        }
         return;
     }
 
     // If it's not the human's turn, any 'enter' is a continue.
     if ((!validActions || validActions.length === 0) && !isAwaitingSubChoice) {
-        socket.send(JSON.stringify({ action_type: 'continue' }));
+        // This logic might need to be adjusted; for now, we prevent sending 'continue'
+        // as the server no longer expects it. The game loop is now fully state-driven.
         return;
     }
 
@@ -252,8 +269,9 @@ ui.onEnter = (input) => {
             const amount = parseInt(command, 10);
             if (!isNaN(amount) && amount > 0) {
                 socket.send(JSON.stringify({
+                    action_type: currentState.pending_ui_action.next_action, // Use next_action from state
                     player_id: 0,
-                    choice: amount
+                    amount: amount // The key is 'amount' for ActionSubmitAmount
                 }));
                 isAwaitingSubChoice = false;
                 validActions = [];
@@ -266,11 +284,12 @@ ui.onEnter = (input) => {
 
         const choice = parseInt(command, 10);
         if (validActions && choice > 0 && choice <= validActions.length) {
-            const action = validActions[choice - 1];
+            const selectedOption = validActions[choice - 1];
             // For sub-choices, we send a simplified object back with the choice as 'id'
             socket.send(JSON.stringify({
+                action_type: currentState.pending_ui_action.next_action, // Use next_action from state
                 player_id: 0,
-                choice: action.id
+                legislation_id: selectedOption.id // The key is 'legislation_id' for ActionSubmitLegislationChoice
             }));
             isAwaitingSubChoice = false;
             validActions = [];
@@ -285,13 +304,8 @@ ui.onEnter = (input) => {
     if (validActions && choice > 0 && choice <= validActions.length) {
         const action = validActions[choice - 1];
         
-        // If it's a UI action, we just send it. The backend will prompt for more.
-        if (action.is_ui_action) {
-            socket.send(JSON.stringify(action));
-        } else {
-            // This handles regular, one-step actions
-            socket.send(JSON.stringify(action));
-        }
+        // ALL actions are now sent as-is. The backend is fully state-driven.
+        socket.send(JSON.stringify(action));
         validActions = []; // Clear actions after sending
     } else {
         ui.term.writeln(`\nInvalid choice: ${input}`);

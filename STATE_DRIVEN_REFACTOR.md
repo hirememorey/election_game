@@ -41,12 +41,19 @@ The new architecture will be guided by the following principles:
     *   ~~Rewrite `process_action` to be a pure function that accepts `GameState` as its first argument.~~ **Done.**
     *   **Update:** Turn-advancement logic has been separated from `process_action`, and all action resolvers now correctly deduct AP. The engine is now stateless.
 4.  **Refactor the Session Manager (`game_session.py`):** **In Progress.**
-    *   Make `GameSession` the sole owner of the `GameState` object.
-    *   Rewrite its methods to follow the new unidirectional flow.
-5.  **Simplify the Frontend (`static/app.js`):**
-    *   Remove complex logic for interpreting multi-step server responses.
-    *   Update the rendering logic to work from the single, comprehensive `GameState` object.
-6.  **Iterate and Expand:** Once the "golden path" test passes, incrementally add tests for more complex scenarios (e.g., end-of-term logic) and refactor the code to make them pass.
+    *   ~~Make `GameSession` the sole owner of the `GameState` object.~~ **Done.**
+    *   ~~Rewrite its methods to follow the new unidirectional flow.~~ **Done.**
+    *   **Update:** The `GameSession` has been significantly simplified. The complex, stateful logic for handling multi-step UI actions (`pending_ui_action`) has been removed. `GameSession` now acts as a clean "conductor," passing actions directly to the pure `GameEngine`.
+5.  **Simplify the Frontend (`static/app.js`):** **In Progress.**
+    *   ~~Remove complex logic for interpreting multi-step server responses.~~ **Done.**
+    *   ~~Update the rendering logic to work from the single, comprehensive `GameState` object.~~ **Done.**
+    *   **Update:** The frontend no longer relies on the backend to manage UI presentation state (like pausing for AI turns). Multi-step actions are now driven by a `pending_ui_action` object within the `GameState`, making the client a "dumber" and more robust renderer of the state.
+6.  **Establish a New UI Action Pattern:** **Done.**
+    *   A new pattern for handling multi-step UI actions has been established and proven for the "Support Legislation" flow.
+    *   **New `GameState` field:** `pending_ui_action` was added to `GameState` to hold the state of the UI interaction.
+    *   **New `GameEngine` actions and resolvers:** The engine now uses a chain of actions (`ActionInitiate...`, `ActionSubmit...`) and corresponding resolvers to manage the UI flow in a purely functional way.
+    *   This pattern is now ready to be applied to the remaining UI actions (`OpposeLegislation`, `SponsorLegislation`, `DeclareCandidacy`).
+7.  **Iterate and Expand:** Once the "golden path" test passes, incrementally add tests for more complex scenarios (e.g., end-of-term logic) and refactor the code to make them pass.
 
 ## 5. Desired Outcome
 

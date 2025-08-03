@@ -11,13 +11,10 @@ from engine.actions import (
     ActionFundraise, ActionNetwork, ActionSponsorLegislation, ActionDeclareCandidacy, 
     ActionUseFavor, ActionSupportLegislation, ActionOpposeLegislation, ActionPassTurn, 
     ActionResolveLegislation, ActionResolveElections, ActionAcknowledgeResults,
+    ActionInitiateSupportLegislation, ActionSubmitLegislationChoice, ActionSubmitAmount,
     ACTION_CLASSES
 )
-from engine.ui_actions import UISponsorLegislation, UISupportLegislation, UIOpposeLegislation, UIDeclareCandidacy
-
-class AcknowledgeAITurn(Action):
-    """A special action used by the human player to acknowledge the AI's turn."""
-    action_type: str = "AcknowledgeAITurn"
+from engine.ui_actions import UISponsorLegislation, UIOpposeLegislation, UIDeclareCandidacy
 
 class GameEngine:
     """The central rule enforcement and state-management authority for the game."""
@@ -52,7 +49,9 @@ class GameEngine:
             "ActionResolveLegislation": resolvers.resolve_resolve_legislation,
             "ActionResolveElections": resolvers.resolve_resolve_elections,
             "ActionAcknowledgeResults": resolvers.resolve_acknowledge_results,
-            "AcknowledgeAITurn": resolvers.resolve_acknowledge_ai_turn,
+            "ActionInitiateSupportLegislation": resolvers.resolve_initiate_support_legislation,
+            "ActionSubmitLegislationChoice": resolvers.resolve_submit_legislation_choice,
+            "ActionSubmitAmount": resolvers.resolve_submit_amount,
             # Trading actions removed
         }
 
@@ -143,27 +142,38 @@ class GameEngine:
         # This is the core of the state-driven refactor.
         new_state = deepcopy(state)
 
+        # Start every action with a clean slate for the turn log.
+        new_state.clear_turn_log()
+
         # Harden the backend: reject actions during non-action phases.
         if (new_state.awaiting_results_acknowledgement or
             new_state.awaiting_legislation_resolution or
             new_state.awaiting_election_resolution):
-            raise ValueError("Invalid action: The game is awaiting resolution or acknowledgement.")
-
+            new_state.add_log("Invalid action: The game is awaiting resolution or acknowledgement.")
+            return new_state
+            
         player = new_state.get_player_by_id(action.player_id)
         if not player or new_state.get_current_player().id != player.id:
-            raise ValueError("It's not your turn or the player is invalid.")
+            new_state.add_log("Error: It's not your turn or the player is invalid.")
+            return new_state
         
         # Check action point cost
         # THIS IS NOW HANDLED IN THE RESOLVER to keep the engine pure.
         
         resolver = self.action_resolvers.get(action.__class__.__name__)
         if not resolver:
-            raise ValueError(f"No resolver found for action: {action.__class__.__name__}")
+            new_state.add_log(f"Error: No resolver found for action: {action.__class__.__name__}")
+            return new_state
         
         # The resolver function will handle the logic and return the new state
-        resolved_state = resolver(new_state, action)
-        
-        return resolved_state
+        try:
+            resolved_state = resolver(new_state, action)
+            return resolved_state
+        except Exception as e:
+            error_message = f"Error processing action '{action.__class__.__name__}': {str(e)}"
+            print(error_message) # Keep console log for debugging
+            new_state.add_log(error_message)
+            return new_state
 
     def _advance_turn_after_action(self, state: GameState) -> GameState:
         """DEPRECATED"""
@@ -380,8 +390,10 @@ class GameEngine:
                                 valid_actions.append(ActionSupportLegislation(player_id=player_id, legislation_id=leg.legislation_id, support_amount=amount))
                 else:
                     # Human gets a UI action
-                    valid_actions.append(UISupportLegislation(player_id=player_id))
+                    valid_actions.append(ActionInitiateSupportLegislation(player_id=player_id))
             if can_afford_action("ActionOpposeLegislation"):
+                # The UI action should only be generated if there is active legislation.
+                # The check for active_legislation above already handles this.
                 if is_ai:
                     # AI gets concrete actions for different commitment levels
                     for leg in active_legislation:

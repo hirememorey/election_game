@@ -74,6 +74,24 @@ class ActionOpposeLegislation(Action):
 
 @dataclass
 @_register_action
+class ActionInitiateSupportLegislation(Action):
+    """UI action to start the process of supporting legislation."""
+    pass
+
+@dataclass
+@_register_action
+class ActionSubmitLegislationChoice(Action):
+    """UI action to submit the choice of which legislation to influence."""
+    legislation_id: str
+
+@dataclass
+@_register_action
+class ActionSubmitAmount(Action):
+    """UI action to submit the amount of PC to commit."""
+    amount: int
+
+@dataclass
+@_register_action
 class ActionProposeTrade(Action):
     """Propose a trade to another player during legislation voting."""
     target_player_id: int

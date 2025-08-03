@@ -92,6 +92,9 @@ class GameState:
     awaiting_election_resolution: bool = False
     awaiting_results_acknowledgement: bool = False
     last_election_results: Optional[dict] = None
+
+    # --- NEW: State-driven UI action management ---
+    pending_ui_action: Optional[Dict] = field(default_factory=dict)
     
     def to_dict(self):
         """Converts the entire game state to a JSON-serializable dictionary."""
@@ -112,7 +115,8 @@ class GameState:
             "awaiting_legislation_resolution": self.awaiting_legislation_resolution,
             "awaiting_election_resolution": self.awaiting_election_resolution,
             "awaiting_results_acknowledgement": self.awaiting_results_acknowledgement,
-            "last_election_results": self.last_election_results
+            "last_election_results": self.last_election_results,
+            "pending_ui_action": self.pending_ui_action
         }
 
     def get_current_player(self) -> Player:

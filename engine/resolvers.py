@@ -12,11 +12,82 @@ from engine.actions import (
     Action, ActionFundraise, ActionNetwork,
     ActionSponsorLegislation, ActionDeclareCandidacy, ActionUseFavor,
     ActionSupportLegislation, ActionOpposeLegislation,
+    ActionInitiateSupportLegislation, ActionSubmitLegislationChoice, ActionSubmitAmount,
     ActionProposeTrade, ActionAcceptTrade, ActionDeclineTrade, ActionCompleteTrading, ActionPassTurn
 )
 import json
 
 #--- Action Resolvers ---
+
+def resolve_initiate_support_legislation(state: GameState, action: ActionInitiateSupportLegislation) -> GameState:
+    """Sets up the game state to ask the player which legislation to support."""
+    player = state.get_player_by_id(action.player_id)
+    if not player:
+        return state
+
+    options = []
+    active_legislation = [leg for leg in state.term_legislation if not leg.resolved]
+    for leg in active_legislation:
+        leg_details = state.legislation_options[leg.legislation_id]
+        options.append({
+            "id": leg.legislation_id,
+            "display_name": f"{leg_details.title}"
+        })
+
+    if not options:
+        state.add_log("There is no active legislation to support right now.")
+        return state
+
+    state.pending_ui_action = {
+        "action_type": "ActionInitiateSupportLegislation",
+        "player_id": action.player_id,
+        "prompt": "Which bill would you like to secretly support?",
+        "options": options,
+        "next_action": "ActionSubmitLegislationChoice",
+    }
+    return state
+
+def resolve_submit_legislation_choice(state: GameState, action: ActionSubmitLegislationChoice) -> GameState:
+    """Updates the pending action state with the chosen legislation and asks for an amount."""
+    player = state.get_player_by_id(action.player_id)
+    if not player:
+        return state
+    
+    # Update the pending action with the choice
+    state.pending_ui_action['legislation_id'] = action.legislation_id
+    state.pending_ui_action['prompt'] = f"How much PC to support with? (1 - {player.pc})"
+    state.pending_ui_action['options'] = []
+    state.pending_ui_action['expects_input'] = "amount"
+    state.pending_ui_action['next_action'] = "ActionSubmitAmount"
+    
+    return state
+
+def resolve_submit_amount(state: GameState, action: ActionSubmitAmount) -> GameState:
+    """Finalizes the UI action, creates a concrete action, and resolves it."""
+    player = state.get_player_by_id(action.player_id)
+    if not player:
+        return state
+    
+    amount = action.amount
+    if not isinstance(amount, int) or not (1 <= amount <= player.pc):
+        state.pending_ui_action['prompt'] = f"Invalid amount. How much PC? (1 - {player.pc})"
+        return state
+    
+    # We have all the info. Create the concrete action.
+    legislation_id = state.pending_ui_action['legislation_id']
+    concrete_action = ActionSupportLegislation(
+        player_id=action.player_id,
+        legislation_id=legislation_id,
+        support_amount=amount
+    )
+    
+    # Clear the pending UI action *before* resolving the concrete one.
+    state.pending_ui_action = {}
+    
+    # Now, call the resolver for the concrete action.
+    # This is a key part of the pattern: one resolver calling another.
+    return resolve_support_legislation(state, concrete_action)
+
 
 def apply_public_mood_effect(state: GameState, mood_change: int, pc_bonus: int = 5):
     """
