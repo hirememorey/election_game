@@ -307,10 +307,11 @@ def resolve_fundraise(state: GameState, action: ActionFundraise) -> GameState:
 
     pc_gain = 5
 
-    # Example of how to handle archetype bonuses in a stateless way
-    if player.archetype.id == "FUNDRAISER":
+    # Apply the Fundraiser archetype bonus only once
+    if player.archetype.id == "FUNDRAISER" and not player.fundraiser_bonus_used:
         pc_gain += 2
-        state.add_log(f"Archetype bonus: +2 PC for The Fundraiser.")
+        player.fundraiser_bonus_used = True
+        state.add_log(f"Archetype bonus: +2 PC for The Fundraiser (one-time).")
 
     player.pc += pc_gain
     state.add_log(f"{player.name} takes the Fundraise action and gains {pc_gain} PC.")

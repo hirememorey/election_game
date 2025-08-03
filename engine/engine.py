@@ -20,13 +20,10 @@ from engine.actions import (
 class GameEngine:
     """The central rule enforcement and state-management authority for the game."""
 
-    # Use the ACTION_CLASSES dictionary imported from engine.actions
-    # This is the single source of truth, automatically populated by decorators.
     ACTION_CLASSES = ACTION_CLASSES
     
     def __init__(self, game_data: Dict[str, Any]):
         self.game_data = game_data
-        # Action point costs
         self.action_point_costs = {
             "ActionFundraise": 1,
             "ActionNetwork": 1,
@@ -37,7 +34,6 @@ class GameEngine:
             "ActionOpposeLegislation": 1,
             "ActionPassTurn": 0,
         }
-        # A dispatch table to map action classes to their resolver functions
         self.action_resolvers = {
             "ActionFundraise": resolvers.resolve_fundraise,
             "ActionNetwork": resolvers.resolve_network,
@@ -57,11 +53,9 @@ class GameEngine:
             "ActionSubmitLegislationChoice": resolvers.resolve_submit_legislation_choice,
             "ActionSubmitOfficeChoice": resolvers.resolve_submit_office_choice,
             "ActionSubmitAmount": resolvers.resolve_submit_amount,
-            # Trading actions removed
         }
 
     def start_new_game(self, player_names: list[str]) -> GameState:
-        """Creates the initial GameState for a new game, including archetype setup."""
         archetypes = list(self.game_data['archetypes'])
         mandates = list(self.game_data['mandates'])
         random.shuffle(archetypes)
@@ -88,11 +82,9 @@ class GameEngine:
             favor_supply=list(self.game_data['favors'])
         )
 
-        # Initialize action points for all players in the state
         for p in state.players:
             state.action_points[p.id] = 2
 
-        # Apply archetype-specific setup rules
         for p in state.players:
             if p.archetype.id == "INSIDER":
                 p.pc = 15
@@ -102,10 +94,6 @@ class GameEngine:
         return state
 
     def process_action(self, state: GameState, action: Action) -> GameState:
-        """
-        Processes a single action and returns the new game state.
-        This is a pure function that does not modify the engine's state.
-        """
         new_state = deepcopy(state)
         
         resolver = self.action_resolvers.get(type(action).__name__)
@@ -114,234 +102,61 @@ class GameEngine:
             try:
                 new_state = resolver(new_state, action)
             except Exception as e:
-                # Log the error and return the last valid state
                 error_msg = f"Error processing action '{type(action).__name__}': {e}"
-                print(error_msg) # Or use a proper logger
+                print(error_msg)
                 new_state.add_log(error_msg)
-                return new_state # Return the state before the error
+                return new_state
         else:
             error_msg = f"No resolver found for action: {type(action).__name__}"
             print(error_msg)
             new_state.add_log(error_msg)
             return new_state
 
-        # NEW: If a resolver sets a follow-up action, process it immediately.
         if new_state.next_action_to_process:
             follow_up_action = new_state.next_action_to_process
-            new_state.next_action_to_process = None  # Clear it before processing
+            new_state.next_action_to_process = None
             new_state = self.process_action(new_state, follow_up_action)
             
         return new_state
 
-    def advance_round_or_term(self, state: GameState) -> GameState:
-        """
-        Checks if the round or term has ended and returns a new state if it has.
-        This is a pure function, intended to be called by the GameSession's game loop.
-        """
-        current_player = state.get_current_player()
-        
-        # First, check if the current player's turn should end and advance the player index
-        if state.action_points.get(current_player.id, 0) <= 0:
-            state.add_log(f"{current_player.name}'s turn ends.")
-            state.current_player_index = (state.current_player_index + 1) % len(state.players)
-            state.add_log(f"It is now {state.get_current_player().name}'s turn.")
-
-        # Second, check if the round is over for ALL players
-        all_players_out_of_ap = all(state.action_points.get(p.id, 0) <= 0 for p in state.players)
-        if all_players_out_of_ap:
-            state.add_log("\n--- ROUND COMPLETE ---")
-            state.add_log("All players have used their action points. Moving to upkeep phase.")
-            
-            state.current_phase = "UPKEEP_PHASE"
-            state.add_log("\n--- UPKEEP PHASE ---")
-            state = resolvers.resolve_upkeep(state)
-            state.round_marker += 1
-            
-            if state.round_marker >= 5:
-                state.round_marker = 4 
-                state.add_log("\n--- END OF TERM ---")
-                state.add_log("Round 4 complete. Moving to legislation session.")
-                return self.run_legislation_session(state)
-            else:
-                state.add_log(f"\n--- ROUND {state.round_marker} ---")
-                state.add_log("\n--- EVENT PHASE ---")
-                return self.run_event_phase(state)
-        
-        return state
-
-    def _advance_turn_after_action(self, state: GameState) -> GameState:
-        """DEPRECATED"""
-        return state
-
-    def _advance_turn(self, state: GameState) -> GameState:
-        """DEPRECATED"""
-        return state
-
-    def _player_has_valid_actions(self, state: GameState, player: Player) -> bool:
-        """Check if a player has any valid actions they can take."""
-        ap = player.action_points
-        
-        # Always allow pass turn (0 AP cost)
-        if ap >= 0:
-            return True
-            
-        # Check for 1 AP actions (fundraise, network, use favor, support/oppose legislation)
-        if ap >= 1:
-            return True
-            
-        # Check for 2 AP actions (sponsor legislation, campaign, declare candidacy)
-        if ap >= 2:
-            return True
-            
-        return False
-
-    def run_upkeep_phase(self, state: GameState) -> GameState:
-        """Runs the entire Upkeep Phase automatically."""
-        print(f"[DEBUG] run_upkeep_phase called with round_marker={state.round_marker}")
-        state.current_phase = "UPKEEP_PHASE"
-        state.add_log("\n--- UPKEEP PHASE ---")
-
-        state = resolvers.resolve_upkeep(state)
-
-        # After upkeep, advance the round marker
-        state.round_marker += 1
-        print(f"[DEBUG] run_upkeep_phase: round_marker incremented to {state.round_marker}")
-        
-        if state.round_marker >= 5:
-            # End of the term, trigger the Legislation Session Phase
-            # Reset round marker to 4 for clarity during legislation session
-            state.round_marker = 4
-            print(f"[DEBUG] run_upkeep_phase: End of term detected, calling run_legislation_session")
-            state.add_log("\n--- END OF TERM ---")
-            state.add_log("Round 4 complete. Moving to legislation session.")
-            return self.run_legislation_session(state)
-        else:
-            # Otherwise, automatically start the next round with the Event Phase
-            print(f"[DEBUG] run_upkeep_phase: Starting round {state.round_marker}, calling run_event_phase")
-            state.add_log(f"\n--- ROUND {state.round_marker} ---")
-            state.add_log("\n--- EVENT PHASE ---")
-            return self.run_event_phase(state)
-
-    def run_legislation_session(self, state: GameState) -> GameState:
-        """Triggers the legislation session where all pending legislation is resolved."""
-        print(f"[DEBUG] run_legislation_session called with {len(state.term_legislation)} term legislation items")
-        print(f"[DEBUG] run_legislation_session: term_legislation contents: {[leg.legislation_id for leg in state.term_legislation]}")
-        state.current_phase = "LEGISLATION_PHASE"
-        state.add_log("DEBUG: This is the new code! If you see this, the correct code is running.")
-        state.add_log("\n--- LEGISLATION SESSION ---")
-        state.add_log("All sponsored legislation from this term will now be voted on.")
-        
-        # Clear action points during legislation session - players vote, don't take regular actions
-        for player in state.players:
-            player.action_points = 0
-        
-        print(f"[DEBUG] After moving pending legislation, term_legislation has {len(state.term_legislation)} items")
-        
-        # If no legislation was sponsored this term, skip to elections
-        if not state.term_legislation:
-            print("[DEBUG] No term legislation found, skipping to elections")
-            state.add_log("No legislation was sponsored this term. Moving to elections.")
-            return self.run_election_phase(state)
-        
-        print(f"[DEBUG] Setting awaiting_legislation_resolution flag for {len(state.term_legislation)} items")
-        # Set the flag to indicate legislation resolution is needed
-        state.awaiting_legislation_resolution = True
-        state.add_log("\n--- LEGISLATION SESSION: Ready for Resolution ---")
-        state.add_log("Click 'Resolve Legislation' to reveal all secret commitments and determine outcomes.")
-        
-        print(f"[DEBUG] run_legislation_session returning with phase={state.current_phase}, awaiting={state.awaiting_legislation_resolution}")
-        return state
-
-    def run_election_phase(self, state: GameState) -> GameState:
-        """Triggers the election resolutions and resets for the new term."""
-        print(f"[DEBUG] run_election_phase called")
-        state.current_phase = "ELECTION_PHASE"
-        state.add_log("\n--- ELECTION PHASE ---")
-        state.add_log("Elections are ready to be resolved.")
-        
-        # Set the flag to indicate election resolution is needed
-        state.awaiting_election_resolution = True
-        state.add_log("Click 'Resolve Elections' to determine office winners and start the new term.")
-        
-        return state
-
-    def run_event_phase(self, state: GameState) -> GameState:
-        """Draws an event card and resolves it using the resolver module."""
-        state.clear_turn_log()
-        
-        new_state = resolvers.resolve_event_card(state)
-        
-        new_state.current_phase = "ACTION_PHASE"
-        new_state.current_player_index = 0  # Ensure first player can take actions
-        
-        # Grant action points to all players at the start of action phase
-        for player in new_state.players:
-            player.action_points = 2
-        
-        return new_state
-
     def get_valid_actions(self, state: GameState, player_id: int) -> List[Action]:
-        """
-        Get all valid actions a player can take in the current game state.
-        This is the single source of truth for valid actions.
-        
-        Args:
-            state: Current game state
-            player_id: ID of the player whose actions to check
-            
-        Returns:
-            List of valid Action objects
-        """
         valid_actions = []
         player = state.get_player_by_id(player_id)
         
         if not player:
             return valid_actions
             
-        # Check if it's the player's turn
         if state.get_current_player().id != player_id:
             return valid_actions
             
-        # Check if player has action points
         ap = player.action_points
         if ap <= 0:
-            # Only Pass Turn is available
-            # This check is flawed, as Pass Turn should always be available.
-            # The action deduction logic is now in the resolver.
             pass
             
-        # Helper function to check if player can afford an action
         def can_afford_action(action_class_name: str) -> bool:
             base_cost = self.action_point_costs.get(action_class_name, 0)
-            # Apply public gaffe effect
             if player.id in state.public_gaffe_players:
                 if action_class_name in ["ActionSponsorLegislation", "ActionDeclareCandidacy"]:
                     base_cost += 1
             return ap >= base_cost
             
-        # Helper function to check if the player is an AI
         is_ai = not player.name == "Human"
 
-        # Always available actions (1 AP each)
         if can_afford_action("ActionFundraise"):
             valid_actions.append(ActionFundraise(player_id=player_id))
         if can_afford_action("ActionNetwork"):
             valid_actions.append(ActionNetwork(player_id=player_id))
         
-        # Sponsor Legislation (2 AP, if player has enough PC and AP)
         if can_afford_action("ActionSponsorLegislation"):
             if is_ai:
-                # AI gets concrete actions
                 for leg_id, leg in state.legislation_options.items():
                     if player.pc >= leg.cost and leg_id not in [l.legislation_id for l in state.term_legislation]:
                         valid_actions.append(ActionSponsorLegislation(player_id=player_id, legislation_id=leg_id))
             else:
-                # Human gets a UI action
                 can_sponsor_any = any(player.pc >= leg.cost and leg_id not in [l.legislation_id for l in state.term_legislation] for leg_id, leg in state.legislation_options.items())
                 if can_sponsor_any:
                     valid_actions.append(ActionInitiateSponsorLegislation(player_id=player_id))
 
-        # Declare Candidacy (2 AP, only in round 4)
         if state.round_marker == 4 and can_afford_action("ActionDeclareCandidacy"):
             if is_ai:
                 for office_id in state.offices:
@@ -359,12 +174,10 @@ class GameEngine:
                                 committed_pc=min(10, player.pc - office.candidacy_cost)
                             ))
             else:
-                # For humans, just show one UI action if they can afford any office
                 can_run_for_any_office = any(player.pc >= office.candidacy_cost for office in state.offices.values())
                 if can_run_for_any_office:
                     valid_actions.append(ActionInitiateDeclareCandidacy(player_id=player_id))
 
-        # Use Favor (1 AP, if player has favors)
         if player.favors and can_afford_action("ActionUseFavor"):
             for favor in player.favors:
                 valid_actions.append(ActionUseFavor(
@@ -372,72 +185,47 @@ class GameEngine:
                     favor_id=favor.id
                 ))
         
-        # Support/Oppose Legislation (1 AP each, if there's pending legislation)
         active_legislation = [leg for leg in state.term_legislation if not leg.resolved]
         if active_legislation and player.pc > 0:
             if can_afford_action("ActionSupportLegislation"):
                 if is_ai:
-                    # AI gets concrete actions for different commitment levels
                     for leg in active_legislation:
                         for amount in [1, 5, 10]:
                             if player.pc >= amount:
                                 valid_actions.append(ActionSupportLegislation(player_id=player_id, legislation_id=leg.legislation_id, support_amount=amount))
                 else:
-                    # Human gets a UI action
                     valid_actions.append(ActionInitiateSupportLegislation(player_id=player_id))
             if can_afford_action("ActionOpposeLegislation"):
-                # The UI action should only be generated if there is active legislation.
-                # The check for active_legislation above already handles this.
                 if is_ai:
-                    # AI gets concrete actions for different commitment levels
                     for leg in active_legislation:
                         for amount in [1, 5, 10]:
                             if player.pc >= amount:
                                 valid_actions.append(ActionOpposeLegislation(player_id=player_id, legislation_id=leg.legislation_id, oppose_amount=amount))
                 else:
-                    # Human gets a UI action
                     valid_actions.append(ActionInitiateOpposeLegislation(player_id=player_id))
         
-        # Pass Turn (always available)
         valid_actions.append(ActionPassTurn(player_id=player_id))
         
         return valid_actions
 
     def get_valid_system_actions(self, state: GameState) -> List[Action]:
-        """
-        Get system-level actions that need to be performed (e.g., resolution actions).
-        This handles non-player actions like legislation and election resolution.
-        
-        Args:
-            state: Current game state
-            
-        Returns:
-            List of valid system Action objects
-        """
         system_actions = []
         
-        # Check for legislation resolution
         if state.awaiting_legislation_resolution:
             system_actions.append(ActionResolveLegislation())
             
-        # Check for election resolution
         if state.awaiting_election_resolution:
             system_actions.append(ActionResolveElections())
             
-        # Check for results acknowledgement
         if state.awaiting_results_acknowledgement:
             system_actions.append(ActionAcknowledgeResults())
             
         return system_actions
 
     def is_game_over(self, state: GameState) -> bool:
-        """Checks if the game has ended (after 3 terms)."""
-        # The game ends after the election phase of the 3rd term.
-        # We track terms completed in state.term_counter
         return state.term_counter >= 3
 
     def action_from_dict(self, data: dict) -> Action:
-        """Creates an Action object from a dictionary."""
         action_type_name = data.pop('action_type', None)
         if not action_type_name:
             raise ValueError("Action data must include 'action_type'")
@@ -449,7 +237,6 @@ class GameEngine:
         return action_class(**data)
 
     def get_final_scores(self, state: GameState) -> dict:
-        """Calculates and returns the final scores and the winner."""
         final_scores = calculate_final_scores(state)
         
         winner_id = -1
@@ -469,7 +256,6 @@ class GameEngine:
         }
 
     def resolve_legislation_session(self, state: GameState) -> GameState:
-        """Manually resolve all pending legislation at the end of the term."""
         if not state.awaiting_legislation_resolution:
             state.add_log("No legislation session to resolve.")
             return state
@@ -477,17 +263,14 @@ class GameEngine:
         for legislation in state.term_legislation:
             if not legislation.resolved:
                 state = resolvers._resolve_single_legislation(state, legislation)
-        # Clear term legislation and move to elections
         state.term_legislation.clear()
-        state.current_player_index = 0  # Reset for new term
+        state.current_player_index = 0
         state.awaiting_legislation_resolution = False
         state.awaiting_election_resolution = True
         
-        # Transition to election phase
         return self.run_election_phase(state)
 
     def resolve_legislation_session_with_secrets(self, state: GameState, secret_commitments: dict) -> GameState:
-        """Manually resolve all pending legislation using the Secret Commitment System."""
         if not state.awaiting_legislation_resolution:
             state.add_log("No legislation session to resolve.")
             return state
@@ -500,39 +283,31 @@ class GameEngine:
                 legislation_id = legislation.legislation_id
                 state.add_log(f"\n--- Revealing commitments for {legislation_id} ---")
                 
-                # Get secret commitments for this legislation
                 if legislation_id in secret_commitments:
                     commitments = secret_commitments[legislation_id]
                     
-                    # Reveal each commitment dramatically
                     for player_id, stance, amount in commitments:
                         player = state.get_player_by_id(player_id)
                         if player:
                             if stance == 'support':
                                 state.add_log(f"🎭 REVEAL: {player.name} secretly supported with {amount} PC!")
-                                # PC was already deducted when commitment was made
                                 legislation.support_players[player_id] = amount
-                            else:  # oppose
+                            else:
                                 state.add_log(f"🎭 REVEAL: {player.name} secretly opposed with {amount} PC!")
-                                # PC was already deducted when commitment was made
                                 legislation.oppose_players[player_id] = amount
                 else:
                     state.add_log(f"No secret commitments found for {legislation_id}")
                 
-                # Now resolve the legislation using the existing system
                 state = resolvers._resolve_single_legislation(state, legislation)
         
-        # Clear term legislation and move to elections
         state.term_legislation.clear()
-        state.current_player_index = 0  # Reset for new term
+        state.current_player_index = 0
         state.awaiting_legislation_resolution = False
         state.awaiting_election_resolution = True
         
-        # Transition to election phase
         return self.run_election_phase(state)
 
     def resolve_elections_session(self, state: GameState, disable_dice_roll: bool = False) -> GameState:
-        """Resolves elections and transitions to the next term."""
         if not state.awaiting_election_resolution:
             return state
 
@@ -542,7 +317,6 @@ class GameEngine:
         
         state = resolvers.resolve_elections(state, disable_dice_roll=disable_dice_roll)
         
-        # Instead of advancing to the next term, set a flag
         state.awaiting_election_resolution = False
         state.awaiting_results_acknowledgement = True
         state.add_log("Elections resolved. Awaiting acknowledgement.")
@@ -550,27 +324,21 @@ class GameEngine:
         return state
 
     def start_next_term(self, state: GameState) -> GameState:
-        """Clears the board and starts the next term."""
-        # Increment term counter
         state.term_counter += 1
         
-        # Reset term-specific state
         state.term_legislation.clear()
         state.secret_candidacies.clear()
         state.current_player_index = 0
         
-        # Clear resolution flags
         state.awaiting_legislation_resolution = False
         state.awaiting_election_resolution = False
         state.awaiting_results_acknowledgement = False
         
-        # Reset action points for all players
         for p in state.players:
             p.action_points = 2
             
-        # Start with a new event phase
         state = self.run_event_phase(state)
         
         state.add_log("\n--- NEW TERM BEGINS ---")
-        state.round_marker = 1 # Reset round marker for the new term
+        state.round_marker = 1
         return state

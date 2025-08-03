@@ -1,64 +1,65 @@
-from fastapi import FastAPI, WebSocket
+from fastapi import FastAPI, WebSocket, WebSocketDisconnect
+from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
-from starlette.websockets import WebSocketDisconnect
 from game_session import GameSession
 import json
-from fastapi.responses import FileResponse
-from typing import Dict, Any
 
 app = FastAPI()
-
-# Serve static files from the "static" directory
 app.mount("/static", StaticFiles(directory="static"), name="static")
 
 @app.get("/")
 async def read_root():
-    """Serves the main HTML page."""
     return FileResponse('static/index.html')
 
 @app.websocket("/ws")
 async def websocket_endpoint(websocket: WebSocket):
     await websocket.accept()
-    print(f"New client connected, starting new game: {websocket.client}")
-    # Create a new game session for this client
     session = GameSession()
     session.start_game()
-
+    
     try:
+        # Send initial state
+        state_data = session.get_state_for_client()
+        await websocket.send_text(json.dumps(state_data))
+
         while not session.is_game_over():
-            # Send the current game state to the client
-            state_data = session.get_state_for_client()
-            await websocket.send_json(state_data)
-
-            if state_data.get("awaiting_ai_acknowledgement"):
-                # If we are waiting for acknowledgement, we don't need to do anything
-                # but wait for the next message from the client.
-                pass
+            # Wait for human action
+            action_data = await websocket.receive_text()
+            session.process_human_action(json.loads(action_data))
             
-            # Wait for an action from the client
-            action_data = await websocket.receive_json()
+            # Send state update after human action
+            current_state = session.get_state_for_client()
+            await websocket.send_text(json.dumps(current_state))
 
-            # Process the action
-            try:
-                session.process_action(action_data)
-            except Exception as e:
-                print(f"Error processing action: {e}")
-                # Send an error message to the client
-                await websocket.send_json({"error": str(e)})
-            
-            # If the game is over, send final scores and close
-            if session.is_game_over():
-                final_scores = session.engine.get_final_scores(session.state)
-                await websocket.send_json({"game_over": True, "scores": final_scores})
-                break
+            # Run AI turns until it's the human's turn again
+            while not session.is_human_turn() and not session.is_game_over():
+                session.process_ai_turn()
+                state_data = session.get_state_for_client()
+                
+                # Add flag to signal the client to wait for acknowledgement
+                state_data['awaiting_acknowledgement'] = True
+                await websocket.send_text(json.dumps(state_data))
+                
+                # Wait for acknowledgement from the client
+                await websocket.receive_text()
+
+        # Game is over, send final scores and close
+        final_state = session.get_state_for_client()
+        final_state['game_over'] = True
+        final_state['scores'] = session.engine.get_final_scores(session.state)
+        await websocket.send_text(json.dumps(final_state))
 
     except WebSocketDisconnect:
         print(f"Client {websocket.client} disconnected.")
     except Exception as e:
-        print(f"An error occurred in the websocket: {e}")
-        await websocket.send_json({"error": str(e)})
+        print(f"An error occurred: {e}")
+        # Optionally send an error message to the client
+        try:
+            await websocket.send_text(json.dumps({"error": str(e)}))
+        except RuntimeError:
+            print("Could not send error message, connection already closed.")
     finally:
-        print("INFO:     connection closed")
+        print("WebSocket connection handler finished.")
 
 if __name__ == "__main__":
     import uvicorn

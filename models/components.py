@@ -1,5 +1,5 @@
 from dataclasses import dataclass, field
-from typing import Optional, List, Dict
+from typing import Optional, List, Dict, Any
 from models.cards import PersonalMandate, PoliticalArchetype, AllianceCard
 
 @dataclass
@@ -87,25 +87,28 @@ class Player:
     """Represents a player's state in the game."""
     id: int
     name: str
-    archetype: PoliticalArchetype
-    mandate: PersonalMandate
-    pc: int  # Political Capital
+    archetype: Optional[PoliticalArchetype] = None
+    mandate: Optional[PersonalMandate] = None
+    pc: int = 0
     action_points: int = 2
     current_office: Optional[Office] = None
     allies: List[AllianceCard] = field(default_factory=list)
     favors: List[PoliticalFavor] = field(default_factory=list)
+    is_incumbent: bool = False
+    fundraiser_bonus_used: bool = False
 
-    def to_dict(self):
+    def to_dict(self) -> Dict[str, Any]:
         return {
             "id": self.id, "name": self.name,
-            "archetype": self.archetype.to_dict(),
-            "mandate": self.mandate.to_dict(),
+            "archetype": self.archetype.to_dict() if self.archetype else None,
+            "mandate": self.mandate.to_dict() if self.mandate else None,
             "pc": self.pc,
             "action_points": self.action_points,
             "current_office": self.current_office.to_dict() if self.current_office else None,
             "allies": [ally.to_dict() for ally in self.allies],
             "favors": [favor.to_dict() for favor in self.favors],
-            "is_incumbent": self.is_incumbent
+            "is_incumbent": self.is_incumbent,
+            "fundraiser_bonus_used": self.fundraiser_bonus_used
         }
 
     @property

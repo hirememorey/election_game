@@ -1,5 +1,27 @@
 # Developer Handoff
 
+**Date:** 2025-08-03
+**Author:** Assistant
+
+## State of the Project (Post-Game Loop Refactor v2)
+
+This development cycle successfully identified and fixed a critical, long-standing architectural flaw in the game's turn-passing and game loop logic. The application is now in a stable, robust, and architecturally sound state.
+
+### Core Problem & Resolution
+
+-   **Problem:** The game loop was incorrectly implemented within the `GameSession`, which had no visibility into the client-server websocket connection. This caused multiple bugs, including AI turns executing in an uncontrolled burst and the client getting out of sync with the server. The application was also unstable due to startup errors and improper websocket lifecycle management.
+-   **Solution:** A comprehensive, "bottom-up" refactoring effort was undertaken:
+    1.  **Stabilization:** All startup crashes were resolved by fixing inconsistencies left over from the previous refactoring. The websocket connection handling was made robust to prevent server crashes on client disconnect.
+    2.  **Architectural Correction:** The game loop was moved from `GameSession` to its correct home in the `server.py` websocket handler. The `server` now orchestrates the game's pacing, processing one turn at a time and waiting for client acknowledgement after each AI move.
+    3.  **Component Purification:** The roles of each major component are now clean and clear, as documented in `README.md` and `STATE_DRIVEN_REFACTOR.md`.
+    4.  **Bug Fixes:** With a stable foundation, all outstanding gameplay bugs (e.g., the repeated "Fundraiser" bonus) and UI display issues (e.g., "undefined" options) were easily resolved.
+
+### Current Status
+
+**All systems are go.** The application is stable, the game is fully playable, and the architecture is clean and maintainable. All known bugs have been resolved. The project is in an excellent state for future development.
+
+---
+
 **Date:** 2025-08-02
 **Author:** Assistant
 

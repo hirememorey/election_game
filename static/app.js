@@ -1,316 +1,227 @@
-const { Terminal } = require('xterm');
-const { FitAddon } = require('xterm-addon-fit');
+let ws;
 
-class TerminalUI {
-    constructor() {
-        this.term = new Terminal({
-            cursorBlink: true,
-            theme: {
-                background: '#1e1e1e',
-                foreground: '#d4d4d4',
-            }
-        });
-        this.fitAddon = new FitAddon();
-        this.term.loadAddon(this.fitAddon);
-        this.term.open(document.getElementById('terminal-container'));
-        this.fitAddon.fit();
-        window.addEventListener('resize', () => this.fitAddon.fit());
-        this.term.writeln('Welcome to Election: The Game!');
-        this.term.writeln('Connecting to server...');
-        this.inputBuffer = '';
-        this.term.onKey(this.onKey.bind(this));
-    }
+function connect() {
+    ws = new WebSocket(`ws://${window.location.host}/ws`);
 
-    onKey(e) {
-        const ev = e.domEvent;
-        if (ev.keyCode === 13) { // Enter
-            if (this.onEnter) {
-                this.onEnter(this.inputBuffer);
-                this.inputBuffer = '';
-                this.term.writeln('');
-            }
-        } else if (ev.keyCode === 8) { // Backspace
-            if (this.inputBuffer.length > 0) {
-                this.term.write('\b \b');
-                this.inputBuffer = this.inputBuffer.slice(0, -1);
-            }
-        } else {
-            this.inputBuffer += e.key;
-            this.term.write(e.key);
-        }
-    }
+    ws.onopen = () => {
+        console.log("Connected to the game server.");
+    };
 
-    displayGameState(state) {
-        this.term.writeln('\n\n\x1B[1;3;34m======================================================================\x1B[0m');
-        this.term.writeln('\x1B[1;3;34m                              ELECTION: THE GAME\x1B[0m');
-        this.term.writeln('\x1B[1;3;34m======================================================================\x1B[0m');
-        
-        const progress = state.round_marker / 4.0;
-        const barLength = 40;
-        const filledLength = Math.floor(barLength * progress);
-        const bar = '█'.repeat(filledLength) + '░'.repeat(barLength - filledLength);
-        this.term.writeln(`\n\x1B[36mGame Progress: [${bar}] ${state.round_marker}/4 Rounds\x1B[0m`);
-        this.term.writeln(`\x1B[36mCurrent Phase: ${state.current_phase.replace('_', ' ').toUpperCase()}\x1B[0m`);
-        this.term.writeln(`\x1B[36mPublic Mood: ${state.public_mood}\x1B[0m`);
+    ws.onmessage = (event) => {
+        const state = JSON.parse(event.data);
+        renderState(state);
+    };
 
-        if (state.log && state.log.length > 0) {
-            this.term.writeln('\n\x1B[93m📰 Recent Events:\x1B[0m');
-            state.log.slice(-10).forEach(message => { // Show more logs
-                if (message.trim()) this.term.writeln(`  \x1B[93m•\x1B[0m ${message}`);
-            });
-        }
-        
-        this.term.writeln(`\n\x1B[1m👥 PLAYERS:\x1B[0m`);
-        state.players.forEach(p => {
-            const officeTitle = p.current_office ? p.current_office.title : "Outsider";
-            const isCurrent = p.name === state.current_player ? '\x1B[92m▶▶▶\x1B[0m' : '   ';
-            this.term.writeln(`\n  ${isCurrent} \x1B[1m${p.name}\x1B[0m (${p.archetype.title})`);
-            const ap = state.action_points[p.id] || 0;
-            this.term.writeln(`    \x1B[36m💰 PC: ${p.pc}\x1B[0m | \x1B[94m🏛️  Office: ${officeTitle}\x1B[0m | \x1B[92m⚡ AP: ${ap}\x1B[0m`);
-        });
+    ws.onclose = () => {
+        console.log("Disconnected from the game server. Attempting to reconnect...");
+        setTimeout(connect, 3000); // Try to reconnect every 3 seconds
+    };
 
-        // If a system action is present, don't show a player's turn.
-        const hasSystemAction = state.valid_actions && state.valid_actions.some(a => 
-            a.action_type === 'ActionResolveLegislation' || 
-            a.action_type === 'ActionResolveElections' ||
-            a.action_type === 'ActionAcknowledgeResults'
-        );
+    ws.onerror = (error) => {
+        console.error("WebSocket error:", error);
+    };
+}
 
-        if (hasSystemAction) {
-            this.term.writeln(`\n\x1B[1;95mSYSTEM ACTION REQUIRED\x1B[0m`);
-        } else if (state.current_phase === "ACTION_PHASE") {
-            this.term.writeln(`\n\x1B[1;92m🎯 ${state.current_player}'s Turn\x1B[0m`);
-        }
-    }
+function getActionDescription(action) {
+    const type = action.action_type;
+    const simpleType = type.replace("ActionInitiate", "").replace("Action", "");
 
-    promptForAction(actions) {
-        this.term.writeln('\n\x1B[1m🎮 Available Actions:\x1B[0m');
-        actions.forEach((action, i) => {
-            this.term.writeln(`  \x1B[36m[${i + 1}]\x1B[0m ${this.getActionDescription(action)}`);
-        });
-        this.term.writeln('\n\x1B[1m🔧 Special Commands:\x1B[0m');
-        this.term.writeln(`  \x1B[93m[info]\x1B[0m View detailed game information`);
-        this.term.writeln(`  \x1B[93m[help]\x1B[0m Show action descriptions`);
-        this.term.writeln(`  \x1B[93m[quit]\x1B[0m Exit the game`);
-        this.term.write('\n\x1B[1mEnter your choice: \x1B[0m');
-    }
-
-    getActionDescription(action) {
-        switch(action.action_type) {
-            case 'ActionFundraise': return '\x1B[92m💰 Fundraise\x1B[0m - Gain Political Capital';
-            case 'ActionNetwork': return '\x1B[94m🤝 Network\x1B[0m - Gain PC and favors';
-            case 'ActionSponsorLegislation': return `\x1B[93m📜 Sponsor Legislation\x1B[0m (Cost: ${action.legislation_id})`;
-            case 'ActionDeclareCandidacy': return `\x1B[36m🏛️  Declare Candidacy\x1B[0m (Cost: ${action.committed_pc} PC)`;
-            case 'ActionUseFavor': return '\x1B[95m🎁 Use Favor\x1B[0m';
-            case 'ActionSupportLegislation': return `\x1B[92m✅ Support Legislation\x1B[0m: ${action.legislation_id}`;
-            case 'ActionOpposeLegislation': return `\x1B[91m❌ Oppose Legislation\x1B[0m: ${action.legislation_id}`;
-            case 'ActionPassTurn': return '\x1B[93m⏭️  Pass Turn\x1B[0m';
-            case 'UISponsorLegislation': return `\x1B[93m📜 Sponsor Legislation\x1B[0m`;
-            case 'UIDeclareCandidacy': return `\x1B[36m🏛️  Declare Candidacy\x1B[0m`;
-            case 'UISupportLegislation': return `\x1B[92m✅ Support Legislation\x1B[0m`;
-            case 'UIOpposeLegislation': return `\x1B[91m❌ Oppose Legislation\x1B[0m`;
-            case 'ActionResolveLegislation': return `\x1B[95m⚖️ Resolve Legislation\x1B[0m`;
-            case 'ActionResolveElections': return `\x1B[95m🗳️ Resolve Elections\x1B[0m`;
-            case 'ActionAcknowledgeResults': return `\x1B[96m🏁 Start Next Term\x1B[0m`;
-            default: return `\x1B[97m${action.action_type}\x1B[0m`;
-        }
-    }
-    
-    displayHelp() {
-        this.term.writeln('\n\x1B[1;3;34m======================================================================\x1B[0m');
-        this.term.writeln('\x1B[1;93m❓ ACTION HELP\x1B[0m');
-        this.term.writeln('\x1B[1;3;34m======================================================================\x1B[0m');
-        this.term.writeln('\x1B[92m💰 Fundraise\x1B[0m: Gain Political Capital');
-        this.term.writeln('\x1B[94m🤝 Network\x1B[0m: Build connections to gain PC and favors');
-        this.term.writeln('\x1B[93m📜 Sponsor Legislation\x1B[0m: Propose new legislation');
-        this.term.writeln('\x1B[36m🏛️  Declare Candidacy\x1B[0m: Run for office');
-        this.term.writeln('\x1B[95m🎁 Use Favor\x1B[0m: Call in a political favor');
-        this.term.writeln('\x1B[92m✅ Support Legislation\x1B[0m: Commit PC to support a bill');
-        this.term.writeln('\x1B[91m❌ Oppose Legislation\x1B[0m: Commit PC to oppose a bill');
-        this.term.writeln('\x1B[93m⏭️  Pass Turn\x1B[0m: Skip your turn');
-    }
-
-    displayInfo(state) {
-        this.term.writeln('\n\x1B[1;3;34m======================================================================\x1B[0m');
-        this.term.writeln('\x1B[1;93m📊 GAME INFORMATION\x1B[0m');
-        this.term.writeln('\x1B[1;3;34m======================================================================\x1B[0m');
-        this.term.writeln(`\x1B[36mRound: ${state.round_marker}/4\x1B[0m`);
-        this.term.writeln(`\x1B[36mPhase: ${state.current_phase}\x1B[0m`);
-        this.term.writeln(`\x1B[36mPublic Mood: ${state.public_mood}\x1B[0m`);
-
-        const humanPlayer = state.players.find(p => p.name === 'Human');
-        if (humanPlayer && humanPlayer.mandate) {
-            this.term.writeln('\n\x1B[1m🎯 Your Personal Mandate:\x1B[0m');
-            this.term.writeln(`  \x1B[93m${humanPlayer.mandate.title}\x1B[0m`);
-            this.term.writeln(`  \x1B[97m${humanPlayer.mandate.description}\x1B[0m`);
-        }
-
-        if (state.offices) {
-            this.term.writeln('\n\x1B[1m🏛️  Available Offices:\x1B[0m');
-            for (const office_id in state.offices) {
-                const office = state.offices[office_id];
-                this.term.writeln(`  ${office.title} (Tier ${office.tier}) - Cost: ${office.candidacy_cost} PC`);
-            }
-        }
-
-        if (state.legislation_options) {
-            this.term.writeln('\n\x1B[1m📜 Available Legislation:\x1B[0m');
-            for (const leg_id in state.legislation_options) {
-                const legislation = state.legislation_options[leg_id];
-                this.term.writeln(`  ${legislation.title} - Cost: ${legislation.cost} PC`);
-            }
-        }
+    switch (type) {
+        case "ActionInitiateSponsorLegislation":
+            return "Sponsor Legislation";
+        case "ActionInitiateSupportLegislation":
+            return "Support Legislation";
+        case "ActionInitiateOpposeLegislation":
+            return "Oppose Legislation";
+        case "ActionInitiateDeclareCandidacy":
+            return "Declare Candidacy";
+        case "ActionFundraise":
+            return "Fundraise";
+        case "ActionNetwork":
+            return "Network";
+        case "ActionPassTurn":
+            return "Pass Turn";
+        case "ActionResolveLegislation":
+            return "Resolve Legislation";
+        case "ActionResolveElections":
+            return "Resolve Elections";
+        case "ActionAcknowledgeResults":
+            return "Start Next Term";
+        default:
+            return simpleType.replace(/([A-Z])/g, ' $1').trim();
     }
 }
 
-const ui = new TerminalUI();
-const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-const socket = new WebSocket(`${protocol}//${window.location.host}/ws`);
+function renderState(state) {
+    console.log("Received state:", state);
 
-let validActions = [];
-let currentState = {};
-let isAwaitingSubChoice = false;
-let lastPlayerName = ''; // New: To track player changes
-let isAwaitingAcknowledgement = false; // New: Client-side flag
-
-socket.onopen = () => {
-    ui.term.writeln('Connected to server.');
-};
-
-socket.onmessage = function(event) {
-    const gameState = JSON.parse(event.data);
-
-    // New logic to detect when to pause
-    const currentPlayerName = gameState.current_player;
-    if (lastPlayerName === 'Human' && currentPlayerName !== 'Human' && !isAwaitingAcknowledgement) {
-        isAwaitingAcknowledgement = true;
+    if (state.error) {
+        console.error("Server error:", state.error);
+        const logContainer = document.getElementById('log-container');
+        const errorElement = document.createElement('div');
+        errorElement.className = 'log-entry error';
+        errorElement.textContent = `🚨 Server Error: ${state.error}`;
+        logContainer.appendChild(errorElement);
+        return;
     }
-    lastPlayerName = currentPlayerName;
     
-    currentState = gameState;
-    ui.displayGameState(gameState);
-
-    if (isAwaitingAcknowledgement) {
-        ui.promptToContinue();
-        return;
-    }
-
-    // Check if the server sent a specific prompt for a sub-choice
-    if (gameState.prompt && gameState.valid_actions) {
-        isAwaitingSubChoice = true;
-        validActions = gameState.valid_actions; // These are now the sub-options
-        ui.promptForSubChoice(gameState.prompt, validActions);
-    } else if (gameState.valid_actions && gameState.valid_actions.length > 0) {
-        isAwaitingSubChoice = false;
-        validActions = gameState.valid_actions;
-        ui.promptForAction(validActions);
-    } else if (!gameState.is_game_over) {
-        ui.promptToContinue();
-    }
-};
-
-ui.promptToContinue = function() {
-    this.term.writeln('\n\x1B[1;93mPress [Enter] to continue...\x1B[0m');
-}
-
-// New function to handle sub-prompts
-ui.promptForSubChoice = function(prompt, options) {
-    this.term.writeln(`\n\x1B[1;96m${prompt}\x1B[0m`);
-    if (options.length > 0) {
-        options.forEach((action, index) => {
-            // Use the new display_name field from the backend
-            this.term.writeln(`  \x1B[1;93m[${index + 1}]\x1B[0m ${action.display_name}`);
-        });
-    }
-    this.term.write('\nEnter your choice: ');
-};
-
-
-ui.onEnter = (input) => {
-    const command = input.trim().toLowerCase();
-
-    if (isAwaitingAcknowledgement) {
-        isAwaitingAcknowledgement = false;
-        // Re-render the game state without the "continue" prompt
-        ui.displayGameState(currentState);
-        // After acknowledgement, we might need to prompt for action if it's our turn again
-        if (currentState.valid_actions && currentState.valid_actions.length > 0) {
-             ui.promptForAction(currentState.valid_actions);
-        }
-        return;
-    }
-
-    // If it's not the human's turn, any 'enter' is a continue.
-    if ((!validActions || validActions.length === 0) && !isAwaitingSubChoice) {
-        // This logic might need to be adjusted; for now, we prevent sending 'continue'
-        // as the server no longer expects it. The game loop is now fully state-driven.
-        return;
-    }
-
-    if (command === 'help') {
-        ui.displayHelp();
-        ui.promptForAction(validActions);
-        return;
-    }
-    if (command === 'info') {
-        ui.displayInfo(currentState);
-        ui.promptForAction(validActions);
-        return;
-    }
-    if (command === 'quit') {
-        socket.close();
-        ui.term.writeln('Connection closed.');
-        return;
-    }
-
-    if (isAwaitingSubChoice) {
-        // Handle case where we expect a free-form number input (e.g., for PC amount)
-        if (currentState.expects_input === "amount") {
-            const amount = parseInt(command, 10);
-            if (!isNaN(amount) && amount > 0) {
-                socket.send(JSON.stringify({
-                    action_type: currentState.pending_ui_action.next_action, // Use next_action from state
-                    player_id: 0,
-                    amount: amount // The key is 'amount' for ActionSubmitAmount
-                }));
-                isAwaitingSubChoice = false;
-                validActions = [];
-            } else {
-                ui.term.writeln(`\nInvalid amount: ${input}`);
-                ui.promptForSubChoice(currentState.prompt, []);
-            }
-            return;
-        }
-
-        const choice = parseInt(command, 10);
-        if (validActions && choice > 0 && choice <= validActions.length) {
-            const selectedOption = validActions[choice - 1];
-            // For sub-choices, we send a simplified object back with the choice as 'id'
-            socket.send(JSON.stringify({
-                action_type: currentState.pending_ui_action.next_action, // Use next_action from state
-                player_id: 0,
-                legislation_id: selectedOption.id // The key is 'legislation_id' for ActionSubmitLegislationChoice
-            }));
-            isAwaitingSubChoice = false;
-            validActions = [];
-        } else {
-            ui.term.writeln(`\nInvalid choice: ${input}`);
-            ui.promptForSubChoice(currentState.prompt, validActions);
-        }
-        return;
-    }
-
-    const choice = parseInt(command, 10);
-    if (validActions && choice > 0 && choice <= validActions.length) {
-        const action = validActions[choice - 1];
+    const playersContainer = document.getElementById('players-container');
+    playersContainer.innerHTML = '';
+    state.players.forEach(player => {
+        const playerDiv = document.createElement('div');
+        playerDiv.className = `player-info ${player.id === state.current_player_index ? 'current-player' : ''}`;
         
-        // ALL actions are now sent as-is. The backend is fully state-driven.
-        socket.send(JSON.stringify(action));
-        validActions = []; // Clear actions after sending
+        let officeText = player.current_office ? player.current_office.title : "No Office";
+        let archetypeText = player.archetype ? player.archetype.title : 'No Archetype';
+        if (state.compromised_players && state.compromised_players.includes(player.id)) {
+            archetypeText = `🎭 ${archetypeText} (Revealed)`;
+        }
+
+        playerDiv.innerHTML = `
+            <div class="player-name">${player.name} ${player.id === state.current_player_index ? ' (Current)' : ''}</div>
+            <div class="player-details">
+                <span>Political Capital: ${player.pc}</span> | 
+                <span>Action Points: ${state.action_points[player.id]}</span> | 
+                <span>Favors: ${player.favors.length}</span> |
+                <span>Office: ${officeText}</span> |
+                <span>Archetype: ${archetypeText}</span>
+            </div>
+        `;
+        playersContainer.appendChild(playerDiv);
+    });
+
+    const gameInfoContainer = document.getElementById('game-info-container');
+    gameInfoContainer.innerHTML = `
+        <div>Round: ${state.round_marker}/4</div>
+        <div>Term: ${state.term_counter + 1}/3</div>
+        <div>Public Mood: ${state.public_mood}</div>
+        <div>Phase: ${state.current_phase}</div>
+    `;
+
+    const legislationContainer = document.getElementById('legislation-container');
+    legislationContainer.innerHTML = '<h3>Active Legislation</h3>';
+    if (state.term_legislation && state.term_legislation.length > 0) {
+        state.term_legislation.forEach(leg => {
+            const legDetails = state.legislation_options[leg.legislation_id];
+            const sponsor = state.players.find(p => p.id === leg.sponsor_id);
+            const legDiv = document.createElement('div');
+            legDiv.className = 'legislation-item';
+            legDiv.innerHTML = `
+                <strong>${legDetails.title}</strong> (Sponsored by ${sponsor ? sponsor.name : 'Unknown'})
+            `;
+            legislationContainer.appendChild(legDiv);
+        });
     } else {
-        ui.term.writeln(`\nInvalid choice: ${input}`);
-        ui.promptForAction(validActions);
+        legislationContainer.innerHTML += '<p>None this term.</p>';
     }
-};
 
-module.exports = { TerminalUI }; 
+    const logContainer = document.getElementById('log-container');
+    logContainer.innerHTML = '';
+    state.log.forEach(entry => {
+        const logElement = document.createElement('div');
+        logElement.className = 'log-entry';
+        logElement.textContent = entry;
+        logContainer.appendChild(logElement);
+    });
+    logContainer.scrollTop = logContainer.scrollHeight;
+
+    const humanPlayer = state.players.find(p => p.name === "Human");
+    const actionsContainer = document.getElementById('actions-container');
+    actionsContainer.innerHTML = '';
+
+    if (state.awaiting_acknowledgement) {
+        promptForAcknowledgement();
+    } else if (humanPlayer && state.current_player_index === humanPlayer.id) {
+        if (state.prompt) {
+            promptForSubChoice(state.prompt, state.options, state.expects_input);
+        } else {
+            if (state.valid_actions && state.valid_actions.length > 0) {
+                state.valid_actions.forEach(action => {
+                    const button = document.createElement('button');
+                    button.textContent = getActionDescription(action);
+                    button.onclick = () => sendAction(action);
+                    actionsContainer.appendChild(button);
+                });
+            }
+        }
+    } else {
+        actionsContainer.innerHTML = '<div class="prompt">Waiting for AI player...</div>';
+    }
+}
+
+
+function promptForSubChoice(promptText, options, expects_input) {
+    const actionsContainer = document.getElementById('actions-container');
+    actionsContainer.innerHTML = '';
+
+    const promptElement = document.createElement('div');
+    promptElement.className = 'prompt';
+    promptElement.textContent = promptText;
+    actionsContainer.appendChild(promptElement);
+
+    if (expects_input === 'amount') {
+        const input = document.createElement('input');
+        input.type = 'number';
+        input.className = 'input-field';
+        input.placeholder = 'Enter amount...';
+        
+        const submitButton = document.createElement('button');
+        submitButton.textContent = 'Submit';
+        submitButton.onclick = () => {
+            const amount = parseInt(input.value, 10);
+            if (!isNaN(amount) && amount > 0) {
+                sendAction({ choice: amount });
+            } else {
+                promptElement.textContent = "Please enter a valid positive number.";
+            }
+        };
+        
+        actionsContainer.appendChild(input);
+        actionsContainer.appendChild(submitButton);
+        input.focus();
+
+    } else if (options && options.length > 0) {
+        options.forEach(option => {
+            const button = document.createElement('button');
+            button.textContent = option.display_name;
+            button.onclick = () => sendAction({ choice: option.id });
+            actionsContainer.appendChild(button);
+        });
+    }
+}
+
+function promptForAcknowledgement() {
+    const actionsContainer = document.getElementById('actions-container');
+    actionsContainer.innerHTML = '';
+
+    const promptElement = document.createElement('div');
+    promptElement.className = 'prompt';
+    promptElement.textContent = "AI has taken its turn. Press Enter to continue...";
+    actionsContainer.appendChild(promptElement);
+
+    const ackButton = document.createElement('button');
+    ackButton.textContent = "Continue";
+    ackButton.onclick = () => sendAcknowledgement();
+    actionsContainer.appendChild(ackButton);
+    ackButton.focus();
+
+    const enterListener = (event) => {
+        if (event.key === 'Enter') {
+            document.removeEventListener('keydown', enterListener);
+            sendAcknowledgement();
+        }
+    };
+    document.addEventListener('keydown', enterListener);
+}
+
+function sendAction(action) {
+    if (ws && ws.readyState === WebSocket.OPEN) {
+        ws.send(JSON.stringify(action));
+    }
+}
+
+function sendAcknowledgement() {
+    sendAction({ action_type: "AcknowledgeAITurn" });
+}
+
+connect(); 

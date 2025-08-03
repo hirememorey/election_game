@@ -98,6 +98,14 @@ npm run build
 - **UI Improvements**: Better game state display and action prompts
 - **Bug Fixes**: Resolved issues with action processing and game state management
 
+## Architectural Overview
+
+This project follows a state-driven architecture to ensure stability and maintainability. The core components and their responsibilities are:
+
+- **`server.py` (The Conductor):** Manages the websocket connection and the overall game loop. It is responsible for the *pacing* of the game, receiving actions from the client, running AI turns one-by-one, and sending state updates back to the client. It ensures the "press enter to continue" flow by waiting for client acknowledgements.
+- **`game_session.py` (The Game Master):** A stateful "GM" that holds the canonical `GameState` object. It exposes simple, non-looping methods like `process_human_action()` and `process_ai_turn()` which the server uses to advance the game by one discrete step. It knows the status of the game but is not responsible for the loop itself.
+- **`engine/engine.py` (The Rulebook):** A pure, stateless set of functions that enforces the rules of the game. It takes a `GameState` and an `Action` and returns a *new* `GameState`. It has no knowledge of turns, rounds, or game flow.
+
 ## Contributing
 
 1. Fork the repository

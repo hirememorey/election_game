@@ -60,4 +60,19 @@ The new architecture will be guided by the following principles:
 
 *   A stable game that is no longer prone to cascading bugs.
 *   A codebase that is easier to understand, maintain, and extend.
-*   A clear separation of concerns that allows for independent development and testing of the game logic and the UI. 
+*   A clear separation of concerns that allows for independent development and testing of the game logic and the UI.
+
+## 6. Key Learnings & Refinements (As of 2025-08-03)
+
+The initial state-driven refactor was successful in creating a pure `GameEngine` and a state-holding `GameSession`. However, a critical refinement was necessary to achieve true stability, particularly regarding the game loop and turn pacing.
+
+**The Game Loop Belongs in the Network Layer:**
+
+-   **Initial Flaw:** The original implementation placed the game loop logic (i.e., the `while` loop that runs AI turns) inside the `GameSession`. This was a mistake because the `GameSession` has no knowledge of the client-server communication protocol. It could not properly "pause" to wait for client acknowledgement after an AI turn, leading to the AI playing out all its moves in a single, uncontrolled burst.
+-   **The Correct Architecture:** The game loop and all logic related to the *pacing* of the game must reside in the network layer (`server.py`). The `server` is the only component that can manage the asynchronous "send state, wait for response" nature of a websocket connection.
+-   **Refined Responsibilities:**
+    -   **`server.py`:** Owns the `while` loop that drives the game. It calls the `GameSession` to process one turn at a time, sends the new state to the client, and waits for an acknowledgement before processing the next AI turn.
+    -   **`game_session.py`:** Exposes simple, non-looping methods (`process_human_action`, `process_ai_turn`) that the server uses as building blocks. It is a stateful "Game Master," but it is not the "Conductor."
+    -   **`engine/engine.py`:** Remains a pure, stateless "Rulebook."
+
+This refinement ensures a clean separation of concerns, where game logic, state management, and network communication are handled by distinct, specialized components. 
