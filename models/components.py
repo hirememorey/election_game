@@ -94,7 +94,6 @@ class Player:
     current_office: Optional[Office] = None
     allies: List[AllianceCard] = field(default_factory=list)
     favors: List[PoliticalFavor] = field(default_factory=list)
-    is_incumbent: bool = False
     fundraiser_bonus_used: bool = False
 
     def to_dict(self) -> Dict[str, Any]:

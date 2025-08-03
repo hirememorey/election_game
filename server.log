@@ -1,0 +1,77 @@
+INFO:     Started server process [52679]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+INFO:     Uvicorn running on http://0.0.0.0:5001 (Press CTRL+C to quit)
+INFO:     127.0.0.1:63922 - "WebSocket /ws" [accepted]
+INFO:     connection open
+INFO:     127.0.0.1:63927 - "WebSocket /ws" [accepted]
+INFO:     connection open
+INFO:     127.0.0.1:63928 - "WebSocket /ws" [accepted]
+INFO:     connection open
+INFO:     127.0.0.1:63929 - "WebSocket /ws" [accepted]
+INFO:     connection open
+INFO:     127.0.0.1:63930 - "WebSocket /ws" [accepted]
+INFO:     connection open
+INFO:     127.0.0.1:63941 - "GET / HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63943 - "WebSocket /ws" [accepted]
+INFO:     connection open
+INFO:     connection closed
+INFO:     connection closed
+INFO:     connection closed
+INFO:     connection closed
+INFO:     connection closed
+INFO:     connection closed
+INFO:     127.0.0.1:64043 - "WebSocket /ws" [accepted]
+INFO:     connection open
+INFO:     127.0.0.1:64044 - "WebSocket /ws" [accepted]
+INFO:     connection open
+INFO:     127.0.0.1:64045 - "WebSocket /ws" [accepted]
+INFO:     127.0.0.1:64046 - "WebSocket /ws" [accepted]
+INFO:     connection open
+INFO:     connection open
+INFO:     127.0.0.1:64051 - "WebSocket /ws" [accepted]
+INFO:     connection open
+INFO:     127.0.0.1:64052 - "WebSocket /ws" [accepted]
+INFO:     connection open
+Client Address(host='127.0.0.1', port=63930) disconnected.
+WebSocket connection handler finished.
+Client Address(host='127.0.0.1', port=63927) disconnected.
+WebSocket connection handler finished.
+Client Address(host='127.0.0.1', port=63943) disconnected.
+WebSocket connection handler finished.
+Client Address(host='127.0.0.1', port=63929) disconnected.
+WebSocket connection handler finished.
+Client Address(host='127.0.0.1', port=63928) disconnected.
+WebSocket connection handler finished.
+Client Address(host='127.0.0.1', port=63922) disconnected.
+WebSocket connection handler finished.
+INFO:     127.0.0.1:64136 - "GET / HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64136 - "GET /static/dist/bundle.js HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64138 - "WebSocket /ws" [accepted]
+INFO:     connection open
+INFO:     127.0.0.1:64136 - "GET /favicon.ico HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:64136 - "GET / HTTP/1.1" 200 OK
+INFO:     connection closed
+Client Address(host='127.0.0.1', port=64043) disconnected.
+WebSocket connection handler finished.
+INFO:     127.0.0.1:64136 - "GET /static/dist/bundle.js HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64157 - "WebSocket /ws" [accepted]
+INFO:     connection open
+INFO:     127.0.0.1:64136 - "GET /favicon.ico HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:64136 - "GET / HTTP/1.1" 200 OK
+INFO:     connection closed
+INFO:     127.0.0.1:64174 - "WebSocket /ws" [accepted]
+INFO:     connection open
+Client Address(host='127.0.0.1', port=64157) disconnected.
+WebSocket connection handler finished.
+INFO:     127.0.0.1:64136 - "GET / HTTP/1.1" 200 OK
+INFO:     connection closed
+INFO:     127.0.0.1:64199 - "WebSocket /ws" [accepted]
+INFO:     connection open
+Client Address(host='127.0.0.1', port=64174) disconnected.
+WebSocket connection handler finished.
+INFO:     127.0.0.1:64222 - "GET / HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64222 - "GET /static/dist/bundle.js HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64223 - "WebSocket /ws" [accepted]
+INFO:     connection open
+INFO:     127.0.0.1:64222 - "GET /.well-known/appspecific/com.chrome.devtools.json HTTP/1.1" 404 Not Found

@@ -168,7 +168,8 @@ class ActionAcknowledgeResults(Action):
     player_id: int = -1  # System action, no specific player
 
 
+@dataclass
+@_register_action
 class AcknowledgeAITurn(Action):
     """A special action used by the human player to acknowledge the AI's turn."""
-    action_type: str = "AcknowledgeAITurn"
-    player_id: int
+    pass

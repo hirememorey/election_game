@@ -1,66 +1,5 @@
 # Developer Handoff
 
-**Date:** 2025-08-04
-**Author:** Assistant
-**Handover Context:** This document details the debugging process and resulting plan to fix a series of issues preventing a human player from completing a full game term.
-
-## 1. Summary of Issues
-
-The primary goal was to ensure a human player could play from one term to the next without bugs. The investigation revealed a chain of issues, starting from the backend and moving to the frontend. All shallow, critical bugs have now been resolved.
-
-- **`AttributeError` on Player Creation:** The server would crash immediately on websocket connection because of a conflict in the `Player` dataclass between a defined field and a `@property` for `is_incumbent`.
-- **Invalid `AcknowledgeAITurn` Action:** The server would crash when processing AI turns because the `AcknowledgeAITurn` action was not correctly registered as a dataclass, leading to deserialization errors.
-- **Frontend UI Mismatch:** The initial HTML file (`static/index.html`) was for a terminal-based UI and did not contain the DOM elements expected by the JavaScript (`static/app.js`), causing the UI to render blank.
-- **Missing Action Buttons:** Even with the correct UI, no action buttons were appearing for the human player.
-
-All of the above issues have been **FIXED**. The server now runs, the UI displays correctly, and the backend logic correctly identifies that it is the human's turn and sends the appropriate valid actions.
-
-## 2. Current Status & The "Last Mile" Problem
-
-The application is now in a stable, runnable state. However, the original bug persists: **the human player still cannot see their action buttons.**
-
-Our debugging has confirmed:
-- The backend `GameSession` correctly identifies that it is the human's turn.
-- The backend `GameEngine` correctly generates a list of valid actions.
-- The server correctly sends this list of actions to the frontend.
-
-This proves the final bug lies exclusively within the frontend JavaScript (`static/app.js`). The backend is working as intended.
-
-## 3. Plan of Attack: The "Reality-First" Approach
-
-The debugging process for this task has been a powerful lesson in avoiding premature complexity. The most valuable insights came not from architectural theories, but from simply running the application and observing the logs. The following plan is designed to solve the final bug efficiently, based on this "Reality-First" principle.
-
-### Step 1: Frontend Smoke Test (The Golden Rule) - **DONE**
-
-- **Action:** Run `./start_server.sh` and open the game in a browser.
-- **Observation:** The backend runs cleanly, but the UI is not displaying actions.
-- **Conclusion:** This confirms the bug is in the frontend rendering logic.
-
-### Step 2: Debug the Frontend Rendering - **NEXT STEP**
-
-This is the immediate next step for the developer picking up this work.
-
-- **Hypothesis:** The most likely cause is a logic error in `static/app.js` within the `renderState` function. The code that checks if it's the human's turn (`humanPlayer && state.current_player_index === humanPlayer.id`) seems correct based on our `debug_initial_state.py` script, but there may be a subtle issue (e.g., a type mismatch, a race condition where the `humanPlayer` is not yet defined, etc.).
-
-- **Action Plan:**
-    1.  **Add `console.log` statements** inside the `renderState` function in `static/app.js`.
-    2.  Specifically, log the values of `humanPlayer`, `state.current_player_index`, and the result of the `if` condition.
-    3.  Rebuild the frontend with `npm run build`.
-    4.  Restart the server and open the browser's developer console.
-    5.  Observe the logs to pinpoint exactly why the condition to render the action buttons is failing.
-
-### Step 3: Targeted Fix
-
-- **Action:** Based on the console output, implement the minimal required fix in `static/app.js`. Rebuild and test.
-
-### Step 4: Final Validation
-
-- **Action:** Once the action buttons appear, perform the full manual end-to-end test: play through an entire term, from Round 1 to the start of Term 2, ensuring all actions (sponsoring, supporting/opposing, resolving elections) work correctly.
-
-This methodical, reality-first approach avoids the pitfalls of premature abstraction and integration testing, and will lead directly to the source of the final bug.
-
----
-
 **Date:** 2025-08-03
 **Author:** Assistant
 
@@ -80,6 +19,58 @@ This development cycle successfully identified and fixed a critical, long-standi
 ### Current Status
 
 **All systems are go.** The application is stable, the game is fully playable, and the architecture is clean and maintainable. All known bugs have been resolved. The project is in an excellent state for future development.
+
+---
+
+**Date:** 2025-08-03 (Latest Update)
+**Author:** Assistant
+
+## Current Status: Frontend Interaction Issue
+
+The backend has been successfully stabilized and is working correctly. However, there's a remaining issue where the human player cannot interact with the game despite the backend logic being fully functional.
+
+### Issues Successfully Resolved ✅
+
+1. **Player Dataclass Conflict**: Fixed `is_incumbent` property conflict in `models/components.py` that was causing `AttributeError: can't set attribute`
+2. **Action Registration Issues**: Fixed missing `@_register_action` decorators on `AcknowledgeAITurn` and `ActionSupportLegislation` in `engine/actions.py`
+3. **Frontend DOM Elements**: Updated `static/index.html` to include all required elements (`players-container`, `game-info-container`, etc.)
+4. **Server Startup**: Server now starts cleanly without crashes
+
+### Current Issue 🔍
+
+**Problem**: The human player cannot interact with the game (no action buttons appear) despite the backend being fully functional.
+
+**Evidence**:
+- Backend debug shows: `Is human turn? True`, `Valid actions for human: 4`
+- Frontend receives state updates but no action buttons appear
+- Server logs are clean with no errors
+- WebSocket communication is working
+
+**Root Cause Hypothesis**: The issue is likely in the frontend JavaScript rendering, not the backend logic.
+
+### Debugging Insights
+
+The "Reality-First" approach proved invaluable:
+- Starting with `python3 server.py` immediately revealed the critical startup crash
+- Server logs provided the most valuable diagnostic information
+- Manual testing was more effective than complex integration tests
+
+**Common Failure Points Identified**:
+1. **Action Registration**: Missing `@_register_action` decorators cause "Unknown action type" errors
+2. **Dataclass Conflicts**: Property/field conflicts cause "can't set attribute" errors
+3. **DOM Element Mismatches**: Frontend expecting elements that don't exist in HTML
+4. **Bundle Issues**: Old JavaScript being cached by browser
+
+### Next Steps
+
+See `PLAN_OF_ATTACK.md` for a comprehensive plan to resolve the remaining frontend interaction issue. The plan focuses on systematic frontend debugging while leveraging the now-stable backend.
+
+**Key Files to Monitor**:
+- `static/app.js` - Frontend logic
+- `static/index.html` - DOM structure
+- `game_session.py` - Game flow management
+- `engine/actions.py` - Action definitions
+- `models/components.py` - Data models
 
 ---
 
