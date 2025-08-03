@@ -1,10 +1,30 @@
 # Developer Handoff
 
-**Date:** 2024-07-27 (Updated: 2025-07-28)
+**Date:** 2025-07-30
+**Author:** Assistant
 
-**Author:** Gemini (Updated by: Assistant)
+## Architectural Pivot: State-Driven Refactor
 
-## 1. Summary of Changes
+**This project is currently undergoing a significant architectural refactor.**
+
+The previous development cycle involved fixing a series of cascading bugs, which indicated a brittle underlying architecture. To address this, we have pivoted to a **state-driven design**. The primary goal is to create a stable, maintainable, and predictable game by ensuring the core game engine is a pure, stateless function.
+
+**The new source of truth for the project's architecture and execution plan is `STATE_DRIVEN_REFACTOR.md`.** All new development should adhere to the principles outlined in that document.
+
+### Current Status (As of 2025-07-30)
+
+*   The initial phase of the state-driven refactor is **complete**.
+*   The `GameEngine`'s `process_action` method has been refactored to be stateless (operating on a copy of the game state).
+*   A "golden path" test (`test_state_driven_flow.py`) has been created and is **passing**, validating the core stateless flow for a single action.
+*   The project is on the `feature/state-driven-refactor` branch.
+
+---
+
+## Historical Context (Pre-Refactor)
+
+*The following sections describe the state of the project before the architectural pivot. This information is preserved for historical context but should not guide future development.*
+
+### Summary of Changes (Pre-Refactor)
 
 The primary goal of this development cycle was to fix a series of critical bugs that left the game in an unplayable state after a major UI refactoring. The two-step action flow for legislation was not correctly implemented, leading to game state mismatches, action deserialization errors, and UI display bugs.
 

@@ -1,4 +1,8 @@
-# Election: The Game
+# ELECTION: The Game
+
+> **Note for Developers:** This project is currently undergoing a significant architectural refactor towards a state-driven design. Please read the [**`STATE_DRIVEN_REFACTOR.md`**](STATE_DRIVEN_REFACTOR.md) document before starting any new work to understand the new architectural principles and execution plan.
+
+## Overview
 
 A competitive political strategy game where players manage resources, sponsor and defeat legislation, form alliances, and compete for political office.
 

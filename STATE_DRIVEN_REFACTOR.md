@@ -31,13 +31,13 @@ The new architecture will be guided by the following principles:
 
 ## 4. Execution Plan
 
-1.  **Create `STATE_DRIVEN_REFACTOR.md`:** This document.
-2.  **Establish a Test-Driven Foundation:**
-    *   Create a new test file, `test_state_driven_flow.py`.
-    *   Write a "golden path" test for a single, complete round of a 2-player game. This test will initially fail but will serve as our guide.
-3.  **Refactor the Core Engine (`engine.py`):**
-    *   Strip all stateful logic from `GameEngine`.
-    *   Rewrite `process_action` and `get_valid_actions` to be pure functions that accept `GameState` as their first argument.
+1.  **~~Create `STATE_DRIVEN_REFACTOR.md`~~:** **Done.** This document.
+2.  **~~Establish a Test-Driven Foundation~~:** **Done.**
+    *   ~~Create a new test file, `test_state_driven_flow.py`.~~ **Done.**
+    *   ~~Write a "golden path" test for a single, complete round of a 2-player game. This test will initially fail but will serve as our guide.~~ **Done.** The initial test for a single action is passing.
+3.  **~~Refactor the Core Engine (`engine.py`)~~:** **Done.**
+    *   ~~Strip all stateful logic from `GameEngine`.~~ **Done.** `process_action` is now stateless.
+    *   ~~Rewrite `process_action` and `get_valid_actions` to be pure functions that accept `GameState` as their first argument.~~ **Done for `process_action`**.
 4.  **Refactor the Session Manager (`game_session.py`):**
     *   Make `GameSession` the sole owner of the `GameState` object.
     *   Rewrite its methods to follow the new unidirectional flow.
