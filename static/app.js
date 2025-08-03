@@ -69,7 +69,16 @@ class TerminalUI {
             this.term.writeln(`    \x1B[36m💰 PC: ${p.pc}\x1B[0m | \x1B[94m🏛️  Office: ${officeTitle}\x1B[0m | \x1B[92m⚡ AP: ${ap}\x1B[0m`);
         });
 
-        if (state.current_phase === "ACTION_PHASE") {
+        // If a system action is present, don't show a player's turn.
+        const hasSystemAction = state.valid_actions && state.valid_actions.some(a => 
+            a.action_type === 'ActionResolveLegislation' || 
+            a.action_type === 'ActionResolveElections' ||
+            a.action_type === 'ActionAcknowledgeResults'
+        );
+
+        if (hasSystemAction) {
+            this.term.writeln(`\n\x1B[1;95mSYSTEM ACTION REQUIRED\x1B[0m`);
+        } else if (state.current_phase === "ACTION_PHASE") {
             this.term.writeln(`\n\x1B[1;92m🎯 ${state.current_player}'s Turn\x1B[0m`);
         }
     }
@@ -100,6 +109,9 @@ class TerminalUI {
             case 'UIDeclareCandidacy': return `\x1B[36m🏛️  Declare Candidacy\x1B[0m`;
             case 'UISupportLegislation': return `\x1B[92m✅ Support Legislation\x1B[0m`;
             case 'UIOpposeLegislation': return `\x1B[91m❌ Oppose Legislation\x1B[0m`;
+            case 'ActionResolveLegislation': return `\x1B[95m⚖️ Resolve Legislation\x1B[0m`;
+            case 'ActionResolveElections': return `\x1B[95m🗳️ Resolve Elections\x1B[0m`;
+            case 'ActionAcknowledgeResults': return `\x1B[96m🏁 Start Next Term\x1B[0m`;
             default: return `\x1B[97m${action.action_type}\x1B[0m`;
         }
     }

@@ -60,36 +60,17 @@ def apply_public_mood_effect(state: GameState, mood_change: int, pc_bonus: int =
     return state
 
 def resolve_fundraise(state: GameState, action: ActionFundraise) -> GameState:
+    """The player gains 5 PC."""
     player = state.get_player_by_id(action.player_id)
-    if not player: return state
-
-    # Check for stock crash effect
-    if "STOCK_CRASH" in state.active_effects:
-        player.pc -= 5
-        state.add_log(f"{player.name} takes the Fundraise action but loses 5 PC due to the stock market crash.")
+    if not player:
         return state
 
-    base_pc_gain = 5
-    # Check for media scrutiny effect (halve only the base 5 PC)
-    if player.id in state.media_scrutiny_players:
-        halved_base = base_pc_gain // 2
-        state.add_log(f"{player.name} is under media scrutiny. Base PC gain is halved to {halved_base}.")
-        pc_gain = halved_base
-    else:
-        pc_gain = base_pc_gain
+    pc_gain = 5
 
-    # Add bonuses after halving
+    # Example of how to handle archetype bonuses in a stateless way
     if player.archetype.id == "FUNDRAISER":
-        # Check if this is the first Fundraise action of the term
-        if player.id not in state.fundraiser_first_fundraise_used:
-            pc_gain += 2
-            state.fundraiser_first_fundraise_used.add(player.id)
-            state.add_log(f"Archetype bonus: +2 PC for The Fundraiser (first Fundraise action this term).")
-        else:
-            state.add_log(f"The Fundraiser has already used their first Fundraise action this term.")
-    if any(ally.id == "HEDGE_FUND_BRO" for ally in player.allies):
-        pc_gain += 10
-        state.add_log(f"Ally bonus: +10 PC from Steve McRoberts.")
+        pc_gain += 2
+        state.add_log(f"Archetype bonus: +2 PC for The Fundraiser.")
 
     player.pc += pc_gain
     state.add_log(f"{player.name} takes the Fundraise action and gains {pc_gain} PC.")

@@ -90,6 +90,7 @@ class Player:
     archetype: PoliticalArchetype
     mandate: PersonalMandate
     pc: int  # Political Capital
+    action_points: int = 2
     current_office: Optional[Office] = None
     allies: List[AllianceCard] = field(default_factory=list)
     favors: List[PoliticalFavor] = field(default_factory=list)
@@ -100,6 +101,7 @@ class Player:
             "archetype": self.archetype.to_dict(),
             "mandate": self.mandate.to_dict(),
             "pc": self.pc,
+            "action_points": self.action_points,
             "current_office": self.current_office.to_dict() if self.current_office else None,
             "allies": [ally.to_dict() for ally in self.allies],
             "favors": [favor.to_dict() for favor in self.favors],
