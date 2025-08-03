@@ -77,6 +77,37 @@ def resolve_initiate_oppose_legislation(state: GameState, action: Action) -> Gam
     }
     return state
 
+def resolve_initiate_sponsor_legislation(state: GameState, action: Action) -> GameState:
+    """Sets up the game state to ask the player which legislation to sponsor."""
+    player = state.get_player_by_id(action.player_id)
+    if not player:
+        return state
+
+    options = []
+    for leg_id, leg_details in state.legislation_options.items():
+        is_already_sponsored = any(l.legislation_id == leg_id for l in state.term_legislation)
+        if player.pc >= leg_details.cost and not is_already_sponsored:
+            options.append({
+                "id": leg_id,
+                "display_name": f"{leg_details.title} (Cost: {leg_details.cost} PC)",
+                "cost": leg_details.cost
+            })
+
+    if not options:
+        state.add_log("There are no bills you can afford to sponsor right now.")
+        return state
+
+    state.pending_ui_action = {
+        "original_action_type": "ActionInitiateSponsorLegislation",
+        "action_type": "ActionInitiateSponsorLegislation",
+        "player_id": action.player_id,
+        "prompt": "Which bill would you like to sponsor?",
+        "options": options,
+        "next_action": "ActionSubmitLegislationChoice",
+    }
+    return state
+
+
 def resolve_submit_legislation_choice(state: GameState, action: ActionSubmitLegislationChoice) -> GameState:
     """Updates the pending action state with the chosen legislation and asks for an amount."""
     player = state.get_player_by_id(action.player_id)
@@ -90,6 +121,23 @@ def resolve_submit_legislation_choice(state: GameState, action: ActionSubmitLegi
         prompt = f"How much Political Capital (PC) will you secretly commit to support the {action.choice}? (1-{player.pc})"
     elif original_action_type == "ActionInitiateOpposeLegislation":
         prompt = f"How much Political Capital (PC) will you secretly commit to oppose the {action.choice}? (1-{player.pc})"
+    elif original_action_type == "ActionInitiateSponsorLegislation":
+        # No amount needed for sponsoring, create the concrete action immediately
+        
+        # Find the cost from the original options
+        chosen_option = next((opt for opt in state.pending_ui_action['options'] if opt['id'] == action.choice), None)
+        if not chosen_option:
+            state.add_log("Invalid legislation choice.")
+            state.pending_ui_action = None
+            return state
+
+        concrete_action = ActionSponsorLegislation(
+            player_id=action.player_id,
+            legislation_id=action.choice
+        )
+        state.pending_ui_action = None
+        state.next_action_to_process = concrete_action
+        return state
     else:
         # Fallback or error
         prompt = f"How much PC will you commit? (1-{player.pc})"
@@ -144,6 +192,66 @@ def resolve_submit_amount(state: GameState, action: ActionSubmitAmount) -> GameS
     state.pending_ui_action = None
     state.next_action_to_process = concrete_action
         
+    return state
+
+def resolve_initiate_declare_candidacy(state: GameState, action: Action) -> GameState:
+    """Sets up the game state to ask the player which office to run for."""
+    player = state.get_player_by_id(action.player_id)
+    if not player:
+        return state
+
+    options = []
+    for office_id, office_details in state.offices.items():
+        if player.pc >= office_details.candidacy_cost:
+            options.append({
+                "id": office_id,
+                "display_name": f"{office_details.title} (Cost: {office_details.candidacy_cost} PC)",
+                "cost": office_details.candidacy_cost
+            })
+
+    if not options:
+        state.add_log("You cannot afford to run for any office right now.")
+        return state
+
+    state.pending_ui_action = {
+        "original_action_type": "ActionInitiateDeclareCandidacy",
+        "action_type": "ActionInitiateDeclareCandidacy",
+        "player_id": action.player_id,
+        "prompt": "Which office would you like to run for?",
+        "options": options,
+        "next_action": "ActionSubmitOfficeChoice",
+    }
+    return state
+
+def resolve_submit_office_choice(state: GameState, action: 'ActionSubmitOfficeChoice') -> GameState:
+    """Finalizes the declare candidacy UI action, creates a concrete action, and clears the pending state."""
+    player = state.get_player_by_id(action.player_id)
+    if not player or not state.pending_ui_action:
+        return state
+
+    office_id = action.choice
+    committed_pc = action.committed_pc
+    
+    office = state.offices.get(office_id)
+    if not office:
+        state.add_log("Invalid office choice.")
+        state.pending_ui_action = None
+        return state
+
+    if player.pc < office.candidacy_cost + committed_pc:
+        state.add_log("You cannot afford the cost to run for this office with the committed PC.")
+        # We could also re-prompt here, but for now, we'll just cancel.
+        state.pending_ui_action = None
+        return state
+
+    concrete_action = ActionDeclareCandidacy(
+        player_id=action.player_id,
+        office_id=office_id,
+        committed_pc=committed_pc
+    )
+
+    state.pending_ui_action = None
+    state.next_action_to_process = concrete_action
     return state
 
 
@@ -395,7 +503,7 @@ def resolve_sponsor_legislation(state: GameState, action: ActionSponsorLegislati
         return state
     
     player.pc -= bill.cost
-    state.action_points[player.id] -= 1 # Deduct the AP cost for the action
+    state.action_points[player.id] -= 2 # Deduct the AP cost for the action
     state.add_log(f"{player.name} sponsors the {bill.title} for {bill.cost} PC.")
     state.add_log(f"This legislation will be voted on during the end-of-term legislation session.")
     
@@ -519,7 +627,7 @@ def resolve_declare_candidacy(state: GameState, action: ActionDeclareCandidacy) 
         return state
     
     # Deduct AP cost
-    state.action_points[player.id] -= 1
+    state.action_points[player.id] -= 2
 
     player.pc -= (cost + action.committed_pc)
     candidacy = Candidacy(player_id=player.id, office_id=action.office_id, committed_pc=action.committed_pc)
@@ -825,6 +933,178 @@ def _award_office(state: GameState, winner: Player, new_office: Office):
         winner.pc += 20
         state.add_log(f"{winner.name} gains an additional 20 PC from the Supreme Court vacancy legacy effect!")
         state.active_effects.remove("SUPREME_COURT_VACANCY")
+
+def _event_economic_boom(state: GameState) -> GameState:
+    """Move Public Mood +2 spaces. All players gain 5 PC."""
+    state = apply_public_mood_effect(state, 2)
+    for player in state.players:
+        player.pc += 5
+    state.add_log("The economy is booming! Public mood improves and all players gain 5 PC.")
+    return state
+
+def _event_recession_hits(state: GameState) -> GameState:
+    """Move Public Mood -2 spaces. All players lose 5 PC."""
+    state = apply_public_mood_effect(state, -2)
+    for player in state.players:
+        player.pc -= 5
+    state.add_log("A recession hits! Public mood worsens and all players lose 5 PC.")
+    return state
+
+def _event_scandal(state: GameState) -> GameState:
+    """The player with the most PC loses 15 PC and must immediately draw one card from the Scrutiny Deck."""
+    richest_player = max(state.players, key=lambda p: p.pc)
+    richest_player.pc -= 15
+    # This part would need a way to draw and resolve a scrutiny card.
+    # For now, we'll just log it.
+    state.add_log(f"Scandal! {richest_player.name} is caught in a scandal, losing 15 PC.")
+    return state
+
+def _event_unexpected_surplus(state: GameState) -> GameState:
+    """Move Public Mood +1. All office-holders collect double their income this Upkeep phase."""
+    state = apply_public_mood_effect(state, 1)
+    state.active_effects.add("UNEXPECTED_SURPLUS")
+    state.add_log("An unexpected surplus improves public mood. Office holders will receive double income this term.")
+    return state
+
+def _event_last_bill_dud(state: GameState) -> GameState:
+    """The last player to successfully sponsor legislation loses 10 PC. Move Public Mood -1."""
+    if state.last_sponsor_result and state.last_sponsor_result['passed']:
+        sponsor = state.get_player_by_id(state.last_sponsor_result['player_id'])
+        if sponsor:
+            sponsor.pc -= 10
+            state.add_log(f"The last bill was a dud! {sponsor.name} loses 10 PC.")
+    state = apply_public_mood_effect(state, -1)
+    return state
+    
+def _event_foreign_policy_crisis(state: GameState) -> GameState:
+    """A random player rolls a d6: 1-3: Lose 10 PC. 4-6: Gain 10 PC."""
+    player = random.choice(state.players)
+    if random.randint(1, 6) <= 3:
+        player.pc -= 10
+        state.add_log(f"A foreign policy crisis erupts! {player.name} handles it poorly, losing 10 PC.")
+    else:
+        player.pc += 10
+        state.add_log(f"A foreign policy crisis is resolved successfully! {player.name} gains 10 PC.")
+    return state
+
+def _event_supreme_court_vacancy(state: GameState) -> GameState:
+    """Legacy Effect. The winner of the next Presidential election gains an additional 20 PC upon victory."""
+    state.active_effects.add("SUPREME_COURT_VACANCY")
+    state.add_log("A Supreme Court vacancy has occurred. The next President will have a lasting legacy.")
+    return state
+
+def _event_last_bill_hit(state: GameState) -> GameState:
+    """The last player to successfully sponsor legislation gains 10 PC. Move Public Mood +1."""
+    if state.last_sponsor_result and state.last_sponsor_result['passed']:
+        sponsor = state.get_player_by_id(state.last_sponsor_result['player_id'])
+        if sponsor:
+            sponsor.pc += 10
+            state.add_log(f"The last bill was a hit! {sponsor.name} gains 10 PC.")
+    state = apply_public_mood_effect(state, 1)
+    return state
+
+def _event_bipartisan_breakthrough(state: GameState) -> GameState:
+    """All players in Congress or Senate may immediately pay 5 PC to gain 10 PC."""
+    state.add_log("A bipartisan breakthrough! Some office holders can make a deal.")
+    # This would require a sub-prompt, which is not supported in the current event system.
+    # For now, we'll just log it.
+    return state
+
+def _event_war_breaks_out(state: GameState) -> GameState:
+    """Public Mood is locked at its current position for the rest of the Term. All legislation requires 2 additional PC to pass until the Term ends."""
+    state.active_effects.add("WAR_BREAKS_OUT")
+    state.add_log("War has broken out! Public mood is frozen, and legislation is harder to pass.")
+    return state
+
+def _event_tech_leap(state: GameState) -> GameState:
+    """Move Public Mood +1. The player with the least PC gains 10 PC."""
+    state = apply_public_mood_effect(state, 1)
+    poorest_player = min(state.players, key=lambda p: p.pc)
+    poorest_player.pc += 10
+    state.add_log(f"A technological leap improves public mood and helps {poorest_player.name} with a 10 PC grant.")
+    return state
+
+def _event_natural_disaster(state: GameState) -> GameState:
+    """Move Public Mood -1. A random Governor (or a random player if no Governors) must respond, losing 10 PC."""
+    state = apply_public_mood_effect(state, -1)
+    governors = [p for p in state.players if p.current_office and p.current_office.id == "GOVERNOR"]
+    if governors:
+        victim = random.choice(governors)
+    else:
+        victim = random.choice(state.players)
+    victim.pc -= 10
+    state.add_log(f"A natural disaster strikes! {victim.name} must respond, losing 10 PC.")
+    return state
+    
+def _event_media_darling(state: GameState) -> GameState:
+    """Choose one player. They gain 5 PC and are immune to the next 'Scandal!' event."""
+    # This requires a choice, not supported yet. For now, affects a random player.
+    darling = random.choice(state.players)
+    darling.pc += 5
+    state.active_effects.add(f"MEDIA_DARLING_{darling.id}")
+    state.add_log(f"{darling.name} has become a media darling, gaining 5 PC and scandal immunity.")
+    return state
+
+def _event_gaffe(state: GameState) -> GameState:
+    """Choose an opponent. They lose 8 PC."""
+    # This requires a choice, not supported yet. For now, affects a random opponent.
+    player = state.get_current_player()
+    opponents = [p for p in state.players if p.id != player.id]
+    if opponents:
+        victim = random.choice(opponents)
+        victim.pc -= 8
+        state.add_log(f"{victim.name} makes a gaffe on the campaign trail, losing 8 PC.")
+    return state
+
+def _event_endorsement(state: GameState) -> GameState:
+    """You (the player who drew this card) gain 10 PC."""
+    player = state.get_current_player()
+    player.pc += 10
+    state.add_log(f"{player.name} receives a surprise endorsement, gaining 10 PC.")
+    return state
+
+def _event_grassroots(state: GameState) -> GameState:
+    """The player with the fewest held offices (0 is fewest) gains 10 PC."""
+    min_offices = min(len(p.allies) + (1 if p.current_office else 0) for p in state.players)
+    beneficiaries = [p for p in state.players if len(p.allies) + (1 if p.current_office else 0) == min_offices]
+    if beneficiaries:
+        # If there's a tie, they all benefit
+        for player in beneficiaries:
+            player.pc += 10
+            state.add_log(f"A grassroots movement supports {player.name}, who gains 10 PC.")
+    return state
+
+def _event_voter_apathy(state: GameState) -> GameState:
+    """Public Mood moves 1 space towards 'Neutral'."""
+    if state.public_mood > 0:
+        state = apply_public_mood_effect(state, -1)
+    elif state.public_mood < 0:
+        state = apply_public_mood_effect(state, 1)
+    state.add_log("Voter apathy is high. Public mood returns towards neutral.")
+    return state
+
+def _event_midterm_fury(state: GameState) -> GameState:
+    """Timing. Draw only in Round 2 or 3 of a Term. Public Mood moves 2 spaces towards 'Very Angry'."""
+    if state.round_marker in [2, 3]:
+        state = apply_public_mood_effect(state, -2)
+        state.add_log("Midterm fury erupts! Public mood plummets.")
+    else:
+        state.add_log("Midterm fury fizzles out due to timing.")
+    return state
+
+def _event_stock_crash(state: GameState) -> GameState:
+    """Move Public Mood -3 spaces. Any player who chose to 'Fundraise' this round loses 5 PC instead of gaining it."""
+    state = apply_public_mood_effect(state, -3)
+    state.active_effects.add("STOCK_CRASH")
+    state.add_log("The stock market crashes! Public mood plummets, and fundraising is impacted.")
+    return state
+
+def _event_celeb_politician(state: GameState) -> GameState:
+    """The player with the lowest PC gains 15 PC."""
+    poorest_player = min(state.players, key=lambda p: p.pc)
+    poorest_player.pc += 15
+    state.add_log(f"A celebrity politician enters the race, boosting the underdog {poorest_player.name} with 15 PC.")
+    return state
 
 def resolve_event_card(state: GameState) -> GameState:
     event = state.event_deck.draw()

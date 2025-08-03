@@ -12,9 +12,10 @@ from engine.actions import (
     ActionUseFavor, ActionSupportLegislation, ActionOpposeLegislation, ActionPassTurn, 
     ActionResolveLegislation, ActionResolveElections, ActionAcknowledgeResults,
     ActionInitiateSupportLegislation, ActionSubmitLegislationChoice, ActionSubmitAmount,
+    ActionInitiateSponsorLegislation, ActionInitiateOpposeLegislation,
+    ActionInitiateDeclareCandidacy, ActionSubmitOfficeChoice,
     ACTION_CLASSES
 )
-from engine.ui_actions import UISponsorLegislation, UIOpposeLegislation, UIDeclareCandidacy
 
 class GameEngine:
     """The central rule enforcement and state-management authority for the game."""
@@ -29,8 +30,8 @@ class GameEngine:
         self.action_point_costs = {
             "ActionFundraise": 1,
             "ActionNetwork": 1,
-            "ActionSponsorLegislation": 1, # Corrected from 2
-            "ActionDeclareCandidacy": 1, # Corrected from 2
+            "ActionSponsorLegislation": 2,
+            "ActionDeclareCandidacy": 2,
             "ActionUseFavor": 1,
             "ActionSupportLegislation": 1,
             "ActionOpposeLegislation": 1,
@@ -51,7 +52,10 @@ class GameEngine:
             "ActionAcknowledgeResults": resolvers.resolve_acknowledge_results,
             "ActionInitiateSupportLegislation": resolvers.resolve_initiate_support_legislation,
             "ActionInitiateOpposeLegislation": resolvers.resolve_initiate_oppose_legislation,
+            "ActionInitiateSponsorLegislation": resolvers.resolve_initiate_sponsor_legislation,
+            "ActionInitiateDeclareCandidacy": resolvers.resolve_initiate_declare_candidacy,
             "ActionSubmitLegislationChoice": resolvers.resolve_submit_legislation_choice,
+            "ActionSubmitOfficeChoice": resolvers.resolve_submit_office_choice,
             "ActionSubmitAmount": resolvers.resolve_submit_amount,
             # Trading actions removed
         }
@@ -338,7 +342,7 @@ class GameEngine:
                 # Human gets a UI action
                 can_sponsor_any = any(player.pc >= leg.cost and leg_id not in [l.legislation_id for l in state.term_legislation] for leg_id, leg in state.legislation_options.items())
                 if can_sponsor_any:
-                    valid_actions.append(UISponsorLegislation(player_id=player_id))
+                    valid_actions.append(ActionInitiateSponsorLegislation(player_id=player_id))
 
         # Declare Candidacy (2 AP, only in round 4)
         if state.round_marker == 4 and can_afford_action("ActionDeclareCandidacy"):
@@ -361,7 +365,7 @@ class GameEngine:
                 # For humans, just show one UI action if they can afford any office
                 can_run_for_any_office = any(player.pc >= office.candidacy_cost for office in state.offices.values())
                 if can_run_for_any_office:
-                    valid_actions.append(UIDeclareCandidacy(player_id=player_id))
+                    valid_actions.append(ActionInitiateDeclareCandidacy(player_id=player_id))
 
         # Use Favor (1 AP, if player has favors)
         if player.favors and can_afford_action("ActionUseFavor"):

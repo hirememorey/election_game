@@ -11,7 +11,6 @@ from engine.engine import GameEngine
 from engine.actions import ActionSponsorLegislation, ActionSupportLegislation, ActionOpposeLegislation
 from models.game_state import GameState
 import game_data
-from engine.ui_actions import UISupportLegislation, UIOpposeLegislation
 
 def test_secret_commitment_system():
     """Test the Secret Commitment System implementation."""

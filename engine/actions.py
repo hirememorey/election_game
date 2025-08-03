@@ -86,6 +86,25 @@ class ActionInitiateOpposeLegislation(Action):
 
 @dataclass
 @_register_action
+class ActionInitiateSponsorLegislation(Action):
+    """UI action to start the process of sponsoring legislation."""
+    pass
+
+@dataclass
+@_register_action
+class ActionInitiateDeclareCandidacy(Action):
+    """UI action to start the process of declaring candidacy."""
+    pass
+
+@dataclass
+@_register_action
+class ActionSubmitOfficeChoice(Action):
+    """UI action to submit the choice of which office to run for."""
+    choice: str
+    committed_pc: int
+
+@dataclass
+@_register_action
 class ActionSubmitLegislationChoice(Action):
     """UI action to submit the choice of which legislation to influence."""
     choice: str
