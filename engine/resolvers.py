@@ -173,6 +173,7 @@ def resolve_submit_amount(state: GameState, action: ActionSubmitAmount) -> GameS
 
     # Create the concrete action based on the original context.
     legislation_id = pending_action_data.get("selected_legislation")
+    office_id = pending_action_data.get("selected_office")
     original_action_type = pending_action_data.get("original_action_type")
 
     concrete_action = None
@@ -187,6 +188,15 @@ def resolve_submit_amount(state: GameState, action: ActionSubmitAmount) -> GameS
             player_id=action.player_id,
             legislation_id=legislation_id,
             oppose_amount=amount
+        )
+    elif original_action_type == "ActionInitiateDeclareCandidacy":
+        # For declare candidacy, the amount is additional commitment beyond base cost
+        base_cost = pending_action_data.get("base_cost", 0)
+        total_committed = base_cost + amount
+        concrete_action = ActionDeclareCandidacy(
+            player_id=action.player_id,
+            office_id=office_id,
+            committed_pc=total_committed
         )
 
     # Clear the pending UI action and set the next concrete action to be processed.
@@ -225,36 +235,41 @@ def resolve_initiate_declare_candidacy(state: GameState, action: Action) -> Game
     return state
 
 def resolve_submit_office_choice(state: GameState, action: 'ActionSubmitOfficeChoice') -> GameState:
-    """Finalizes the declare candidacy UI action, creates a concrete action, and clears the pending state."""
+    """Updates the pending action state with the chosen office and asks for additional commitment amount."""
     player = state.get_player_by_id(action.player_id)
     if not player or not state.pending_ui_action:
         return state
 
     office_id = action.choice
-    committed_pc = action.committed_pc
-    
     office = state.offices.get(office_id)
     if not office:
         state.add_log("Invalid office choice.")
         state.pending_ui_action = None
         return state
 
-    # The committed_pc is already part of the cost, so we only need to pay the remaining amount
-    remaining_cost = office.candidacy_cost - committed_pc
-    if player.pc < remaining_cost:
-        state.add_log("You cannot afford the cost to run for this office with the committed PC.")
-        # We could also re-prompt here, but for now, we'll just cancel.
+    # Calculate how much additional PC the player can commit beyond the base cost
+    base_cost = office.candidacy_cost
+    max_additional = player.pc - base_cost  # How much extra they can commit
+    
+    if max_additional < 0:
+        state.add_log("You cannot afford the base cost to run for this office.")
         state.pending_ui_action = None
         return state
 
-    concrete_action = ActionDeclareCandidacy(
-        player_id=action.player_id,
-        office_id=office_id,
-        committed_pc=committed_pc
-    )
-
-    state.pending_ui_action = None
-    state.next_action_to_process = concrete_action
+    # Update the pending action to ask for additional commitment amount
+    state.pending_ui_action.update({
+        "action_type": "ActionSubmitOfficeChoice",  # Mark that we've processed this step
+        "selected_office": office_id,
+        "prompt": f"How much additional Political Capital (PC) will you commit to your campaign for {office.title}? (0-{max_additional})",
+        "options": [],  # No more choices, expecting free-form input
+        "next_action": "ActionSubmitAmount",
+        "expects_input": "amount",  # This tells the frontend to show an amount input
+        "min_amount": 0,
+        "max_amount": max_additional,
+        "base_cost": base_cost,
+        # Preserve the original action type for the final step
+        "original_action_type": "ActionInitiateDeclareCandidacy"
+    })
     return state
 
 

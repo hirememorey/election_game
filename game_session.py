@@ -191,23 +191,12 @@ class GameSession:
                             # For choice-based actions (like legislation selection), use the choice parameter
                             print(f"Creating choice action: {next_action_type} with choice {action_data['choice']}")
                             
-                            # Special handling for ActionSubmitOfficeChoice which needs committed_pc
+                            # Special handling for ActionSubmitOfficeChoice - no longer needs committed_pc
                             if next_action_type == 'ActionSubmitOfficeChoice':
-                                # Get the office cost from the selected option
-                                selected_office_id = action_data['choice']
-                                office_cost = 0
-                                
-                                # Find the selected office in the options to get its cost
-                                for option in pending_action_info.get('options', []):
-                                    if option.get('id') == selected_office_id:
-                                        office_cost = option.get('cost', 0)
-                                        break
-                                
-                                print(f"Creating ActionSubmitOfficeChoice with committed_pc={office_cost}")
+                                print(f"Creating ActionSubmitOfficeChoice with choice {action_data['choice']}")
                                 action_to_execute = action_class(
                                     player_id=self.human_player_id, 
-                                    choice=action_data['choice'],
-                                    committed_pc=office_cost
+                                    choice=action_data['choice']
                                 )
                             else:
                                 action_to_execute = action_class(player_id=self.human_player_id, choice=action_data['choice'])

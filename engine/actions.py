@@ -101,7 +101,6 @@ class ActionInitiateDeclareCandidacy(Action):
 class ActionSubmitOfficeChoice(Action):
     """UI action to submit the choice of which office to run for."""
     choice: str
-    committed_pc: int
 
 @dataclass
 @_register_action
