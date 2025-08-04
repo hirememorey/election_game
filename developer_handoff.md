@@ -192,6 +192,11 @@ Instead of major refactoring, focus on specific bugs:
 **Solution**: Fixed calculation to `remaining_cost = cost - committed_pc`
 **Impact**: Players can now afford offices they should be able to afford
 
+### **Personal Mandate Display Feature**
+**Problem**: Players had no way to see their hidden Personal Mandate during gameplay
+**Solution**: Added mandate display section with toggle functionality
+**Impact**: Players can now understand their secret victory conditions and make strategic decisions
+
 ## **🚀 What a New Developer Should Do First**
 
 1. **Read the debug output carefully** - it contains the answers
@@ -199,5 +204,27 @@ Instead of major refactoring, focus on specific bugs:
 3. **Check server version** - always restart after code changes
 4. **Assume simple explanations** - start with the obvious before diving deep
 5. **Trust the existing architecture** - fix specific bugs, don't rewrite working code
+
+## **🔧 Build System Insights from Mandate Implementation**
+
+### **Understanding the Build Pipeline**
+**What I learned**: The frontend uses Webpack to compile `app.js` into `bundle.js`
+**Critical insight**: Changes to `app.js` require `npm run build` to take effect
+**Lesson**: Always understand the build system before making frontend changes
+
+### **Incremental Development Strategy**
+**What worked**: Start with simple HTML structure, then add JavaScript functionality
+**Process**: HTML → CSS → JavaScript → Test → Rebuild → Verify
+**Benefit**: Each step can be tested independently
+
+### **Data Flow Validation**
+**What I verified**: Mandate data was already being sent via WebSocket
+**Approach**: Check backend data structure first, then add frontend display
+**Result**: Minimal backend changes needed, focus on frontend presentation
+
+### **Testing Strategy**
+**What I implemented**: Create targeted test scripts to verify each component
+**Method**: Test HTML structure → Test WebSocket data → Test JavaScript functionality
+**Outcome**: Confident that the feature works end-to-end
 
 The key insight is that this project is much closer to working than it appears. The problems are simple infrastructure issues, not complex architectural flaws. A new developer should focus on the missing pieces rather than rewriting the working parts. 

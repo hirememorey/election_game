@@ -98,6 +98,26 @@ function renderState(state) {
         playersContainer.appendChild(playerDiv);
     });
 
+    console.log("🎯 Rendering mandate...");
+    const mandateContainer = document.getElementById('mandate-container');
+    console.log("📦 Mandate container found:", !!mandateContainer);
+    if (mandateContainer) {
+        // Find the human player's mandate
+        const humanPlayer = state.players.find(p => p.name === "Human");
+        if (humanPlayer && humanPlayer.mandate) {
+            console.log("📋 Human player mandate found:", humanPlayer.mandate);
+            mandateContainer.innerHTML = `
+                <div class="mandate-card">
+                    <div class="mandate-title">${humanPlayer.mandate.title}</div>
+                    <div class="mandate-description">${humanPlayer.mandate.description}</div>
+                </div>
+            `;
+        } else {
+            console.log("❌ No mandate found for human player");
+            mandateContainer.innerHTML = '<p>No mandate assigned.</p>';
+        }
+    }
+
     console.log("🎮 Rendering game info...");
     const gameInfoContainer = document.getElementById('game-info-container');
     console.log("📦 Game info container found:", !!gameInfoContainer);
@@ -280,4 +300,23 @@ function sendAcknowledgement() {
     sendAction({ action_type: "AcknowledgeAITurn" });
 }
 
-connect(); 
+// Add mandate toggle functionality
+function setupMandateToggle() {
+    const toggleButton = document.getElementById('mandate-toggle');
+    const mandateContainer = document.getElementById('mandate-container');
+    
+    if (toggleButton && mandateContainer) {
+        toggleButton.addEventListener('click', () => {
+            if (mandateContainer.classList.contains('mandate-hidden')) {
+                mandateContainer.classList.remove('mandate-hidden');
+                toggleButton.textContent = 'Hide Mandate';
+            } else {
+                mandateContainer.classList.add('mandate-hidden');
+                toggleButton.textContent = 'Show Mandate';
+            }
+        });
+    }
+}
+
+connect();
+setupMandateToggle(); 

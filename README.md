@@ -14,11 +14,13 @@ The game is now **fully playable** with all major bugs fixed. The action system 
 - **System Action Resolvers**: Fixed to actually call engine methods instead of just logging
 - **Method Name Issues**: Fixed `resolve_legislation_session` to call correct election methods
 - **Action Creation**: Fixed missing `player_id` parameter handling
+- **Personal Mandate Display**: Added UI to show players their hidden victory conditions
 
 ### **🎯 New Features:**
 - **Enhanced Declare Candidacy**: Players can now commit additional PC beyond the base office cost
 - **Strategic Campaign Funding**: More nuanced election strategies with flexible commitment amounts
 - **HTTPS Deployment Ready**: Works on Render and other HTTPS platforms
+- **Personal Mandate Display**: Players can view their secret victory conditions during gameplay
 
 ## **🚨 Critical Information for Developers**
 
@@ -55,6 +57,12 @@ Everything revolves around the action system:
 - Frontend sends actions via WebSocket
 - Missing resolvers = broken functionality
 
+### **6. Frontend Build System Awareness**
+The frontend uses Webpack to compile JavaScript:
+- Changes to `static/app.js` require `npm run build` to take effect
+- Always rebuild after JavaScript changes
+- Test the build process before adding complex features
+
 ## **🎯 Quick Start**
 
 1. **Install Dependencies:**
@@ -76,6 +84,7 @@ Everything revolves around the action system:
    - Sponsor and oppose legislation
    - Form secret commitments
    - Compete for political office with strategic funding
+   - View your Personal Mandate by clicking "Show/Hide Mandate"
 
 ## **🏗️ Architecture Overview**
 
@@ -92,6 +101,7 @@ Everything revolves around the action system:
 - **Legislation System**: Bill sponsorship and voting
 - **Election System**: Political office competition with flexible funding
 - **AI System**: Multiple persona strategies
+- **Personal Mandate System**: Hidden victory conditions with UI display
 
 ## **🐛 Debugging Guide**
 
@@ -101,6 +111,7 @@ Everything revolves around the action system:
 3. **AI infinite loops**: Check action point validation logic
 4. **Missing parameters**: Check action constructor requirements
 5. **WebSocket connection fails**: Check protocol (ws:// vs wss://) for HTTPS
+6. **Frontend changes not appearing**: Run `npm run build` after JavaScript changes
 
 ### **Debug Process:**
 1. Read the debug output carefully
@@ -118,6 +129,7 @@ Everything revolves around the action system:
 - **AI Opponents**: Multiple personas with different strategies
 - **Multi-term Gameplay**: Progress through multiple terms
 - **HTTPS Deployment**: Works on secure platforms like Render
+- **Personal Mandate Display**: View your secret victory conditions during gameplay
 
 ## **🎯 Development Philosophy**
 
@@ -126,6 +138,7 @@ Everything revolves around the action system:
 - **Test infrastructure first**
 - **Assume simple explanations**
 - **The architecture is sound - focus on missing pieces**
+- **Understand the build system before making frontend changes**
 
 ## **📝 Documentation**
 

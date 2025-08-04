@@ -23,6 +23,11 @@ def debug_initial_state():
     for i, player in enumerate(session.state.players):
         ap = session.state.action_points.get(player.id, 0)
         print(f"  Player {i}: {player.name} (ID: {player.id}, AP: {ap})")
+        # Check mandate data
+        if player.mandate:
+            print(f"    Mandate: {player.mandate.title} - {player.mandate.description}")
+        else:
+            print(f"    Mandate: None")
     
     print(f"\nCurrent phase: {session.state.current_phase}")
     
@@ -49,6 +54,11 @@ def debug_initial_state():
     print(f"\nPlayers in client state:")
     for i, player in enumerate(client_state['players']):
         print(f"  Player {i}: name='{player['name']}', id={player['id']}")
+        # Check if mandate data is included
+        if 'mandate' in player and player['mandate']:
+            print(f"    Mandate: {player['mandate']['title']} - {player['mandate']['description']}")
+        else:
+            print(f"    Mandate: Not included or None")
     
     print(f"\nCurrent player index in client state: {client_state['current_player_index']}")
     
@@ -64,6 +74,13 @@ def debug_initial_state():
         print(f"Current player index: {client_state['current_player_index']}")
         print(f"Human player ID: {human_player['id']}")
         print(f"Match? {client_state['current_player_index'] == human_player['id']}")
+        
+        # Check human player's mandate
+        if 'mandate' in human_player and human_player['mandate']:
+            print(f"Human player mandate: {human_player['mandate']['title']}")
+            print(f"Mandate description: {human_player['mandate']['description']}")
+        else:
+            print(f"Human player mandate: Not found in client state")
     else:
         print(f"\nFrontend would NOT find human player!")
 
