@@ -193,21 +193,15 @@ class GameSession:
                             
                             # Special handling for ActionSubmitOfficeChoice which needs committed_pc
                             if next_action_type == 'ActionSubmitOfficeChoice':
-                                # Get the office cost from the pending UI action options
+                                # For candidacy declaration, committed_pc should be 0 (no additional commitment)
+                                # The office cost is handled separately in the resolver
                                 office_id = action_data['choice']
-                                office_cost = 0
                                 
-                                # Find the selected office in the options to get its cost
-                                for option in pending_action_info.get('options', []):
-                                    if option.get('id') == office_id:
-                                        office_cost = option.get('cost', 0)
-                                        break
-                                
-                                print(f"Creating ActionSubmitOfficeChoice with office_id={office_id}, committed_pc={office_cost}")
+                                print(f"Creating ActionSubmitOfficeChoice with office_id={office_id}, committed_pc=0")
                                 action_to_execute = action_class(
                                     player_id=self.human_player_id, 
                                     choice=action_data['choice'],
-                                    committed_pc=office_cost
+                                    committed_pc=0
                                 )
                             else:
                                 action_to_execute = action_class(player_id=self.human_player_id, choice=action_data['choice'])
