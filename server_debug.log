@@ -1,0 +1,208 @@
+INFO:     Started server process [66194]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+INFO:     Uvicorn running on http://0.0.0.0:5001 (Press CTRL+C to quit)
+INFO:     127.0.0.1:55707 - "WebSocket /ws" [accepted]
+INFO:     connection open
+INFO:     127.0.0.1:55708 - "WebSocket /ws" [accepted]
+INFO:     connection open
+INFO:     127.0.0.1:55731 - "WebSocket /ws" [accepted]
+INFO:     connection open
+INFO:     connection closed
+INFO:     127.0.0.1:55773 - "WebSocket /ws" [accepted]
+INFO:     connection open
+INFO:     connection closed
+INFO:     127.0.0.1:55788 - "WebSocket /ws" [accepted]
+INFO:     connection open
+DEBUG: Processing AI turn, current player: AI-1
+DEBUG: Processing AI turn for player AI-1 (ID: 1)
+DEBUG: Using persona RandomPersona for AI-1
+DEBUG: AI-1 has 8 valid actions
+DEBUG: Persona chose action: ActionNetwork
+DEBUG: Executing action: ActionNetwork
+DEBUG: Sent AI turn result, current player: AI-1
+DEBUG: Processing AI turn, current player: AI-1
+DEBUG: Processing AI turn for player AI-1 (ID: 1)
+DEBUG: Using persona RandomPersona for AI-1
+DEBUG: AI-1 has 8 valid actions
+DEBUG: Persona chose action: ActionPassTurn
+DEBUG: Executing action: ActionPassTurn
+DEBUG: Sent AI turn result, current player: AI-2
+DEBUG: Processing AI turn, current player: AI-2
+DEBUG: Processing AI turn for player AI-2 (ID: 2)
+DEBUG: Using persona EconomicPersona for AI-2
+DEBUG: AI-2 has 8 valid actions
+DEBUG: Persona chose action: ActionFundraise
+DEBUG: Executing action: ActionFundraise
+DEBUG: Sent AI turn result, current player: AI-2
+DEBUG: Processing AI turn, current player: AI-2
+DEBUG: Processing AI turn for player AI-2 (ID: 2)
+DEBUG: Using persona EconomicPersona for AI-2
+DEBUG: AI-2 has 8 valid actions
+DEBUG: Persona chose action: ActionFundraise
+DEBUG: Executing action: ActionFundraise
+DEBUG: Sent AI turn result, current player: AI-3
+DEBUG: Processing AI turn, current player: AI-3
+DEBUG: Processing AI turn for player AI-3 (ID: 3)
+DEBUG: Using persona LegislativePersona for AI-3
+DEBUG: AI-3 has 8 valid actions
+DEBUG: Persona chose action: ActionSponsorLegislation
+DEBUG: Executing action: ActionSponsorLegislation
+DEBUG: Sent AI turn result, current player: Human
+Client Address(host='127.0.0.1', port=55731) disconnected.
+WebSocket connection handler finished.
+Client Address(host='127.0.0.1', port=55773) disconnected.
+WebSocket connection handler finished.
+DEBUG: Processing AI turn, current player: AI-1
+DEBUG: Processing AI turn for player AI-1 (ID: 1)
+DEBUG: Using persona RandomPersona for AI-1
+DEBUG: AI-1 has 13 valid actions
+DEBUG: Persona chose action: ActionOpposeLegislation
+DEBUG: Executing action: ActionOpposeLegislation
+DEBUG: Sent AI turn result, current player: AI-1
+DEBUG: Processing AI turn, current player: AI-1
+DEBUG: Processing AI turn for player AI-1 (ID: 1)
+DEBUG: Using persona RandomPersona for AI-1
+DEBUG: AI-1 has 13 valid actions
+DEBUG: Persona chose action: ActionSupportLegislation
+DEBUG: Executing action: ActionSupportLegislation
+[DEBUG] resolve_support_legislation: Player AI-1 (ID: 1) has 25 PC, trying to commit 1 PC
+[DEBUG] resolve_support_legislation: Deducted 1 PC from AI-1. Old PC: 25, New PC: 24
+DEBUG: Sent AI turn result, current player: AI-2
+DEBUG: Processing AI turn, current player: AI-2
+DEBUG: Processing AI turn for player AI-2 (ID: 2)
+DEBUG: Using persona EconomicPersona for AI-2
+DEBUG: AI-2 has 13 valid actions
+DEBUG: Persona chose action: ActionFundraise
+DEBUG: Executing action: ActionFundraise
+DEBUG: Sent AI turn result, current player: AI-2
+DEBUG: Processing AI turn, current player: AI-2
+DEBUG: Processing AI turn for player AI-2 (ID: 2)
+DEBUG: Using persona EconomicPersona for AI-2
+DEBUG: AI-2 has 13 valid actions
+DEBUG: Persona chose action: ActionFundraise
+DEBUG: Executing action: ActionFundraise
+DEBUG: Sent AI turn result, current player: AI-3
+DEBUG: Processing AI turn, current player: AI-3
+DEBUG: Processing AI turn for player AI-3 (ID: 3)
+DEBUG: Using persona LegislativePersona for AI-3
+DEBUG: AI-3 has 12 valid actions
+DEBUG: Persona chose action: ActionSponsorLegislation
+DEBUG: Executing action: ActionSponsorLegislation
+DEBUG: Sent AI turn result, current player: Human
+DEBUG: Processing AI turn, current player: AI-1
+DEBUG: Processing AI turn for player AI-1 (ID: 1)
+DEBUG: Using persona RandomPersona for AI-1
+DEBUG: AI-1 has 18 valid actions
+DEBUG: Persona chose action: ActionOpposeLegislation
+DEBUG: Executing action: ActionOpposeLegislation
+DEBUG: Sent AI turn result, current player: AI-1
+DEBUG: Processing AI turn, current player: AI-1
+DEBUG: Processing AI turn for player AI-1 (ID: 1)
+DEBUG: Using persona RandomPersona for AI-1
+DEBUG: AI-1 has 18 valid actions
+DEBUG: Persona chose action: ActionOpposeLegislation
+DEBUG: Executing action: ActionOpposeLegislation
+DEBUG: Sent AI turn result, current player: AI-2
+DEBUG: Processing AI turn, current player: AI-2
+DEBUG: Processing AI turn for player AI-2 (ID: 2)
+DEBUG: Using persona EconomicPersona for AI-2
+DEBUG: AI-2 has 18 valid actions
+DEBUG: Persona chose action: ActionFundraise
+DEBUG: Executing action: ActionFundraise
+DEBUG: Sent AI turn result, current player: AI-2
+DEBUG: Processing AI turn, current player: AI-2
+DEBUG: Processing AI turn for player AI-2 (ID: 2)
+DEBUG: Using persona EconomicPersona for AI-2
+DEBUG: AI-2 has 18 valid actions
+DEBUG: Persona chose action: ActionFundraise
+DEBUG: Executing action: ActionFundraise
+DEBUG: Sent AI turn result, current player: AI-3
+DEBUG: Processing AI turn, current player: AI-3
+DEBUG: Processing AI turn for player AI-3 (ID: 3)
+DEBUG: Using persona LegislativePersona for AI-3
+DEBUG: AI-3 has 12 valid actions
+DEBUG: Persona chose action: ActionSponsorLegislation
+DEBUG: Executing action: ActionSponsorLegislation
+DEBUG: Sent AI turn result, current player: Human
+DEBUG: Processing AI turn, current player: AI-1
+DEBUG: Processing AI turn for player AI-1 (ID: 1)
+DEBUG: Using persona RandomPersona for AI-1
+DEBUG: AI-1 has 23 valid actions
+DEBUG: Persona chose action: ActionOpposeLegislation
+DEBUG: Executing action: ActionOpposeLegislation
+DEBUG: Sent AI turn result, current player: AI-1
+DEBUG: Processing AI turn, current player: AI-1
+DEBUG: Processing AI turn for player AI-1 (ID: 1)
+DEBUG: Using persona RandomPersona for AI-1
+DEBUG: AI-1 has 23 valid actions
+DEBUG: Persona chose action: ActionSupportLegislation
+DEBUG: Executing action: ActionSupportLegislation
+[DEBUG] resolve_support_legislation: Player AI-1 (ID: 1) has 24 PC, trying to commit 1 PC
+[DEBUG] resolve_support_legislation: Deducted 1 PC from AI-1. Old PC: 24, New PC: 23
+DEBUG: Sent AI turn result, current player: AI-2
+DEBUG: Processing AI turn, current player: AI-2
+DEBUG: Processing AI turn for player AI-2 (ID: 2)
+DEBUG: Using persona EconomicPersona for AI-2
+DEBUG: AI-2 has 23 valid actions
+DEBUG: Persona chose action: ActionFundraise
+DEBUG: Executing action: ActionFundraise
+DEBUG: Sent AI turn result, current player: AI-2
+DEBUG: Processing AI turn, current player: AI-2
+DEBUG: Processing AI turn for player AI-2 (ID: 2)
+DEBUG: Using persona EconomicPersona for AI-2
+DEBUG: AI-2 has 23 valid actions
+DEBUG: Persona chose action: ActionFundraise
+DEBUG: Executing action: ActionFundraise
+DEBUG: Sent AI turn result, current player: AI-3
+DEBUG: Processing AI turn, current player: AI-3
+DEBUG: Processing AI turn for player AI-3 (ID: 3)
+DEBUG: Using persona LegislativePersona for AI-3
+DEBUG: AI-3 has 3 valid actions
+DEBUG: Persona chose action: ActionFundraise
+DEBUG: Executing action: ActionFundraise
+DEBUG: Sent AI turn result, current player: AI-3
+DEBUG: Processing AI turn, current player: AI-3
+DEBUG: Processing AI turn for player AI-3 (ID: 3)
+DEBUG: Using persona LegislativePersona for AI-3
+DEBUG: AI-3 has 15 valid actions
+DEBUG: Persona chose action: ActionSupportLegislation
+DEBUG: Executing action: ActionSupportLegislation
+[DEBUG] resolve_support_legislation: Player AI-3 (ID: 3) has 5 PC, trying to commit 5 PC
+[DEBUG] resolve_support_legislation: Deducted 5 PC from AI-3. Old PC: 5, New PC: 0
+DEBUG: Sent AI turn result, current player: Human
+DEBUG: Processing AI turn, current player: AI-1
+DEBUG: Processing AI turn for player AI-1 (ID: 1)
+DEBUG: Using persona RandomPersona for AI-1
+DEBUG: AI-1 has 28 valid actions
+DEBUG: Persona chose action: ActionDeclareCandidacy
+DEBUG: Executing action: ActionDeclareCandidacy
+DEBUG: Sent AI turn result, current player: AI-2
+DEBUG: Processing AI turn, current player: AI-2
+DEBUG: Processing AI turn for player AI-2 (ID: 2)
+DEBUG: Using persona EconomicPersona for AI-2
+DEBUG: AI-2 has 33 valid actions
+DEBUG: Persona chose action: ActionFundraise
+DEBUG: Executing action: ActionFundraise
+DEBUG: Sent AI turn result, current player: AI-2
+DEBUG: Processing AI turn, current player: AI-2
+DEBUG: Processing AI turn for player AI-2 (ID: 2)
+INFO:     connection closed
+INFO:     127.0.0.1:56029 - "WebSocket /ws" [accepted]
+INFO:     connection open
+Traceback (most recent call last):
+  File "/Users/harrisgordon/Documents/Development/Games/election/game_session.py", line 247, in process_human_action
+    action_to_execute = self.engine.action_from_dict(action_data)
+  File "/Users/harrisgordon/Documents/Development/Games/election/engine/engine.py", line 260, in action_from_dict
+    raise ValueError(f"Unknown action type: {action_type_name}")
+ValueError: Unknown action type: ActionInvalidAction
+INFO:     connection closed
+INFO:     127.0.0.1:56151 - "WebSocket /ws" [accepted]
+INFO:     connection open
+INFO:     connection closed
+INFO:     connection closed
+INFO:     connection closed
+INFO:     127.0.0.1:56514 - "WebSocket /ws" [accepted]
+INFO:     connection open
+INFO:     127.0.0.1:56515 - "WebSocket /ws" [accepted]
+INFO:     connection open

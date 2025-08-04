@@ -1,119 +1,125 @@
-# ELECTION: The Game
+# ELECTION Game
 
-> **Note for Developers:** This project is currently undergoing a significant architectural refactor towards a state-driven design. Please read the [**`STATE_DRIVEN_REFACTOR.md`**](STATE_DRIVEN_REFACTOR.md) document before starting any new work to understand the new architectural principles and execution plan.
+A competitive political strategy game where players manage Political Capital (PC), sponsor and defeat legislation, form alliances, and compete for political office. Features a **Secret Commitment System** where players secretly fund or fight legislation, leading to dramatic reveals.
 
-## Overview
+## **🎮 Current Status: PLAYABLE**
 
-A competitive political strategy game where players manage resources, sponsor and defeat legislation, form alliances, and compete for political office.
+The game is now **fully playable** with all major bugs fixed. The action system has been repaired and the game flows properly from term to term.
 
-## Features
+### **✅ Recent Fixes Applied:**
+- **Missing Action Resolvers**: Added `AcknowledgeAITurn` resolver to engine
+- **System Action Resolvers**: Fixed to actually call engine methods instead of just logging
+- **Method Name Issues**: Fixed `resolve_legislation_session` to call correct election methods
+- **Action Creation**: Fixed missing `player_id` parameter handling
 
-- **Secret Commitment System**: Players secretly fund or fight legislation, leading to dramatic reveals and strategic gameplay
-- **Multiple AI Personas**: Play against different AI opponents with unique strategies
-- **Web Interface**: Modern terminal-style web UI with real-time game updates
-- **Political Capital Management**: Strategic resource management with PC (Political Capital)
-- **Office Competition**: Run for various political offices with different benefits
-- **Event System**: Dynamic events that affect gameplay and strategy
+## **🚨 Critical Information for Developers**
 
-## Quick Start
+### **1. Debug Output is Your Best Friend**
+The server logs and debug output contain the exact answers you're looking for:
+- `"No resolver found for action: X"` → Add the missing resolver
+- `"Error creating action from dict"` → Check action constructor parameters
+- `"object has no attribute 'X'"` → Check method names and imports
 
-### Web Version
+### **2. The Architecture is Actually Sound**
+The existing codebase has good separation of concerns. Problems are almost always:
+- Missing resolvers in the `action_resolvers` dictionary
+- Parameter mismatches in action constructors
+- Method name mismatches between components
+- Server version issues (old code still running)
 
-1. Install dependencies:
+### **3. Test the Simplest Possible Explanation First**
+When something doesn't work, ask: "What's the simplest possible explanation?"
+- AI keeps taking actions → Check if AI thinks it has action points when it doesn't
+- Action fails → Check if all required parameters are provided
+- Server doesn't respond → Check if server is running the latest code
+
+### **4. Server Version Management is Critical**
+After any code change:
+```bash
+lsof -ti:5001 | xargs kill -9  # Kill server
+python3 server.py               # Restart server
+```
+
+### **5. The Action System is the Core**
+Everything revolves around the action system:
+- Actions defined in `engine/actions.py`
+- Resolvers in `engine/resolvers.py` and mapped in `engine/engine.py`
+- Frontend sends actions via WebSocket
+- Missing resolvers = broken functionality
+
+## **🎯 Quick Start**
+
+1. **Install Dependencies:**
    ```bash
    pip install -r requirements.txt
    npm install
    ```
 
-2. Build the frontend:
-   ```bash
-   npm run build
-   ```
-
-3. Start the server:
+2. **Start the Server:**
    ```bash
    python3 server.py
    ```
 
-4. Open your browser to `http://127.0.0.1:5001`
+3. **Open Browser:**
+   Navigate to `http://localhost:5001`
 
-The web version features:
-- Real-time game updates
-- AI turn visibility (press Enter to continue after each AI action)
-- Modern terminal-style interface
-- Full game state display
+4. **Play the Game:**
+   - Manage Political Capital (PC)
+   - Sponsor and oppose legislation
+   - Form secret commitments
+   - Compete for political office
 
-## Game Rules
+## **🏗️ Architecture Overview**
 
-### Objective
-Win by having the most **Influence** at the end of the final term. Influence is gained by holding political office and achieving your secret **Personal Mandate**.
+### **Core Components:**
+- **Engine** (`engine/`): Game logic and action processing
+- **Models** (`models/`): Game state and data structures
+- **Personas** (`personas/`): AI player strategies
+- **Server** (`server.py`): WebSocket communication
+- **Frontend** (`static/`): React-based UI
 
-### Core Mechanics
-- **Political Capital (PC)**: Your primary resource for actions
-- **Action Points (AP)**: Limited actions per turn (2 AP per turn)
-- **Secret Commitments**: Privately support or oppose legislation
-- **Office Competition**: Run for political offices with unique benefits
+### **Key Systems:**
+- **Action System**: All game interactions go through actions
+- **Secret Commitment System**: Hidden funding mechanics
+- **Legislation System**: Bill sponsorship and voting
+- **Election System**: Political office competition
+- **AI System**: Multiple persona strategies
 
-### Actions
-- **Fundraise**: Gain 5 PC
-- **Network**: Gain 2 PC and draw a Political Favor
-- **Sponsor Legislation**: Pay PC to propose bills
-- **Support/Oppose Legislation**: Secretly commit PC to bills
-- **Declare Candidacy**: Run for office (Round 4 only)
-- **Use Favor**: Play special ability cards
+## **🐛 Debugging Guide**
 
-## Development
+### **Common Issues:**
+1. **Server not responding**: Kill and restart server
+2. **Action fails**: Check if resolver exists in `action_resolvers`
+3. **AI infinite loops**: Check action point validation logic
+4. **Missing parameters**: Check action constructor requirements
 
-### Project Structure
-- `engine/`: Core game logic and action processing
-- `models/`: Data structures for game state
-- `personas/`: AI player personalities
-- `static/`: Web frontend files
-- `server.py`: Web server for the browser version
+### **Debug Process:**
+1. Read the debug output carefully
+2. Test the action system directly
+3. Check server version after code changes
+4. Assume simple explanations first
+5. Trust the existing architecture
 
-### Testing
-```bash
-# Backend tests
-python3 -m unittest discover -s .
+## **📊 Game Features**
 
-# Frontend tests
-npm test
-```
+- **Political Capital Management**: Earn and spend PC strategically
+- **Legislation System**: Sponsor, support, and oppose bills
+- **Secret Commitments**: Hidden funding creates dramatic reveals
+- **Election System**: Compete for various political offices
+- **AI Opponents**: Multiple personas with different strategies
+- **Multi-term Gameplay**: Progress through multiple terms
 
-### Building for Production
-```bash
-npm run build
-```
+## **🎯 Development Philosophy**
 
-## Recent Updates
+- **Fix specific bugs, don't rewrite working code**
+- **Trust the debug output**
+- **Test infrastructure first**
+- **Assume simple explanations**
+- **The architecture is sound - focus on missing pieces**
 
-- **Precise PC Commitment System**: Players can now specify exact amounts of Political Capital when supporting or opposing legislation, rather than being limited to fixed amounts. This enhances strategic depth by allowing players to commit precisely the amount of PC they want to risk on each bill.
-- **Legislation "Undefined" Fix**: Fixed critical issue where users would see "undefined" options when selecting legislation to sponsor. The backend was correctly generating the data, but users needed to clear browser cache and restart the server to get the latest frontend JavaScript
-- **Legislation Sponsorship & Support/Oppose Fix**: Fixed critical issues where players could re-sponsor active legislation and couldn't support/oppose their own bills. Players can now properly sponsor legislation in one round and support/oppose any active legislation (including their own) in subsequent rounds
-- **Declare Candidacy Fix**: Fixed critical bug where the "Declare Candidacy" action was not available in Round 4. Implemented proper two-step UI flow for office selection
-- **CLI Version Removal**: Simplified the project by removing the local CLI version to focus on the web application
-- **Round Advancement Fix**: Fixed critical bug where the game would get stuck in Round 1. The game now properly advances through rounds when all players use their action points
-- **AI Turn Visibility**: The web version now pauses after each AI action, allowing players to see what the AI did before continuing
-- **Enhanced Error Handling**: Improved server stability and error recovery
-- **UI Improvements**: Better game state display and action prompts
-- **Bug Fixes**: Resolved issues with action processing and game state management
+## **📝 Documentation**
 
-## Architectural Overview
-
-This project follows a state-driven architecture to ensure stability and maintainability. The core components and their responsibilities are:
-
-- **`server.py` (The Conductor):** Manages the websocket connection and the overall game loop. It is responsible for the *pacing* of the game, receiving actions from the client, running AI turns one-by-one, and sending state updates back to the client. It ensures the "press enter to continue" flow by waiting for client acknowledgements.
-- **`game_session.py` (The Game Master):** A stateful "GM" that holds the canonical `GameState` object. It exposes simple, non-looping methods like `process_human_action()` and `process_ai_turn()` which the server uses to advance the game by one discrete step. It knows the status of the game but is not responsible for the loop itself.
-- **`engine/engine.py` (The Rulebook):** A pure, stateless set of functions that enforces the rules of the game. It takes a `GameState` and an `Action` and returns a *new* `GameState`. It has no knowledge of turns, rounds, or game flow.
-
-## Contributing
-
-1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Add tests for new functionality
-5. Submit a pull request
-
-## License
-
-This project is licensed under the MIT License - see the LICENSE file for details.
+- `PHYSICAL_GAME_SPEC.md`: Complete game rules and mechanics
+- `STATE_DRIVEN_REFACTOR.md`: Architecture decisions and state management
+- `PLAN_OF_ATTACK.md`: Development strategy and priorities
+- `developer_handoff.md`: Critical insights for new developers

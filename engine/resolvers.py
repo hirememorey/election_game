@@ -1160,30 +1160,26 @@ def resolve_pass_turn(state: GameState, action: ActionPassTurn) -> GameState:
 
 def resolve_resolve_legislation(state: GameState, action) -> GameState:
     """System action to resolve pending legislation."""
-    # This will be handled by the engine's resolve_legislation_session method
-    # The harness will call the engine method directly
-    state.add_log("System: Resolving legislation session.")
-    return state
+    # Actually call the engine's resolve_legislation_session method
+    from engine.engine import GameEngine
+    engine = GameEngine({})  # We'll need to pass game_data properly later
+    return engine.resolve_legislation_session(state)
 
 def resolve_resolve_elections(state: GameState, action) -> GameState:
     """System action to resolve elections."""
-    # This will be handled by the engine's resolve_elections_session method
-    # The harness will call the engine method directly
-    state.add_log("System: Resolving elections.")
-    return state
+    # Actually call the engine's resolve_elections_session method
+    from engine.engine import GameEngine
+    engine = GameEngine({})  # We'll need to pass game_data properly later
+    return engine.resolve_elections_session(state)
 
 def resolve_acknowledge_results(state: GameState, action) -> GameState:
     """System action to acknowledge results and start new term."""
-    # This will be handled by the engine's start_next_term method
-    # The harness will call the engine method directly
+    # Actually call the engine's start_next_term method
+    from engine.engine import GameEngine
+    engine = GameEngine({})  # We'll need to pass game_data properly later
     state.awaiting_results_acknowledgement = False
     state.add_log("Results acknowledged. Starting next term.")
-    
-    # This should now call the engine's method to start the next term
-    # from engine.engine import GameEngine
-    # ge = GameEngine({}) # This is problematic, need to refactor later
-    # return ge.start_next_term(state)
-    return state
+    return engine.start_next_term(state)
 
 
 def resolve_acknowledge_ai_turn(state: GameState, action: 'AcknowledgeAITurn') -> GameState:

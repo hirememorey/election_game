@@ -53,6 +53,7 @@ class GameEngine:
             "ActionSubmitLegislationChoice": resolvers.resolve_submit_legislation_choice,
             "ActionSubmitOfficeChoice": resolvers.resolve_submit_office_choice,
             "ActionSubmitAmount": resolvers.resolve_submit_amount,
+            "AcknowledgeAITurn": resolvers.resolve_acknowledge_ai_turn,
         }
 
     def start_new_game(self, player_names: list[str]) -> GameState:
@@ -268,7 +269,7 @@ class GameEngine:
         state.awaiting_legislation_resolution = False
         state.awaiting_election_resolution = True
         
-        return self.run_election_phase(state)
+        return self.resolve_elections_session(state)
 
     def resolve_legislation_session_with_secrets(self, state: GameState, secret_commitments: dict) -> GameState:
         if not state.awaiting_legislation_resolution:
@@ -305,7 +306,7 @@ class GameEngine:
         state.awaiting_legislation_resolution = False
         state.awaiting_election_resolution = True
         
-        return self.run_election_phase(state)
+        return self.resolve_elections_session(state)
 
     def resolve_elections_session(self, state: GameState, disable_dice_roll: bool = False) -> GameState:
         if not state.awaiting_election_resolution:
@@ -337,7 +338,8 @@ class GameEngine:
         for p in state.players:
             p.action_points = 2
             
-        state = self.run_event_phase(state)
+        # Run event phase using resolvers
+        state = resolvers.resolve_event_card(state)
         
         state.add_log("\n--- NEW TERM BEGINS ---")
         state.round_marker = 1

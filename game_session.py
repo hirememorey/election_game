@@ -194,6 +194,9 @@ class GameSession:
                     else:
                         print(f"Action class not found for: {next_action_type}")
             else:
+                # Ensure player_id is included for actions that need it
+                if 'player_id' not in action_data:
+                    action_data['player_id'] = self.human_player_id
                 action_to_execute = self.engine.action_from_dict(action_data)
 
         except Exception as e:
