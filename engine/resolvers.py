@@ -239,7 +239,9 @@ def resolve_submit_office_choice(state: GameState, action: 'ActionSubmitOfficeCh
         state.pending_ui_action = None
         return state
 
-    if player.pc < office.candidacy_cost + committed_pc:
+    # The committed_pc is already part of the cost, so we only need to pay the remaining amount
+    remaining_cost = office.candidacy_cost - committed_pc
+    if player.pc < remaining_cost:
         state.add_log("You cannot afford the cost to run for this office with the committed PC.")
         # We could also re-prompt here, but for now, we'll just cancel.
         state.pending_ui_action = None
@@ -624,14 +626,16 @@ def resolve_declare_candidacy(state: GameState, action: ActionDeclareCandidacy) 
     
     office = state.offices[action.office_id]
     cost = office.candidacy_cost
-    if player.pc < cost + action.committed_pc:
-        state.add_log("Not enough PC to pay candidacy and commitment.")
+    # The committed_pc is already part of the cost, so we only need to pay the remaining amount
+    remaining_cost = cost - action.committed_pc
+    if player.pc < remaining_cost:
+        state.add_log(f"You cannot afford the cost to run for this office with the committed PC.")
         return state
     
     # Deduct AP cost
     state.action_points[player.id] -= 2
 
-    player.pc -= (cost + action.committed_pc)
+    player.pc -= remaining_cost
     candidacy = Candidacy(player_id=player.id, office_id=action.office_id, committed_pc=action.committed_pc)
     state.secret_candidacies.append(candidacy)
     # state.candidacy_declared_this_round = True # This line is removed
