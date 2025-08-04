@@ -190,7 +190,28 @@ class GameSession:
                         else:
                             # For choice-based actions (like legislation selection), use the choice parameter
                             print(f"Creating choice action: {next_action_type} with choice {action_data['choice']}")
-                            action_to_execute = action_class(player_id=self.human_player_id, choice=action_data['choice'])
+                            
+                            # Special handling for ActionSubmitOfficeChoice which requires committed_pc
+                            if next_action_type == "ActionSubmitOfficeChoice":
+                                # Find the selected option to get the office cost
+                                selected_choice = action_data['choice']
+                                committed_pc = 0  # Default to 0
+                                
+                                # Look for the selected option in the pending UI action options
+                                if 'options' in pending_action_info:
+                                    for option in pending_action_info['options']:
+                                        if option.get('id') == selected_choice:
+                                            committed_pc = option.get('cost', 0)
+                                            break
+                                
+                                print(f"Creating office choice action with committed_pc: {committed_pc}")
+                                action_to_execute = action_class(
+                                    player_id=self.human_player_id, 
+                                    choice=action_data['choice'],
+                                    committed_pc=committed_pc
+                                )
+                            else:
+                                action_to_execute = action_class(player_id=self.human_player_id, choice=action_data['choice'])
                     else:
                         print(f"Action class not found for: {next_action_type}")
             else:
