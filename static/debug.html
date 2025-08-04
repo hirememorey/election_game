@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Election Debug - Minimal Test</title>
+    <style>
+        body { 
+            font-family: monospace; 
+            background-color: #1e1e1e; 
+            color: #d4d4d4; 
+            margin: 20px;
+            line-height: 1.4;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        .section {
+            margin-bottom: 20px;
+            padding: 15px;
+            border: 1px solid #444;
+            border-radius: 5px;
+            background-color: #2d2d2d;
+        }
+        .section h3 {
+            margin-top: 0;
+            color: #4fc3f7;
+        }
+        .log-entry {
+            margin-bottom: 5px;
+            padding: 5px;
+            font-size: 0.9em;
+        }
+        .log-entry.error {
+            color: #ff6b6b;
+            background-color: #4a1a1a;
+        }
+        .log-entry.success {
+            color: #6bff6b;
+            background-color: #1a4a1a;
+        }
+        .log-entry.info {
+            color: #6b6bff;
+            background-color: #1a1a4a;
+        }
+        button {
+            margin: 5px;
+            padding: 10px 15px;
+            background-color: #4fc3f7;
+            color: #000;
+            border: none;
+            border-radius: 3px;
+            cursor: pointer;
+            font-family: monospace;
+        }
+        button:hover {
+            background-color: #29b6f6;
+        }
+        .raw-data {
+            background-color: #1a1a1a;
+            padding: 10px;
+            border-radius: 3px;
+            font-size: 0.8em;
+            white-space: pre-wrap;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        .test-button {
+            background-color: #ff6b6b;
+        }
+        .test-button:hover {
+            background-color: #ff5252;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔍 Election Debug - Minimal Test</h1>
+        
+        <div class="section">
+            <h3>Connection Status</h3>
+            <div id="connection-status">Disconnected</div>
+        </div>
+        
+        <div class="section">
+            <h3>Raw State Data</h3>
+            <div id="raw-state" class="raw-data">No data received yet...</div>
+        </div>
+        
+        <div class="section">
+            <h3>Diagnostic Log</h3>
+            <div id="log-container"></div>
+        </div>
+        
+        <div class="section">
+            <h3>Test Actions</h3>
+            <div id="test-actions">
+                <button class="test-button" onclick="testConnection()">Test Connection</button>
+                <button class="test-button" onclick="testStateParsing()">Test State Parsing</button>
+                <button class="test-button" onclick="testActionRendering()">Test Action Rendering</button>
+                <button class="test-button" onclick="clearLog()">Clear Log</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let ws;
+        let lastState = null;
+        let connectionAttempts = 0;
+
+        function log(message, type = 'info') {
+            const logContainer = document.getElementById('log-container');
+            const logElement = document.createElement('div');
+            logElement.className = `log-entry ${type}`;
+            logElement.textContent = `[${new Date().toLocaleTimeString()}] ${message}`;
+            logContainer.appendChild(logElement);
+            logContainer.scrollTop = logContainer.scrollHeight;
+            console.log(`[${type.toUpperCase()}] ${message}`);
+        }
+
+        function updateConnectionStatus(status, type = 'info') {
+            const statusElement = document.getElementById('connection-status');
+            statusElement.textContent = status;
+            statusElement.className = `log-entry ${type}`;
+        }
+
+        function updateRawState(state) {
+            const rawStateElement = document.getElementById('raw-state');
+            rawStateElement.textContent = JSON.stringify(state, null, 2);
+        }
+
+        function connect() {
+            log('Attempting to connect to WebSocket...', 'info');
+            connectionAttempts++;
+            
+            try {
+                ws = new WebSocket(`ws://${window.location.host}/ws`);
+
+                ws.onopen = () => {
+                    log('✅ WebSocket connection established', 'success');
+                    updateConnectionStatus('Connected', 'success');
+                    connectionAttempts = 0;
+                };
+
+                ws.onmessage = (event) => {
+                    log('📨 Received WebSocket message', 'info');
+                    
+                    try {
+                        const state = JSON.parse(event.data);
+                        log(`✅ Successfully parsed JSON (${event.data.length} bytes)`, 'success');
+                        
+                        lastState = state;
+                        updateRawState(state);
+                        
+                        // Log key state information
+                        log(`📊 State Analysis:`, 'info');
+                        log(`  - Players: ${state.players ? state.players.length : 'undefined'}`);
+                        log(`  - Current Player Index: ${state.current_player_index}`);
+                        log(`  - Valid Actions: ${state.valid_actions ? state.valid_actions.length : 'undefined'}`);
+                        log(`  - Human Player Found: ${state.players ? state.players.find(p => p.name === 'Human') ? 'Yes' : 'No' : 'No players'}`);
+                        
+                        if (state.players) {
+                            const humanPlayer = state.players.find(p => p.name === 'Human');
+                            if (humanPlayer) {
+                                log(`  - Human Player ID: ${humanPlayer.id}`);
+                                log(`  - Is Human Turn: ${state.current_player_index === humanPlayer.id ? 'Yes' : 'No'}`);
+                            }
+                        }
+                        
+                        if (state.valid_actions) {
+                            log(`  - Action Types: ${state.valid_actions.map(a => a.action_type).join(', ')}`);
+                        }
+                        
+                    } catch (parseError) {
+                        log(`❌ Failed to parse JSON: ${parseError.message}`, 'error');
+                        log(`Raw message: ${event.data}`, 'error');
+                    }
+                };
+
+                ws.onclose = () => {
+                    log('❌ WebSocket connection closed', 'error');
+                    updateConnectionStatus('Disconnected', 'error');
+                    
+                    if (connectionAttempts < 3) {
+                        log(`🔄 Attempting to reconnect (${connectionAttempts}/3)...`, 'info');
+                        setTimeout(connect, 3000);
+                    } else {
+                        log('❌ Max reconnection attempts reached', 'error');
+                    }
+                };
+
+                ws.onerror = (error) => {
+                    log(`❌ WebSocket error: ${error}`, 'error');
+                };
+
+            } catch (error) {
+                log(`❌ Failed to create WebSocket: ${error.message}`, 'error');
+            }
+        }
+
+        function testConnection() {
+            log('🧪 Testing connection...', 'info');
+            if (ws && ws.readyState === WebSocket.OPEN) {
+                log('✅ WebSocket is open and ready', 'success');
+            } else {
+                log('❌ WebSocket is not ready', 'error');
+                log(`WebSocket state: ${ws ? ws.readyState : 'null'}`, 'error');
+            }
+        }
+
+        function testStateParsing() {
+            log('🧪 Testing state parsing...', 'info');
+            if (!lastState) {
+                log('❌ No state data available', 'error');
+                return;
+            }
+            
+            try {
+                // Test the same logic as the main app
+                const humanPlayer = lastState.players.find(p => p.name === "Human");
+                log(`Human player found: ${humanPlayer ? 'Yes' : 'No'}`, humanPlayer ? 'success' : 'error');
+                
+                if (humanPlayer) {
+                    log(`Human player ID: ${humanPlayer.id}`, 'info');
+                    log(`Current player index: ${lastState.current_player_index}`, 'info');
+                    log(`Is human turn: ${lastState.current_player_index === humanPlayer.id}`, 'info');
+                    
+                    if (lastState.current_player_index === humanPlayer.id) {
+                        log('✅ Human should be able to act', 'success');
+                        
+                        if (lastState.valid_actions && lastState.valid_actions.length > 0) {
+                            log(`✅ Valid actions available: ${lastState.valid_actions.length}`, 'success');
+                            lastState.valid_actions.forEach((action, index) => {
+                                log(`  Action ${index + 1}: ${action.action_type}`, 'info');
+                            });
+                        } else {
+                            log('❌ No valid actions available', 'error');
+                        }
+                    } else {
+                        log('❌ Not human turn', 'error');
+                    }
+                }
+            } catch (error) {
+                log(`❌ Error testing state parsing: ${error.message}`, 'error');
+            }
+        }
+
+        function testActionRendering() {
+            log('🧪 Testing action rendering...', 'info');
+            if (!lastState) {
+                log('❌ No state data available', 'error');
+                return;
+            }
+            
+            try {
+                const humanPlayer = lastState.players.find(p => p.name === "Human");
+                if (!humanPlayer) {
+                    log('❌ Human player not found', 'error');
+                    return;
+                }
+                
+                if (lastState.current_player_index !== humanPlayer.id) {
+                    log('❌ Not human turn', 'error');
+                    return;
+                }
+                
+                if (!lastState.valid_actions || lastState.valid_actions.length === 0) {
+                    log('❌ No valid actions', 'error');
+                    return;
+                }
+                
+                // Simulate the action button creation
+                log('✅ Creating test action buttons...', 'success');
+                const testContainer = document.createElement('div');
+                testContainer.style.border = '2px solid #4fc3f7';
+                testContainer.style.padding = '10px';
+                testContainer.style.margin = '10px 0';
+                testContainer.innerHTML = '<h4>Test Action Buttons:</h4>';
+                
+                lastState.valid_actions.forEach((action, index) => {
+                    const button = document.createElement('button');
+                    button.textContent = `Test: ${action.action_type}`;
+                    button.onclick = () => log(`Clicked: ${action.action_type}`, 'success');
+                    testContainer.appendChild(button);
+                });
+                
+                document.body.appendChild(testContainer);
+                log('✅ Test buttons created successfully', 'success');
+                
+            } catch (error) {
+                log(`❌ Error testing action rendering: ${error.message}`, 'error');
+            }
+        }
+
+        function clearLog() {
+            document.getElementById('log-container').innerHTML = '';
+            log('🧹 Log cleared', 'info');
+        }
+
+        // Auto-connect on page load
+        connect();
+    </script>
+</body>
+</html> 

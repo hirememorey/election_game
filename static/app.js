@@ -1,28 +1,32 @@
 let ws;
 
 function connect() {
+    console.log("🔌 Attempting to connect to WebSocket...");
     ws = new WebSocket(`ws://${window.location.host}/ws`);
 
     ws.onopen = () => {
-        console.log("Connected to the game server.");
+        console.log("✅ WebSocket connection established");
     };
 
     ws.onmessage = (event) => {
+        console.log("📨 Received WebSocket message:", event.data.length, "bytes");
         const state = JSON.parse(event.data);
+        console.log("📊 Parsed state:", state);
         renderState(state);
     };
 
     ws.onclose = () => {
-        console.log("Disconnected from the game server. Attempting to reconnect...");
-        setTimeout(connect, 3000); // Try to reconnect every 3 seconds
+        console.log("❌ WebSocket connection closed. Attempting to reconnect...");
+        setTimeout(connect, 3000);
     };
 
     ws.onerror = (error) => {
-        console.error("WebSocket error:", error);
+        console.error("❌ WebSocket error:", error);
     };
 }
 
 function getActionDescription(action) {
+    console.log("🔍 Getting action description for:", action);
     const type = action.action_type;
     const simpleType = type.replace("ActionInitiate", "").replace("Action", "");
 
@@ -53,10 +57,10 @@ function getActionDescription(action) {
 }
 
 function renderState(state) {
-    console.log("Received state:", state);
+    console.log("🎨 Starting renderState with:", state);
 
     if (state.error) {
-        console.error("Server error:", state.error);
+        console.error("🚨 Server error:", state.error);
         const logContainer = document.getElementById('log-container');
         const errorElement = document.createElement('div');
         errorElement.className = 'log-entry error';
@@ -65,7 +69,9 @@ function renderState(state) {
         return;
     }
     
+    console.log("👥 Rendering players...");
     const playersContainer = document.getElementById('players-container');
+    console.log("📦 Players container found:", !!playersContainer);
     playersContainer.innerHTML = '';
     state.players.forEach(player => {
         const playerDiv = document.createElement('div');
@@ -90,7 +96,9 @@ function renderState(state) {
         playersContainer.appendChild(playerDiv);
     });
 
+    console.log("🎮 Rendering game info...");
     const gameInfoContainer = document.getElementById('game-info-container');
+    console.log("📦 Game info container found:", !!gameInfoContainer);
     gameInfoContainer.innerHTML = `
         <div>Round: ${state.round_marker}/4</div>
         <div>Term: ${state.term_counter + 1}/3</div>
@@ -98,7 +106,9 @@ function renderState(state) {
         <div>Phase: ${state.current_phase}</div>
     `;
 
+    console.log("📜 Rendering legislation...");
     const legislationContainer = document.getElementById('legislation-container');
+    console.log("📦 Legislation container found:", !!legislationContainer);
     legislationContainer.innerHTML = '<h3>Active Legislation</h3>';
     if (state.term_legislation && state.term_legislation.length > 0) {
         state.term_legislation.forEach(leg => {
@@ -115,7 +125,9 @@ function renderState(state) {
         legislationContainer.innerHTML += '<p>None this term.</p>';
     }
 
+    console.log("📝 Rendering log...");
     const logContainer = document.getElementById('log-container');
+    console.log("📦 Log container found:", !!logContainer);
     logContainer.innerHTML = '';
     state.log.forEach(entry => {
         const logElement = document.createElement('div');
@@ -125,41 +137,71 @@ function renderState(state) {
     });
     logContainer.scrollTop = logContainer.scrollHeight;
 
+    console.log("🔍 Finding human player...");
     const humanPlayer = state.players.find(p => p.name === "Human");
+    console.log("👤 Human player found:", !!humanPlayer, humanPlayer);
+    
+    console.log("📦 Getting actions container...");
     const actionsContainer = document.getElementById('actions-container');
+    console.log("📦 Actions container found:", !!actionsContainer);
     actionsContainer.innerHTML = '';
 
+    console.log("🤖 Checking for AI acknowledgment...");
     if (state.awaiting_acknowledgement) {
+        console.log("⏳ Awaiting AI acknowledgment, showing prompt...");
         promptForAcknowledgement();
     } else if (humanPlayer && state.current_player_index === humanPlayer.id) {
+        console.log("✅ Human turn detected!");
+        console.log("📋 Checking for prompt...");
         if (state.prompt) {
+            console.log("❓ Showing prompt:", state.prompt);
+            console.log("📋 State options:", state.options);
+            console.log("📋 State expects_input:", state.expects_input);
             promptForSubChoice(state.prompt, state.options, state.expects_input);
         } else {
+            console.log("🔘 Checking for valid actions...");
             if (state.valid_actions && state.valid_actions.length > 0) {
+                console.log(`✅ Found ${state.valid_actions.length} valid actions:`, state.valid_actions);
                 state.valid_actions.forEach(action => {
+                    console.log("🔘 Creating button for action:", action);
                     const button = document.createElement('button');
                     button.textContent = getActionDescription(action);
-                    button.onclick = () => sendAction(action);
+                    button.onclick = () => {
+                        console.log("🖱️ Button clicked for action:", action);
+                        sendAction(action);
+                    };
                     actionsContainer.appendChild(button);
+                    console.log("✅ Button added to container");
                 });
+                console.log("✅ All action buttons created");
+            } else {
+                console.log("❌ No valid actions found");
             }
         }
     } else {
+        console.log("⏳ Not human turn, showing waiting message...");
         actionsContainer.innerHTML = '<div class="prompt">Waiting for AI player...</div>';
     }
+    
+    console.log("🎨 renderState completed");
 }
 
 
 function promptForSubChoice(promptText, options, expects_input) {
+    console.log("🔍 promptForSubChoice called with:", { promptText, options, expects_input });
+    
     const actionsContainer = document.getElementById('actions-container');
+    console.log("📦 Actions container found:", !!actionsContainer);
     actionsContainer.innerHTML = '';
 
     const promptElement = document.createElement('div');
     promptElement.className = 'prompt';
     promptElement.textContent = promptText;
     actionsContainer.appendChild(promptElement);
+    console.log("✅ Prompt element created:", promptText);
 
     if (expects_input === 'amount') {
+        console.log("💰 Creating amount input...");
         const input = document.createElement('input');
         input.type = 'number';
         input.className = 'input-field';
@@ -170,6 +212,7 @@ function promptForSubChoice(promptText, options, expects_input) {
         submitButton.onclick = () => {
             const amount = parseInt(input.value, 10);
             if (!isNaN(amount) && amount > 0) {
+                console.log("💰 Sending amount:", amount);
                 sendAction({ choice: amount });
             } else {
                 promptElement.textContent = "Please enter a valid positive number.";
@@ -179,14 +222,25 @@ function promptForSubChoice(promptText, options, expects_input) {
         actionsContainer.appendChild(input);
         actionsContainer.appendChild(submitButton);
         input.focus();
+        console.log("✅ Amount input created");
 
     } else if (options && options.length > 0) {
-        options.forEach(option => {
+        console.log(`🔘 Creating ${options.length} option buttons...`);
+        options.forEach((option, index) => {
+            console.log(`🔘 Creating option ${index + 1}:`, option);
             const button = document.createElement('button');
             button.textContent = option.display_name;
-            button.onclick = () => sendAction({ choice: option.id });
+            button.onclick = () => {
+                console.log("🖱️ Option clicked:", option);
+                sendAction({ choice: option.id });
+            };
             actionsContainer.appendChild(button);
+            console.log(`✅ Option button ${index + 1} created:`, option.display_name);
         });
+        console.log("✅ All option buttons created");
+    } else {
+        console.log("❌ No options provided or options array is empty");
+        console.log("Options:", options);
     }
 }
 

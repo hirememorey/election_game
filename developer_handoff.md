@@ -1,336 +1,215 @@
-# Developer Handoff
-
-**Date:** 2025-08-03
-**Author:** Assistant
-
-## State of the Project (Post-Game Loop Refactor v2)
-
-This development cycle successfully identified and fixed a critical, long-standing architectural flaw in the game's turn-passing and game loop logic. The application is now in a stable, robust, and architecturally sound state.
-
-### Core Problem & Resolution
-
--   **Problem:** The game loop was incorrectly implemented within the `GameSession`, which had no visibility into the client-server websocket connection. This caused multiple bugs, including AI turns executing in an uncontrolled burst and the client getting out of sync with the server. The application was also unstable due to startup errors and improper websocket lifecycle management.
--   **Solution:** A comprehensive, "bottom-up" refactoring effort was undertaken:
-    1.  **Stabilization:** All startup crashes were resolved by fixing inconsistencies left over from the previous refactoring. The websocket connection handling was made robust to prevent server crashes on client disconnect.
-    2.  **Architectural Correction:** The game loop was moved from `GameSession` to its correct home in the `server.py` websocket handler. The `server` now orchestrates the game's pacing, processing one turn at a time and waiting for client acknowledgement after each AI move.
-    3.  **Component Purification:** The roles of each major component are now clean and clear, as documented in `README.md` and `STATE_DRIVEN_REFACTOR.md`.
-    4.  **Bug Fixes:** With a stable foundation, all outstanding gameplay bugs (e.g., the repeated "Fundraiser" bonus) and UI display issues (e.g., "undefined" options) were easily resolved.
-
-### Current Status
-
-**All systems are go.** The application is stable, the game is fully playable, and the architecture is clean and maintainable. All known bugs have been resolved. The project is in an excellent state for future development.
-
----
-
-**Date:** 2025-08-03 (Latest Update)
-**Author:** Assistant
-
-## Current Status: Frontend Interaction Issue
-
-The backend has been successfully stabilized and is working correctly. However, there's a remaining issue where the human player cannot interact with the game despite the backend logic being fully functional.
-
-### Issues Successfully Resolved ✅
-
-1. **Player Dataclass Conflict**: Fixed `is_incumbent` property conflict in `models/components.py` that was causing `AttributeError: can't set attribute`
-2. **Action Registration Issues**: Fixed missing `@_register_action` decorators on `AcknowledgeAITurn` and `ActionSupportLegislation` in `engine/actions.py`
-3. **Frontend DOM Elements**: Updated `static/index.html` to include all required elements (`players-container`, `game-info-container`, etc.)
-4. **Server Startup**: Server now starts cleanly without crashes
-
-### Current Issue 🔍
-
-**Problem**: The human player cannot interact with the game (no action buttons appear) despite the backend being fully functional.
-
-**Evidence**:
-- Backend debug shows: `Is human turn? True`, `Valid actions for human: 4`
-- Frontend receives state updates but no action buttons appear
-- Server logs are clean with no errors
-- WebSocket communication is working
-
-**Root Cause Hypothesis**: The issue is likely in the frontend JavaScript rendering, not the backend logic.
-
-### Debugging Insights
-
-The "Reality-First" approach proved invaluable:
-- Starting with `python3 server.py` immediately revealed the critical startup crash
-- Server logs provided the most valuable diagnostic information
-- Manual testing was more effective than complex integration tests
-
-**Common Failure Points Identified**:
-1. **Action Registration**: Missing `@_register_action` decorators cause "Unknown action type" errors
-2. **Dataclass Conflicts**: Property/field conflicts cause "can't set attribute" errors
-3. **DOM Element Mismatches**: Frontend expecting elements that don't exist in HTML
-4. **Bundle Issues**: Old JavaScript being cached by browser
-
-### Next Steps
-
-See `PLAN_OF_ATTACK.md` for a comprehensive plan to resolve the remaining frontend interaction issue. The plan focuses on systematic frontend debugging while leveraging the now-stable backend.
-
-**Key Files to Monitor**:
-- `static/app.js` - Frontend logic
-- `static/index.html` - DOM structure
-- `game_session.py` - Game flow management
-- `engine/actions.py` - Action definitions
-- `models/components.py` - Data models
-
----
-
-**Date:** 2025-08-02
-**Author:** Assistant
-
-## State of the Project (Post-Game Loop Refactor)
-
-The core game loop has been refactored to be fully server-driven, resolving a critical architectural flaw that caused state desynchronization and incorrect turn progression.
-
-*   **Problem:** The previous implementation relied on the client to implicitly drive the AI turn sequence, leading to a fragile, "chatty" interface where the game could hang or process actions against stale state.
-*   **Solution:** A robust, server-side game loop has been implemented in `game_session.py`. After a human player acts, the `GameSession` now authoritatively executes all subsequent AI and system turns in a loop until control explicitly returns to the human. This makes the server the single source of truth for game progression.
-*   **Status:** The architecture is now fully aligned with the principles in `STATE_DRIVEN_REFACTOR.md`. The `GameEngine` is a pure, stateless rulebook, and the `GameSession` is the sole stateful "conductor." All tests are passing, and the game is stable.
-
----
-
-## Architectural Pivot: State-Driven Refactor (Complete)
-
-**This project has completed a significant architectural refactor.**
-
-The previous development cycle involved fixing a series of cascading bugs, which indicated a brittle underlying architecture. To address this, we have pivoted to a **state-driven design**. The primary goal is to create a stable, maintainable, and predictable game by ensuring the core game engine is a pure, stateless function.
-
-**The source of truth for the project's architecture and execution plan is `STATE_DRIVEN_REFACTOR.md`.** All new development should adhere to the principles outlined in that document.
-
-### Current Status (As of 2025-08-02)
-
-*   **Refactor Complete:** The state-driven refactor is now complete. All multi-step UI actions (`SponsorLegislation`, `SupportLegislation`, `OpposeLegislation`, `DeclareCandidacy`) have been migrated to the new, robust state-driven pattern. The `GameEngine` is now a pure, stateless function, and the `GameSession` acts as a clean "conductor." The `UIAction` class and the `engine/ui_actions.py` file have been removed. The project is now stable, and all tests are passing.
-
----
-
-## Historical Context (Pre-Refactor)
-
-*The following sections describe the state of the project before the architectural pivot. This information is preserved for historical context but should not guide future development.*
-
-### Summary of Changes (Pre-Refactor)
-
-The primary goal of this development cycle was to fix a series of critical bugs that left the game in an unplayable state after a major UI refactoring. The two-step action flow for legislation was not correctly implemented, leading to game state mismatches, action deserialization errors, and UI display bugs.
-
-The following fixes were implemented:
-
--   **Corrected Game State Machine:** The `GameSession` now correctly initializes the game by running the `EVENT_PHASE` before the first turn, preventing the game from getting stuck on startup.
--   **Fixed Action Deserialization:** Corrected the decorator order in `engine/actions.py` to ensure all `Action` subclasses properly inherit the `from_dict` method.
--   **Implemented UI Action Architecture:** Created a clear separation between game state-changing actions and UI-only actions by introducing a `UIAction` base class in a new `engine/ui_actions.py` file. This resolved the "Invalid selection" bug.
--   **Fixed End-to-End Tests:** The `test_end_to_end.py` test was fixed and updated to align with the server's correct, synchronous behavior, and all backend tests are now passing.
--   **Fixed Frontend Build Process:** Identified and used the `npm run build` command to correctly bundle the frontend JavaScript, ensuring that all UI fixes are visible to the user.
--   **Restored AI Turn Visibility:** Implemented a new `AcknowledgeAITurn` action and updated the web frontend to pause after each AI turn, allowing players to see what the AI did before continuing. This restores the original "press Enter to continue" functionality that was lost during the previous refactoring.
--   **Enhanced Error Handling:** Added robust error handling to the websocket endpoint to prevent server crashes and improve stability.
--   **Fixed Round Advancement Bug:** Added logic to detect when all players have 0 action points and automatically trigger the upkeep phase to advance rounds. This resolves the issue where the game would get stuck in Round 1 and not progress to subsequent rounds.
-
-## 2. Current Status
-
-**All systems are go.** All backend (`pytest`), frontend (`npm test`), and end-to-end tests are passing. The game is stable, playable, and the core two-step UI action flow is functioning as intended. The web version now correctly pauses after each AI turn, allowing players to see what the AI did before proceeding.
-
-The project is now in a solid state for the next phase of development.
-
-## 3. Next Steps
-
-With the core game loop and UI interaction model stabilized, the project is ready for further feature development or gameplay balancing. Recommended next steps could include:
-
--   Expanding the set of Event cards.
--   Adding more Political Archetypes with unique abilities.
--   Conducting large-scale simulations to fine-tune the economic and legislative balance.
--   Refactoring the `Declare Candidacy` action to use the new two-step UI action system for a cleaner user experience.
-
-## 4. Legislation "Undefined" Fix (2025-01-27)
-
-**Issue:** When users selected "Sponsor Legislation" in the web interface, they would see a list of "undefined" options instead of the actual legislation titles. This made the game unplayable as users couldn't see what bills they were selecting.
-
-**Root Cause Analysis:** The issue was caused by a mismatch between the data structure expected by the frontend and the data structure provided by the backend. The frontend JavaScript in `static/app.js` expected each option to have a `display_name` property, but the backend was not consistently providing this field in the correct format.
-
-**Solution:** Verified and confirmed that the backend code in `game_session.py` was already correctly generating the options list with both `id` and `display_name` fields for all UI actions (`UISponsorLegislation`, `UIDeclareCandidacy`, `UISupportLegislation`, `UIOpposeLegislation`).
-
-**Testing:** Created comprehensive test scripts that confirmed:
-- The legislation data structure is correct with proper titles
-- The `UISponsorLegislation` action generates the correct options format
-- The WebSocket communication properly transmits the data to the frontend
-
-**Resolution:** The backend code was already correct. The issue was resolved by ensuring users clear their browser cache and restart the server to get the latest frontend JavaScript. The fix ensures that when users select "Sponsor Legislation", they see properly formatted options like:
-- Infrastructure Bill (Cost: 5 PC)
-- Protect The Children! (Cost: 5 PC)
-- Change the Tax Code (Cost: 10 PC)
-- Military Funding (Cost: 8 PC)
-- Healthcare Overhaul (Cost: 15 PC)
-
-## 5. Recent Fix (2025-07-28)
-
-**Round Advancement Fix:** The game was getting stuck in Round 1 because there was no logic to detect when all players had used their action points and trigger the upkeep phase. This was particularly problematic for the web version deployed to Render.
-
-**Solution:** Added logic in `engine/engine.py` in the `process_action` method to check if all players have 0 action points after a player's turn ends. When this condition is met, the game automatically triggers the upkeep phase, which:
-- Advances the round marker
-- Refreshes all players' action points to 2
-- Runs the event phase for the new round
-- Returns control to the human player
-
-This fix ensures the game can progress through multiple rounds and terms as intended.
-
-## 6. Declare Candidacy Fix (2025-01-27)
-
-**Issue:** The "Declare Candidacy" action was not available to human players in Round 4, despite being a core game mechanic. This prevented players from running for office, which is essential for winning the game.
-
-**Root Cause Analysis:** The problem was in the `get_valid_actions` method in `engine/engine.py`. While the logic for checking if it was Round 4 was correct, the action was only being generated for AI players, not human players. Additionally, the action needed to be integrated into the two-step UI action system for consistency.
-
-**Solution:** Implemented a comprehensive fix across multiple components:
-
-**Backend Changes:**
-- **Updated `engine/engine.py`**: Modified `get_valid_actions` to return `UIDeclareCandidacy` for human players in Round 4, while AI players continue to receive concrete `ActionDeclareCandidacy` actions
-- **Updated `game_session.py`**: Added handling for `UIDeclareCandidacy` in `_handle_ui_action` to generate a list of available offices for the player to choose from
-- **Updated `engine/ui_actions.py`**: Added `UIDeclareCandidacy` class to the UI action system
-- **Updated `engine/actions.py`**: Fixed the `ACTION_CLASSES` dictionary to properly register all action subclasses
-
-**Frontend Changes:**
-- **Updated `static/app.js`**: Added case for `UIDeclareCandidacy` in `getActionDescription` to display the action correctly in the UI
-
-**Testing:**
-- **Added `test_declare_candidacy_flow`**: Created comprehensive test in `test_game_session.py` to verify the two-step flow works correctly
-- **All tests passing**: Verified that the changes don't introduce regressions
-
-**Quality Assurance:**
-- All backend and frontend tests pass
-- Solution maintains consistency with existing UI action patterns
-- Provides proper two-step flow for office selection
-- Maintains separation of concerns (UI actions for humans, concrete actions for AI)
-
-This fix ensures the "Declare Candidacy" action is available to human players in Round 4 and works correctly with the web interface.
-
-## 7. CLI Version Removal (2025-01-27)
-
-**Decision:** Removed the local CLI version of the game to simplify the project and avoid confusion. The web application now serves as the single interface for the game.
-
-**Files Removed:**
-- `main.py`: Entry point for the local CLI game
-- `cli.py`: Command-line interface display and user input handling
-- `human_vs_ai.py`: Game loop for human vs AI on command line
-- `cli_game.py`: Main CLI game experience
-- `test_cli_game.py`: Tests for the CLI game
-- `test_end_to_end.py`: CLI-specific end-to-end tests
-
-**Benefits:**
-- Simplified project structure
-- Reduced maintenance burden
-- Clear focus on web application
-- Eliminated potential confusion between CLI and web versions
-
-## 8. Sponsor Legislation Fix (2025-01-27)
-
-**Issue:** The "Sponsor Legislation" action was broken on the web version deployed to Render. When users selected this action, the game state would corrupt and display `undefined/4 Rounds`, making the game unplayable.
-
-**Root Cause Analysis:** The problem was caused by multiple issues in the backend:
-1. Missing imports in `game_session.py` causing `NameError`
-2. Incomplete data structure - frontend couldn't display user-friendly names for legislation options
-3. AI confusion - AI players were receiving UI-only actions that had no resolvers
-4. Brittle action reconstruction - backend couldn't reliably reconstruct actions from user choices
-
-**Solution:** Implemented a comprehensive fix across multiple components:
-
-**Backend Changes:**
-- **Fixed `game_session.py`**: Added missing imports, enhanced `_handle_ui_action` to provide richer data with `display_name` and `cost`, simplified `process_action` to handle user choices cleanly
-- **Fixed `engine/engine.py`**: Modified `get_valid_actions` to differentiate between human and AI players - AI players receive concrete actions, human players receive UI actions
-- **Created comprehensive tests**: Added `test_game_session.py` with robust unit tests validating the complete two-step flow
-
-**Frontend Changes:**
-- **Updated `static/app.js`**: Modified `promptForSubChoice` to use new `display_name` field, updated sub-choice handling to send correct `choice` format
-
-**Quality Assurance:**
-- All backend tests pass
-- Solution is clean, simple, and robust
-- Maintains separation of concerns (UI actions for humans, concrete actions for AI)
-- Provides rich data structure for better UX
-- Extensible pattern for future two-step actions
-
-This fix ensures the "Sponsor Legislation" action works correctly on the web version deployed to Render.
-
-## 8. Legislation Sponsorship and Support/Oppose Fix (2025-01-27)
-
-**Issue:** Players could re-sponsor already active legislation and could not support or oppose their own sponsored bills, breaking the core game mechanics.
-
-**Root Cause Analysis:**
-1. **Re-sponsoring Active Bills:** The `get_valid_actions` method in `engine/engine.py` and the UI handling in `game_session.py` did not filter out already sponsored legislation when presenting sponsorship options.
-2. **Cannot Support Own Bills:** The UI actions for support/oppose legislation were not implemented in `game_session.py`, preventing players from committing PC to any active bills.
-3. **Serialization Issues:** The `PendingLegislation` class lacked a `to_dict()` method, causing tuple serialization errors, and `term_legislation` was not included in the game state sent to the frontend.
-
-**Solution:** Implemented comprehensive fixes across multiple components:
-
-**Backend Changes:**
-- **Updated `engine/engine.py`**: Modified `get_valid_actions` to filter out already sponsored legislation when generating sponsorship options for both AI and human players
-- **Updated `game_session.py`**:
-  - Implemented `UISupportLegislation` and `UIOpposeLegislation` handlers in `_handle_ui_action`
-  - Added support for legislation choice mapping in `process_action`
-  - Added filtering to prevent re-sponsoring active legislation in the UI
-- **Updated `models/game_state.py`**:
-  - Added `to_dict()` method to `PendingLegislation` class for proper JSON serialization
-  - Included `term_legislation` in `GameState.to_dict()` method
-
-**Quality Assurance:**
-- All backend tests continue to pass
-- Solution maintains clean separation between UI actions and concrete game actions
-- Fixes both server-side tuple errors and frontend JavaScript errors
-- Enables proper two-step flow for legislation support/oppose actions
-- Prevents duplicate sponsorship of active bills
-
-This fix ensures players can properly sponsor legislation in one round and then support or oppose any active legislation (including their own) in subsequent rounds, aligning with the physical game rules. 
-
-## 9. Precise PC Commitment System (2025-01-27)
-
-**Issue:** Players were limited to committing fixed amounts of Political Capital (PC) when supporting or opposing legislation, which limited strategic depth and didn't align with the physical game's design where players can commit any amount of PC they choose.
-
-**Root Cause Analysis:** The existing two-step UI action system only handled the selection of which bill to support/oppose, but then defaulted to committing 1 PC regardless of the player's choice. The system lacked a third step to prompt for the specific amount of PC to commit.
-
-**Solution:** Implemented a comprehensive three-step action flow for supporting and opposing legislation:
-
-**Backend Changes:**
-- **Enhanced `game_session.py`**: 
-  - Refactored the `_process_pending_action` method to handle multi-step flows with a `step` field
-  - Added support for `choose_entity` (select bill) and `choose_amount` (specify PC amount) steps
-  - Implemented validation to ensure the committed amount is within the player's available PC
-  - Added the `expects_input` flag to the state payload sent to the frontend
-- **Updated `_handle_ui_action`**: Modified to create pending actions with proper step tracking for support/oppose legislation
-
-**Frontend Changes:**
-- **Enhanced `static/app.js`**: 
-  - Added logic to detect when the backend expects free-form numeric input (`expects_input === "amount"`)
-  - Implemented proper parsing and validation of numeric input for PC amounts
-  - Added error handling for invalid amounts with user-friendly prompts
-
-**Quality Assurance:**
-- All existing functionality continues to work (sponsor legislation, declare candidacy)
-- New three-step flow: 1) Choose action, 2) Select bill, 3) Specify PC amount
-- Proper validation ensures players cannot commit more PC than they have
-- Clean error handling with helpful prompts for invalid input
-- Maintains consistency with existing UI patterns
-
-**User Experience:**
-Players now experience a natural flow:
-1. Select "Support Legislation" or "Oppose Legislation"
-2. Choose which bill to influence from the available options
-3. Enter the exact amount of PC to commit (e.g., "25" for 25 PC)
-4. The system validates the input and processes the action
-
-This enhancement significantly improves strategic depth by allowing players to make precise risk/reward decisions about their PC commitments, aligning with the physical game's design philosophy. 
-
-## 10. End-of-Term Game Loop Fix (2025-07-29)
-
-**Issue:** The game would hang at the end of a term (after Round 4). The backend was correctly entering the `LEGISLATION_PHASE` and `ELECTION_PHASE`, but it was not providing the necessary system actions (`ActionResolveLegislation`, `ActionResolveElections`) to the frontend. The user was left with no way to advance the game.
-
-**Root Cause Analysis:** The `GameSession.get_state_for_client` method was only ever checking for valid *player* actions and was completely blind to the *system* actions generated by the `GameEngine` during end-of-term phases.
-
-**Solution:**
-1.  **Refactored `GameSession`:** The `get_state_for_client` method was updated to prioritize checking for system actions. If any exist, they are sent exclusively to the client, ensuring the user is prompted to resolve the legislation or elections.
-2.  **Updated Frontend:** The `static/app.js` file was updated to recognize and display these new system actions (`Resolve Legislation`, `Resolve Elections`, `Start Next Term`) with clear descriptions and icons.
-3.  **Architectural Improvement:** The core game loop in `GameSession` was refactored to be more state-driven and robust, separating the processing of a single human action from the subsequent execution of AI turns. This prevents the game from incorrectly trying to run AI turns during the end-of-term resolution sequence.
-4.  **Comprehensive Test:** A new test file, `test_term_flow.py`, was created to provide end-to-end validation of the full term-to-term transition.
-
-**Current Status & Next Steps:**
-**The fix is implemented, but the new test in `test_term_flow.py` is currently FAILING.**
-
-The test attempts to validate the fix by jumping to the end of a term and checking the resolution phases. It fails because it does not correctly set up the required preconditions. Specifically, the test tries to sponsor a bill to ensure the `LEGISLATION_PHASE` is not skipped, but it does so without ensuring the player has enough AP, causing the action to fail silently.
-
-**Recommendation for Next Developer:**
-1.  **Fix the Test:** The immediate next step is to fix the test in `test_term_flow.py`. The test needs to be rewritten to correctly and explicitly play out the final round, ensuring a bill is successfully sponsored *before* the term ends.
-2.  **Validate:** Once the test is passing, the core fix will be validated.
-3.  **Cleanup:** The debug `[DEBUG]` print statements that were added to `engine/engine.py` can be removed. 
-
-**UPDATE (2025-07-31):** The `test_term_flow.py` has been fixed and all backend tests are now passing. The core game engine has been successfully refactored to be stateless, with clean separation of concerns for action processing and turn advancement. The project is in a stable state for the next phase of the refactor, which is to simplify the `GameSession` and the frontend. 
+# Developer Handoff - ELECTION Game
+
+## **CRITICAL STATUS: GAME HAS MAJOR BUGS**
+
+### **Current State: Partially Working with Critical Issues**
+
+The game is currently in a **partially working state** with several **critical bugs** that prevent complete turn-to-turn gameplay:
+
+1. **✅ Working**: Basic game startup, WebSocket communication, action buttons appear
+2. **✅ Working**: Support/Oppose legislation flow (after recent fixes)
+3. **❌ BROKEN**: Legislation resolution doesn't advance the game
+4. **❌ BROKEN**: AI acknowledgment system causes infinite loops
+5. **❌ BROKEN**: Multiple state management systems create chaos
+
+## **CRITICAL BUGS IDENTIFIED**
+
+### **1. State Management Chaos**
+- **Problem**: Multiple competing state managers (Engine, Session, UI, Pending Actions)
+- **Symptom**: Actions processed but state doesn't advance, infinite loops
+- **Impact**: Game gets stuck and doesn't progress properly
+
+### **2. Broken Action Processing**
+- **Problem**: `__init__() missing 1 required positional argument: 'player_id'` errors
+- **Symptom**: Actions fail to create properly, game gets stuck
+- **Impact**: Critical actions like "Resolve Legislation" don't work
+
+### **3. AI Acknowledgment System Failure**
+- **Problem**: Game waits for AI acknowledgment that never comes
+- **Symptom**: Infinite "Awaiting AI acknowledgment" loops
+- **Impact**: Game gets stuck waiting for AI turns
+
+### **4. Legislation Resolution Not Advancing**
+- **Problem**: "Resolve Legislation" button appears but doesn't advance game
+- **Symptom**: Same state sent repeatedly, no progression
+- **Impact**: Game can't complete a full term
+
+## **NEW ARCHITECTURE PLAN: Single Source of Truth**
+
+### **Core Problem**
+The current architecture has **multiple competing state managers** that create chaos and bugs. The solution is to implement a **single source of truth** architecture.
+
+### **New Architecture**
+```
+┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
+│   Frontend      │    │   GameSession   │    │     Engine      │
+│   (UI Only)     │◄──►│   (Adapter)     │◄──►│  (State Only)   │
+└─────────────────┘    └─────────────────┘    └─────────────────┘
+```
+
+### **Responsibilities**
+- **Engine**: ONLY manages game state, processes actions, determines valid actions
+- **GameSession**: ONLY adapts Engine state for frontend, handles WebSocket communication
+- **Frontend**: ONLY displays current state, sends user actions to backend
+
+## **IMPLEMENTATION PLAN**
+
+### **Phase 1: State Consolidation (CRITICAL)**
+1. **Eliminate Multiple State Managers** - Make Engine the ONLY source of truth
+2. **Simplify Action Processing** - Single, consistent action pipeline
+3. **Remove AI Acknowledgment System** - Replace with simple linear progression
+
+### **Phase 2: Turn Flow Simplification**
+1. **Linear Turn Progression** - Each action advances game by exactly one step
+2. **Clear Phase Transitions** - Each phase has clear entry and exit conditions
+3. **Simplify UI State** - Remove complex pending_ui_action complexity
+
+### **Phase 3: Error Handling**
+1. **Comprehensive Error Recovery** - Graceful recovery from action failures
+2. **State Validation** - Every state change is validated
+3. **Clear Error Messages** - Users understand what went wrong
+
+## **CURRENT CODEBASE STATUS**
+
+### **Working Components**
+- ✅ Server startup and WebSocket communication
+- ✅ Basic game state management
+- ✅ Action button rendering
+- ✅ Support/Oppose legislation flow (recently fixed)
+- ✅ Frontend state display
+
+### **Broken Components**
+- ❌ Legislation resolution advancement
+- ❌ AI turn acknowledgment system
+- ❌ Complete turn-to-turn gameplay
+- ❌ Error handling and recovery
+- ❌ State validation
+
+### **Files Requiring Major Changes**
+- `engine/engine.py` - Needs to be single source of truth
+- `game_session.py` - Needs to become pure adapter
+- `engine/resolvers.py` - Needs simplified action processing
+- `static/app.js` - Needs simplified state handling
+
+## **IMMEDIATE NEXT STEPS**
+
+### **Priority 1: Fix Critical Bugs**
+1. **Consolidate State Management** - Move all state to Engine
+2. **Fix Action Processing** - Ensure all actions work consistently
+3. **Remove AI Acknowledgment** - Implement simple turn progression
+4. **Fix Legislation Resolution** - Ensure it advances the game
+
+### **Priority 2: Implement New Architecture**
+1. **Engine Consolidation** - Make Engine the only state manager
+2. **Session Simplification** - Make GameSession a pure adapter
+3. **Frontend Simplification** - Remove complex state management
+
+### **Priority 3: Add Error Handling**
+1. **Comprehensive Error Recovery** - Graceful handling of failures
+2. **State Validation** - Ensure state is always valid
+3. **Clear Error Messages** - User-friendly error reporting
+
+## **TESTING STRATEGY**
+
+### **Unit Tests**
+- Test all state transitions
+- Test all action processing
+- Test error handling scenarios
+
+### **Integration Tests**
+- Test complete turn flow
+- Test phase transitions
+- Test legislation resolution
+
+### **End-to-End Tests**
+- Test complete term-to-term gameplay
+- Test error recovery scenarios
+- Test edge cases
+
+## **SUCCESS CRITERIA**
+
+### **Functional Requirements**
+- [ ] Complete turn-to-turn gameplay works
+- [ ] No infinite loops or stuck states
+- [ ] All actions process correctly
+- [ ] Clear error messages when things go wrong
+- [ ] Smooth transitions between all game phases
+
+### **Technical Requirements**
+- [ ] Engine is the ONLY state manager
+- [ ] No competing state management systems
+- [ ] Single action processing pipeline
+- [ ] Comprehensive error handling
+- [ ] Clear state validation
+
+## **RISK MITIGATION**
+
+### **Breaking Changes Risk**
+- **Mitigation**: Implement changes incrementally with comprehensive testing
+- **Fallback**: Maintain ability to rollback to previous working state
+
+### **Complexity Risk**
+- **Mitigation**: Start with simplest possible implementation
+- **Approach**: Add complexity only when proven necessary
+
+### **Testing Risk**
+- **Mitigation**: Comprehensive test suite before any changes
+- **Approach**: Test-driven development for all new features
+
+## **FILES TO MONITOR**
+
+### **Critical Files**
+- `engine/engine.py` - Core game logic and state management
+- `game_session.py` - Game flow and WebSocket handling
+- `engine/resolvers.py` - Action processing logic
+- `static/app.js` - Frontend state handling
+
+### **Configuration Files**
+- `game_config.yaml` - Game configuration
+- `webpack.config.js` - Frontend build configuration
+- `requirements.txt` - Python dependencies
+
+### **Test Files**
+- `test_state_driven_flow.py` - Core game flow tests
+- `test_support_legislation.py` - Legislation action tests
+- `test_oppose_legislation.py` - Opposition action tests
+
+## **COMMUNICATION**
+
+### **Daily Standups**
+- Report progress on critical bug fixes
+- Identify any new issues discovered
+- Coordinate on architecture changes
+
+### **Code Reviews**
+- All changes require code review
+- Focus on architecture compliance
+- Ensure no new state management systems added
+
+### **Testing**
+- All changes require passing tests
+- Manual testing for critical flows
+- End-to-end testing for complete gameplay
+
+## **EMERGENCY PROCEDURES**
+
+### **If Game Becomes Unplayable**
+1. **Immediate**: Rollback to last working commit
+2. **Short-term**: Focus on critical bug fixes only
+3. **Long-term**: Implement new architecture incrementally
+
+### **If New Critical Bugs Found**
+1. **Document**: Add to critical bugs list
+2. **Prioritize**: Assess impact on gameplay
+3. **Fix**: Implement fix with comprehensive testing
+
+### **If Architecture Changes Needed**
+1. **Review**: Assess impact on current plan
+2. **Update**: Modify architecture plan if necessary
+3. **Communicate**: Update team on changes
+
+## **CONCLUSION**
+
+The game is currently in a **critical state** with several major bugs preventing complete gameplay. The new **single source of truth architecture** is the recommended solution to eliminate the state management chaos and create a stable, maintainable game.
+
+**Immediate focus should be on fixing the critical bugs and implementing the new architecture incrementally with comprehensive testing.** 

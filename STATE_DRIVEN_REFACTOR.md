@@ -1,78 +1,244 @@
-# State-Driven Architecture Refactor
+# STATE DRIVEN REFACTOR - ELECTION Game
 
-## 1. Purpose & Motivation
+## **CRITICAL ISSUES IDENTIFIED**
 
-This document outlines a plan to refactor the game's core architecture. The primary motivation is to address the recurring "whack-a-mole" problem, where fixing one bug introduces new, unforeseen issues. This indicates that the current architecture is brittle and difficult to maintain.
+### **Current State Management Problems**
 
-The goal is to create a **stable, maintainable, and predictable** game engine by adhering to modern software design principles.
+The game currently suffers from **multiple competing state managers** that create chaos:
 
-### Current Shortcomings:
+1. **Engine State** - The canonical game state in `engine/engine.py`
+2. **Session State** - GameSession wrapper around engine state  
+3. **UI State** - Frontend state management in `static/app.js`
+4. **Pending Actions** - Intermediate state for multi-step actions
 
-*   **Tangled Logic:** Game logic is spread across `GameSession`, `GameEngine`, and even the frontend, making it difficult to trace the flow of data and control.
-*   **Complex Action Flows:** The current "two-step" and "three-step" action system is complex and has been a frequent source of bugs.
-*   **Brittle Client-Server Communication:** The communication between the client and server is "chatty" and relies on a complex sequence of messages, making it prone to getting out of sync.
+**Symptoms of State Chaos:**
+- Actions processed but state doesn't advance
+- Infinite loops where same state keeps being sent
+- Broken turn progression with AI acknowledgment failures
+- `__init__() missing 1 required positional argument: 'player_id'` errors
 
-## 2. Core Architectural Principles
+## **NEW ARCHITECTURE: Single Source of Truth**
 
-The new architecture will be guided by the following principles:
+### **Core Principle: Engine is the ONLY State Manager**
 
-1.  **Pure Game Engine:** The `GameEngine` will be a collection of pure functions. Its only job is to take the current game state and an action, and produce the *next* game state. It will have no side effects and no knowledge of the outside world (UI, network, etc.).
-2.  **Single Source of Truth:** The `GameState` object will be the one and only authority on the current state of the game. All parts of the system will read from this state.
-3.  **Unidirectional Data Flow:** Information will flow in a single, predictable direction: `UI -> Action -> Server (GameSession) -> Engine -> New GameState -> UI`.
-4.  **"Dumb" UI:** The frontend's main job will be to render the state it's given and send user actions to the backend. It will not contain complex game logic.
+```
+┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
+│   Frontend      │    │   GameSession   │    │     Engine      │
+│   (UI Only)     │◄──►│   (Adapter)     │◄──►│  (State Only)   │
+└─────────────────┘    └─────────────────┘    └─────────────────┘
+```
 
-## 3. Proposed Architecture
+### **Responsibilities**
 
-*   **`GameState` (`models/game_state.py`):** A comprehensive, serializable data class that represents all information about the game at a single point in time.
-*   **`GameEngine` (`engine/engine.py`):** A stateless service class containing pure functions. The main functions will be `process_action(state: GameState, action: Action) -> GameState` and `get_valid_actions(state: GameState, player_id: int) -> List[Action]`.
-*   **`GameSession` (`game_session.py`):** The "conductor." It will hold the single `GameState` instance. It will manage the game lifecycle, handle incoming actions from the UI, call the `GameEngine`, and run AI turns. It will be the only component with side effects.
-*   **`server.py`:** The network layer. It will handle websocket connections and pass validated user action data to the `GameSession`.
-*   **`static/app.js`:** The UI layer. It will receive a full `GameState` object, render it, and present the `valid_actions` to the user.
+#### **Engine (Single Source of Truth)**
+- **ONLY** manages game state
+- **ONLY** processes actions
+- **ONLY** determines valid actions
+- **ONLY** advances game flow
 
-## 4. Execution Plan
+#### **GameSession (Pure Adapter)**
+- **NO** state management
+- **ONLY** adapts Engine state for frontend
+- **ONLY** handles WebSocket communication
+- **ONLY** converts frontend actions to Engine actions
 
-1.  **~~Create `STATE_DRIVEN_REFACTOR.md`~~:** **Done.** This document.
-2.  **~~Establish a Test-Driven Foundation~~:** **Done.**
-    *   ~~Create a new test file, `test_state_driven_flow.py`.~~ **Done.**
-    *   ~~Write a "golden path" test for a single, complete round of a 2-player game. This test will initially fail but will serve as our guide.~~ **Done.** The initial test for a single action is passing.
-    *   **Update:** The comprehensive end-of-term test (`test_term_flow.py`) is also now passing, validating the full game loop.
-    *   **Update (Final):** The `test_term_flow.py` was removed as it was incompatible with the final architecture. The core logic is now covered by more specific, state-driven unit tests.
-3.  **Refactor the Core Engine (`engine.py`):** **Done.**
-    *   ~~Strip all stateful logic from `GameEngine`.~~ **Done.**
-    *   ~~Rewrite `process_action` to be a pure function that accepts `GameState` as its first argument.~~ **Done.**
-    *   **Update:** Turn-advancement logic has been separated from `process_action`, and all action resolvers now correctly deduct AP. The engine is now stateless.
-4.  **Refactor the Session Manager (`game_session.py`):** **Done.**
-    *   ~~Make `GameSession` the sole owner of the `GameState` object.~~ **Done.**
-    *   ~~Rewrite its methods to follow the new unidirectional flow.~~ **Done.**
-    *   **Update:** The `GameSession` has been significantly simplified. The complex, stateful logic for handling multi-step UI actions (`pending_ui_action`) has been removed. `GameSession` now acts as a clean "conductor," passing actions directly to the pure `GameEngine`.
-5.  **Simplify the Frontend (`static/app.js`):** **Done.**
-    *   ~~Remove complex logic for interpreting multi-step server responses.~~ **Done.**
-    *   ~~Update the rendering logic to work from the single, comprehensive `GameState` object.~~ **Done.**
-    *   **Update:** The frontend no longer relies on the backend to manage UI presentation state (like pausing for AI turns). Multi-step actions are now driven by a `pending_ui_action` object within the `GameState`, making the client a "dumber" and more robust renderer of the state.
-6.  **Establish a New UI Action Pattern:** **Done.**
-    *   A new pattern for handling multi-step UI actions has been established and proven for the "Support Legislation" flow.
-    *   **New `GameState` field:** `pending_ui_action` was added to `GameState` to hold the state of the UI interaction.
-    *   **New `GameEngine` actions and resolvers:** The engine now uses a chain of actions (`ActionInitiate...`, `ActionSubmit...`) and corresponding resolvers to manage the UI flow in a purely functional way.
-    *   **Update:** The pattern has now been successfully applied to the `OpposeLegislation`, `SponsorLegislation`, and `DeclareCandidacy` actions. The refactor is complete.
-7.  **Iterate and Expand:** **Done.** All core UI actions have been refactored, and the codebase is now stable and fully aligned with the state-driven architecture.
+#### **Frontend (Pure UI)**
+- **NO** state management
+- **ONLY** displays current state
+- **ONLY** sends user actions to backend
+- **ONLY** renders UI based on received state
 
-## 5. Desired Outcome
+## **IMPLEMENTATION PLAN**
 
-*   A stable game that is no longer prone to cascading bugs.
-*   A codebase that is easier to understand, maintain, and extend.
-*   A clear separation of concerns that allows for independent development and testing of the game logic and the UI.
+### **Phase 1: Engine Consolidation**
 
-## 6. Key Learnings & Refinements (As of 2025-08-03)
+#### **1.1 Remove All State Management from GameSession**
+```python
+# BEFORE: GameSession manages state
+class GameSession:
+    def __init__(self):
+        self.state = None  # ❌ REMOVE
+        self.engine = GameEngine(game_data)
+    
+    def process_action(self, action):
+        # ❌ REMOVE all state management
+        self.state = self.engine.process_action(self.state, action)
 
-The initial state-driven refactor was successful in creating a pure `GameEngine` and a state-holding `GameSession`. However, a critical refinement was necessary to achieve true stability, particularly regarding the game loop and turn pacing.
+# AFTER: GameSession is pure adapter
+class GameSession:
+    def __init__(self):
+        self.engine = GameEngine(game_data)
+        self.engine.start_new_game()  # Engine manages state
+    
+    def process_action(self, action):
+        # ✅ ONLY delegate to engine
+        self.engine.process_action(action)
+```
 
-**The Game Loop Belongs in the Network Layer:**
+#### **1.2 Simplify Action Processing**
+```python
+# BEFORE: Multiple action creation paths
+def process_human_action(self, action_data):
+    if self.state.pending_ui_action:
+        # Complex UI action processing
+    else:
+        # Regular action processing
 
--   **Initial Flaw:** The original implementation placed the game loop logic (i.e., the `while` loop that runs AI turns) inside the `GameSession`. This was a mistake because the `GameSession` has no knowledge of the client-server communication protocol. It could not properly "pause" to wait for client acknowledgement after an AI turn, leading to the AI playing out all its moves in a single, uncontrolled burst.
--   **The Correct Architecture:** The game loop and all logic related to the *pacing* of the game must reside in the network layer (`server.py`). The `server` is the only component that can manage the asynchronous "send state, wait for response" nature of a websocket connection.
--   **Refined Responsibilities:**
-    -   **`server.py`:** Owns the `while` loop that drives the game. It calls the `GameSession` to process one turn at a time, sends the new state to the client, and waits for an acknowledgement before processing the next AI turn.
-    -   **`game_session.py`:** Exposes simple, non-looping methods (`process_human_action`, `process_ai_turn`) that the server uses as building blocks. It is a stateful "Game Master," but it is not the "Conductor."
-    -   **`engine/engine.py`:** Remains a pure, stateless "Rulebook."
+# AFTER: Single action pipeline
+def process_human_action(self, action_data):
+    # ✅ ALL actions go through same pipeline
+    action = self.engine.create_action_from_dict(action_data)
+    self.engine.process_action(action)
+```
 
-This refinement ensures a clean separation of concerns, where game logic, state management, and network communication are handled by distinct, specialized components. 
+#### **1.3 Remove AI Acknowledgment System**
+```python
+# BEFORE: Complex turn flow with acknowledgments
+def advance_game_flow(self, state):
+    if state.awaiting_ai_acknowledgment:
+        # Wait for AI acknowledgment
+    elif state.awaiting_legislation_resolution:
+        # Wait for legislation resolution
+
+# AFTER: Simple linear progression
+def advance_game_flow(self, state):
+    # ✅ Simple state machine
+    if state.current_player.action_points <= 0:
+        state.next_player()
+    elif state.round_complete:
+        state.next_phase()
+```
+
+### **Phase 2: Turn Flow Simplification**
+
+#### **2.1 Linear Turn Progression**
+```python
+# Clear state machine for turn flow
+class TurnFlow:
+    ACTION_PHASE = "action_phase"
+    UPKEEP_PHASE = "upkeep_phase"
+    LEGISLATION_SESSION = "legislation_session"
+    ELECTION_PHASE = "election_phase"
+    
+    def advance_turn(self, state):
+        if state.phase == self.ACTION_PHASE:
+            if state.current_player.action_points <= 0:
+                state.next_player()
+            if all_players_no_actions(state):
+                state.phase = self.UPKEEP_PHASE
+```
+
+#### **2.2 Clear Phase Transitions**
+```python
+# Explicit phase transitions
+def transition_phase(self, state):
+    if state.phase == "action_phase" and all_rounds_complete(state):
+        state.phase = "upkeep_phase"
+    elif state.phase == "upkeep_phase":
+        state.phase = "legislation_session"
+    elif state.phase == "legislation_session":
+        state.phase = "election_phase"
+    elif state.phase == "election_phase":
+        state.phase = "next_term"
+```
+
+#### **2.3 Simplify UI State**
+```python
+# BEFORE: Complex pending UI actions
+state.pending_ui_action = {
+    "original_action_type": "ActionInitiateSupportLegislation",
+    "next_action": "ActionSubmitLegislationChoice",
+    "expects_input": "amount",
+    # ... complex state
+}
+
+# AFTER: Direct action processing
+# ✅ No intermediate state, direct action creation
+action = ActionSupportLegislation(player_id=player_id, legislation_id=choice, amount=amount)
+```
+
+### **Phase 3: Error Handling**
+
+#### **3.1 Comprehensive Error Recovery**
+```python
+def process_action_safely(self, action):
+    try:
+        return self.engine.process_action(action)
+    except ActionError as e:
+        # Log error and continue game
+        self.add_log(f"Action failed: {e}")
+        return self.state  # Return current state, don't crash
+    except Exception as e:
+        # Critical error - log and recover
+        self.add_log(f"Critical error: {e}")
+        return self.create_safe_state()
+```
+
+#### **3.2 State Validation**
+```python
+def validate_state(self, state):
+    # Ensure state is always valid
+    if not state.players:
+        raise InvalidStateError("No players in state")
+    if state.current_player_index >= len(state.players):
+        raise InvalidStateError("Invalid current player index")
+    # ... more validation
+```
+
+## **MIGRATION STRATEGY**
+
+### **Step 1: Engine Consolidation**
+1. Move all state management to Engine
+2. Remove state management from GameSession
+3. Test that Engine is single source of truth
+
+### **Step 2: Action Processing Fix**
+1. Implement single action pipeline
+2. Fix all `__init__()` errors
+3. Test all action types work
+
+### **Step 3: Turn Flow Simplification**
+1. Remove AI acknowledgment system
+2. Implement linear turn progression
+3. Test complete turn flow
+
+### **Step 4: Error Handling**
+1. Add comprehensive error recovery
+2. Implement state validation
+3. Test error scenarios
+
+## **SUCCESS CRITERIA**
+
+### **Functional Requirements**
+- [ ] Complete turn-to-turn gameplay works
+- [ ] No infinite loops or stuck states
+- [ ] All actions process correctly
+- [ ] Clear error messages when things go wrong
+- [ ] Smooth transitions between all game phases
+
+### **Technical Requirements**
+- [ ] Engine is the ONLY state manager
+- [ ] No competing state management systems
+- [ ] Single action processing pipeline
+- [ ] Comprehensive error handling
+- [ ] Clear state validation
+
+### **Testing Requirements**
+- [ ] Unit tests for all state transitions
+- [ ] Integration tests for complete turn flow
+- [ ] End-to-end tests for full game scenarios
+- [ ] Error recovery tests
+
+## **RISK MITIGATION**
+
+### **Breaking Changes Risk**
+- **Mitigation**: Implement changes incrementally
+- **Fallback**: Maintain ability to rollback
+
+### **Complexity Risk**
+- **Mitigation**: Start with simplest implementation
+- **Approach**: Add complexity only when necessary
+
+### **Testing Risk**
+- **Mitigation**: Comprehensive test suite
+- **Approach**: Test-driven development 

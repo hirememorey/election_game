@@ -149,6 +149,7 @@ def resolve_submit_legislation_choice(state: GameState, action: ActionSubmitLegi
         "prompt": prompt,
         "options": [], # No more choices, expecting free-form input
         "next_action": "ActionSubmitAmount",
+        "expects_input": "amount", # This tells the frontend to show an amount input
         "min_amount": 1,
         "max_amount": player.pc,
         # Preserve the original action type for the final step

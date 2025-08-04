@@ -11,6 +11,10 @@ app.mount("/static", StaticFiles(directory="static"), name="static")
 async def read_root():
     return FileResponse('static/index.html')
 
+@app.get("/debug")
+async def read_debug():
+    return FileResponse('static/debug.html')
+
 @app.websocket("/ws")
 async def websocket_endpoint(websocket: WebSocket):
     await websocket.accept()

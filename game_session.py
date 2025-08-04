@@ -149,7 +149,10 @@ class GameSession:
         # including system actions and the state of pending UI actions.
         if self.is_human_turn():
             valid_actions = self.engine.get_valid_actions(self.state, self.human_player_id)
-            state_dict['valid_actions'] = [action.to_dict() for action in valid_actions]
+            # Also include system actions for human players when appropriate
+            system_actions = self.engine.get_valid_system_actions(self.state)
+            all_actions = valid_actions + system_actions
+            state_dict['valid_actions'] = [action.to_dict() for action in all_actions]
         else:
             # For AI turns, we can still get system actions if they exist
             system_actions = self.engine.get_valid_system_actions(self.state)
@@ -160,6 +163,8 @@ class GameSession:
              state_dict['prompt'] = self.state.pending_ui_action.get('prompt')
              state_dict['options'] = self.state.pending_ui_action.get('options')
              state_dict['expects_input'] = self.state.pending_ui_action.get('expects_input')
+             print(f"DEBUG: pending_ui_action = {self.state.pending_ui_action}")
+             print(f"DEBUG: expects_input = {self.state.pending_ui_action.get('expects_input')}")
 
         return state_dict
 
@@ -174,18 +179,27 @@ class GameSession:
             if self.state and self.state.pending_ui_action and 'choice' in action_data:
                 pending_action_info = self.state.pending_ui_action
                 next_action_type = pending_action_info.get('next_action')
+                print(f"Processing choice: {action_data['choice']} for action type: {next_action_type}")
+                
                 if next_action_type:
                     action_class = ACTION_CLASSES.get(next_action_type)
                     if action_class:
                         if pending_action_info.get('expects_input') == 'amount':
+                            print(f"Creating amount action: {next_action_type} with amount {action_data['choice']}")
                             action_to_execute = action_class(player_id=self.human_player_id, amount=action_data['choice'])
                         else:
-                            action_to_execute = action_class(player_id=self.human_player_id, legislation_id=action_data['choice'])
+                            # For choice-based actions (like legislation selection), use the choice parameter
+                            print(f"Creating choice action: {next_action_type} with choice {action_data['choice']}")
+                            action_to_execute = action_class(player_id=self.human_player_id, choice=action_data['choice'])
+                    else:
+                        print(f"Action class not found for: {next_action_type}")
             else:
                 action_to_execute = self.engine.action_from_dict(action_data)
 
         except Exception as e:
             print(f"Error creating action from dict: {e}")
+            import traceback
+            traceback.print_exc()
 
         if action_to_execute:
             self._execute_action(action_to_execute)
