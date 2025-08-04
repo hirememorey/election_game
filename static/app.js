@@ -2,7 +2,9 @@ let ws;
 
 function connect() {
     console.log("🔌 Attempting to connect to WebSocket...");
-    ws = new WebSocket(`ws://${window.location.host}/ws`);
+    // Use secure WebSocket (wss) when page is loaded over HTTPS
+    const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+    ws = new WebSocket(`${protocol}//${window.location.host}/ws`);
 
     ws.onopen = () => {
         console.log("✅ WebSocket connection established");
