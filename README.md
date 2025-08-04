@@ -2,15 +2,23 @@
 
 A competitive political strategy game where players manage Political Capital (PC), sponsor and defeat legislation, form alliances, and compete for political office. Features a **Secret Commitment System** where players secretly fund or fight legislation, leading to dramatic reveals.
 
-## **🎮 Current Status: PLAYABLE**
+## **🎮 Current Status: FULLY PLAYABLE**
 
-The game is now **fully playable** with all major bugs fixed. The action system has been repaired and the game flows properly from term to term.
+The game is now **fully playable** with all major bugs fixed. The action system has been repaired, WebSocket connections work on HTTPS deployments, and the game flows properly from term to term.
 
 ### **✅ Recent Fixes Applied:**
+- **WebSocket HTTPS Support**: Fixed protocol detection for secure deployments
+- **Two-Step Declare Candidacy**: Added additional commitment flow beyond base office cost
+- **Cost Calculation Fix**: Fixed committed_pc calculation in election system
 - **Missing Action Resolvers**: Added `AcknowledgeAITurn` resolver to engine
 - **System Action Resolvers**: Fixed to actually call engine methods instead of just logging
 - **Method Name Issues**: Fixed `resolve_legislation_session` to call correct election methods
 - **Action Creation**: Fixed missing `player_id` parameter handling
+
+### **🎯 New Features:**
+- **Enhanced Declare Candidacy**: Players can now commit additional PC beyond the base office cost
+- **Strategic Campaign Funding**: More nuanced election strategies with flexible commitment amounts
+- **HTTPS Deployment Ready**: Works on Render and other HTTPS platforms
 
 ## **🚨 Critical Information for Developers**
 
@@ -67,7 +75,7 @@ Everything revolves around the action system:
    - Manage Political Capital (PC)
    - Sponsor and oppose legislation
    - Form secret commitments
-   - Compete for political office
+   - Compete for political office with strategic funding
 
 ## **🏗️ Architecture Overview**
 
@@ -82,7 +90,7 @@ Everything revolves around the action system:
 - **Action System**: All game interactions go through actions
 - **Secret Commitment System**: Hidden funding mechanics
 - **Legislation System**: Bill sponsorship and voting
-- **Election System**: Political office competition
+- **Election System**: Political office competition with flexible funding
 - **AI System**: Multiple persona strategies
 
 ## **🐛 Debugging Guide**
@@ -92,6 +100,7 @@ Everything revolves around the action system:
 2. **Action fails**: Check if resolver exists in `action_resolvers`
 3. **AI infinite loops**: Check action point validation logic
 4. **Missing parameters**: Check action constructor requirements
+5. **WebSocket connection fails**: Check protocol (ws:// vs wss://) for HTTPS
 
 ### **Debug Process:**
 1. Read the debug output carefully
@@ -105,9 +114,10 @@ Everything revolves around the action system:
 - **Political Capital Management**: Earn and spend PC strategically
 - **Legislation System**: Sponsor, support, and oppose bills
 - **Secret Commitments**: Hidden funding creates dramatic reveals
-- **Election System**: Compete for various political offices
+- **Enhanced Election System**: Compete for offices with flexible campaign funding
 - **AI Opponents**: Multiple personas with different strategies
 - **Multi-term Gameplay**: Progress through multiple terms
+- **HTTPS Deployment**: Works on secure platforms like Render
 
 ## **🎯 Development Philosophy**
 

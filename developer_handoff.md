@@ -6,7 +6,7 @@
 
 **What I missed**: I spent significant time debugging complex game logic when the real issues were:
 - Server version mismatches (old code still running)
-- WebSocket communication issues
+- WebSocket communication issues (ws:// vs wss:// for HTTPS)
 - Action creation parameter mismatches
 - Missing resolvers in the action system
 
@@ -22,6 +22,7 @@
 - Missing `player_id` parameters in action creation
 - Stub implementations in system action resolvers
 - AI acknowledgment system complexity
+- WebSocket protocol detection for HTTPS deployments
 
 **What I should have done**:
 - Trust the existing architecture more
@@ -34,6 +35,7 @@
 - Action creation bugs
 - System action resolvers not implemented
 - Turn flow complexity
+- WebSocket protocol issues on HTTPS
 
 **What I should have done**:
 - Create comprehensive test scripts first
@@ -96,6 +98,7 @@
 - Remove AI acknowledgment complexity
 - Implement stub system action resolvers
 - Add missing resolvers to action_resolvers dictionary
+- Fix WebSocket protocol detection for HTTPS
 
 ### **Phase 3: Systematic Bug Fixes (Day 2-3)**
 
@@ -104,6 +107,7 @@ Instead of major refactoring, focus on specific bugs:
 - Implement `resolve_resolve_legislation` properly
 - Implement `resolve_resolve_elections` properly
 - Remove AI acknowledgment system
+- Fix cost calculation in declare candidacy system
 
 ### **Phase 4: Comprehensive Testing (Day 3)**
 
@@ -171,31 +175,22 @@ Instead of major refactoring, focus on specific bugs:
 
 **Time saved**: I would have immediately seen the game wasn't advancing.
 
-## **🎯 Why My Answer Might Be Inadequate for Someone Starting from My Position**
+## **🎯 Recent Major Fixes Applied**
 
-### **1. I'm Still Missing the Root Cause**
-The real issue: Why are there missing resolvers in the first place? This suggests a deeper architectural problem where:
-- The frontend and backend have different expectations about what actions exist
-- The action system isn't properly documented or synchronized
-- There's no validation that all actions have resolvers
+### **WebSocket HTTPS Support**
+**Problem**: App deployed on Render with HTTPS but frontend trying to connect with `ws://` instead of `wss://`
+**Solution**: Added automatic protocol detection in frontend JavaScript
+**Impact**: App now works on secure deployments
 
-**Someone starting from my position would still face**: The same fundamental problem of a broken action system architecture.
+### **Two-Step Declare Candidacy Flow**
+**Problem**: Players could only commit base office cost, no additional funding
+**Solution**: Split office selection and commitment into separate steps like legislation actions
+**Impact**: Players can now commit additional PC beyond base cost for strategic advantage
 
-### **2. I Haven't Addressed the Frontend-Backend Communication Gap**
-The real issue: The frontend is sending `AcknowledgeAITurn` actions that the backend doesn't understand. This suggests:
-- The frontend and backend were developed separately without proper coordination
-- There's no shared action type definition
-- The communication protocol is inconsistent
-
-**Someone starting from my position would still face**: A fundamental mismatch between frontend and backend expectations.
-
-### **3. I Haven't Solved the Testing Strategy Problem**
-The real issue: There's no systematic way to ensure all actions have resolvers. This suggests:
-- The action system lacks validation
-- There's no automated testing for action coverage
-- The development process doesn't catch missing resolvers
-
-**Someone starting from my position would still face**: The same problem of missing resolvers appearing in the future.
+### **Cost Calculation Fix**
+**Problem**: `committed_pc` was being added to cost instead of subtracted
+**Solution**: Fixed calculation to `remaining_cost = cost - committed_pc`
+**Impact**: Players can now afford offices they should be able to afford
 
 ## **🚀 What a New Developer Should Do First**
 
