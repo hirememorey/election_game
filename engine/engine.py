@@ -86,8 +86,10 @@ class GameEngine:
             favor_supply=list(self.game_data['favors'])
         )
 
+        # Initialize per-player AP and response budgets
         for p in state.players:
             state.action_points[p.id] = 2
+            state.response_budget[p.id] = state.response_budget_limit
 
         for p in state.players:
             if p.archetype.id == "INSIDER":
@@ -185,6 +187,8 @@ class GameEngine:
         if player.favors and can_afford_action("ActionUseFavor"):
             # Favors that require a target selection
             targeted_favor_ids = {"POLITICAL_PRESSURE", "POLITICAL_DEBT", "POLITICAL_HOT_POTATO"}
+            # Enforce response budget: only offer favor actions if player has remaining responses
+            if state.response_budget.get(player.id, 0) > 0:
             for favor in player.favors:
                 if is_ai:
                     # For AI, construct concrete actions; choose valid targets (exclude self)
@@ -293,6 +297,7 @@ class GameEngine:
             state.add_log("No legislation session to resolve.")
             return state
         state.add_log("\n--- LEGISLATION SESSION: Resolving All Bills ---")
+        # Reveal ceremony summary per bill: show top contributions for clarity
         for legislation in state.term_legislation:
             if not legislation.resolved:
                 state = resolvers._resolve_single_legislation(state, legislation)

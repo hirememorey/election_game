@@ -484,6 +484,11 @@ def resolve_use_favor(state: GameState, action: ActionUseFavor) -> GameState:
     player = state.get_player_by_id(action.player_id)
     if not player: return state
 
+    # Enforce per-round response budget: each favor use counts as one response in this model
+    if state.response_budget.get(player.id, 0) <= 0:
+        state.add_log(f"{player.name} has no remaining responses this round.")
+        return state
+
     # Find the favor in player's hand first; don't deduct AP/remove favor until inputs validated
     favor = None
     favor_index = -1
@@ -504,8 +509,9 @@ def resolve_use_favor(state: GameState, action: ActionUseFavor) -> GameState:
             state.add_log(f"{player.name} tries to use '{favor.description}' but no valid target was specified.")
             return state
 
-    # Deduct AP and remove favor now that all inputs are valid
+    # Deduct AP, decrement response budget, and remove favor now that all inputs are valid
     state.action_points[player.id] -= 1
+    state.response_budget[player.id] = max(0, state.response_budget.get(player.id, 0) - 1)
     player.favors.pop(favor_index)
     
     # Apply favor effect based on favor type
@@ -1229,6 +1235,14 @@ def resolve_event_card(state: GameState) -> GameState:
         if not event: return state
     state.add_log(f"\nEVENT: {event.title}")
     state.add_log(f"\"{event.description}\"")
+    # Optional: Light rumor system in Deluxe mode. Hint at commitment magnitudes without attribution.
+    if getattr(state, 'game_mode', 'Classic') == 'Deluxe' and state.term_legislation:
+        import random as _rnd
+        if _rnd.random() < 0.3:
+            sample = _rnd.choice(state.term_legislation)
+            total = sum(sample.support_players.values()) + sum(sample.oppose_players.values())
+            if total > 0:
+                state.add_log(f"Rumor mill: At least {max(1, total//2)} PC has been quietly moved around {state.legislation_options[sample.legislation_id].title}.")
     event_resolvers = {
         "ECONOMIC_BOOM": _event_economic_boom,
         "RECESSION_HITS": _event_recession_hits,

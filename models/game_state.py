@@ -101,6 +101,14 @@ class GameState:
     # --- NEW: State-driven UI action management ---
     pending_ui_action: Optional[Dict[str, Any]] = field(default_factory=dict)
     next_action_to_process: Optional[Action] = None
+
+    # --- NEW: Reactive play response budget and mode ---
+    # Remaining reactive favor uses available to each player this round
+    response_budget: Dict[int, int] = field(default_factory=dict)
+    # Per-round cap for reactive plays (can vary by mode)
+    response_budget_limit: int = 1
+    # Game mode can influence pacing and optional rules (e.g., "Classic", "Deluxe")
+    game_mode: str = "Classic"
     
     def to_dict(self):
         """Converts the entire game state to a JSON-serializable dictionary."""
@@ -122,7 +130,11 @@ class GameState:
             "awaiting_election_resolution": self.awaiting_election_resolution,
             "awaiting_results_acknowledgement": self.awaiting_results_acknowledgement,
             "last_election_results": self.last_election_results,
-            "pending_ui_action": self.pending_ui_action
+            "pending_ui_action": self.pending_ui_action,
+            # Expose mode and remaining response budget for client UX (non-secret)
+            "game_mode": self.game_mode,
+            "response_budget": self.response_budget,
+            "response_budget_limit": self.response_budget_limit
         }
 
     def get_current_player(self) -> Player:

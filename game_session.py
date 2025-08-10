@@ -98,6 +98,9 @@ class GameSession:
         state.current_phase = "UPKEEP_PHASE"
         state.add_log("\n--- UPKEEP PHASE ---")
         state = resolvers.resolve_upkeep(state)
+        # Reset per-round response budgets
+        for p in state.players:
+            state.response_budget[p.id] = state.response_budget_limit
         state.round_marker += 1
         
         if state.round_marker >= 5:

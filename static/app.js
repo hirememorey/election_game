@@ -172,6 +172,14 @@ function renderState(state) {
     console.log("📦 Actions container found:", !!actionsContainer);
     actionsContainer.innerHTML = '';
 
+    // Display mode and response budget for transparency
+    const statusBar = document.getElementById('status-bar');
+    if (statusBar) {
+        const human = state.players.find(p => p.name === 'Human');
+        const remaining = (state.response_budget && human) ? (state.response_budget[human.id] ?? 0) : 0;
+        statusBar.textContent = `Mode: ${state.game_mode || 'Classic'}  |  Responses left this round: ${remaining}/${state.response_budget_limit || 1}`;
+    }
+
     console.log("🤖 Checking for AI acknowledgment...");
     if (state.awaiting_acknowledgement) {
         console.log("⏳ Awaiting AI acknowledgment, showing prompt...");
