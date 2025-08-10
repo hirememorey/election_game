@@ -15,12 +15,14 @@ The game is now **fully playable** with all major bugs fixed. The action system 
 - **Method Name Issues**: Fixed `resolve_legislation_session` to call correct election methods
 - **Action Creation**: Fixed missing `player_id` parameter handling
 - **Personal Mandate Display**: Added UI to show players their hidden victory conditions
+- **Targeted Favor Selection**: Added initiate/submit flow to select a target player for favors like "Target player loses 3 PC.", preventing AP/favor loss when no target was specified and improving logs/UX
 
 ### **🎯 New Features:**
 - **Enhanced Declare Candidacy**: Players can now commit additional PC beyond the base office cost
 - **Strategic Campaign Funding**: More nuanced election strategies with flexible commitment amounts
 - **HTTPS Deployment Ready**: Works on Render and other HTTPS platforms
 - **Personal Mandate Display**: Players can view their secret victory conditions during gameplay
+- **Improved Favor UX**: Favor buttons display their descriptions; targeted favors prompt for valid targets
 
 ## **🚨 Critical Information for Developers**
 

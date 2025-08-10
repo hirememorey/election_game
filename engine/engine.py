@@ -14,6 +14,7 @@ from engine.actions import (
     ActionInitiateSupportLegislation, ActionSubmitLegislationChoice, ActionSubmitAmount,
     ActionInitiateSponsorLegislation, ActionInitiateOpposeLegislation,
     ActionInitiateDeclareCandidacy, ActionSubmitOfficeChoice,
+    ActionInitiateUseFavor, ActionSubmitTarget,
     ACTION_CLASSES
 )
 
@@ -53,6 +54,8 @@ class GameEngine:
             "ActionSubmitLegislationChoice": resolvers.resolve_submit_legislation_choice,
             "ActionSubmitOfficeChoice": resolvers.resolve_submit_office_choice,
             "ActionSubmitAmount": resolvers.resolve_submit_amount,
+            "ActionInitiateUseFavor": resolvers.resolve_initiate_use_favor,
+            "ActionSubmitTarget": resolvers.resolve_submit_target,
             "AcknowledgeAITurn": resolvers.resolve_acknowledge_ai_turn,
         }
 
@@ -180,11 +183,40 @@ class GameEngine:
                     valid_actions.append(ActionInitiateDeclareCandidacy(player_id=player_id))
 
         if player.favors and can_afford_action("ActionUseFavor"):
+            # Favors that require a target selection
+            targeted_favor_ids = {"POLITICAL_PRESSURE", "POLITICAL_DEBT", "POLITICAL_HOT_POTATO"}
             for favor in player.favors:
-                valid_actions.append(ActionUseFavor(
-                    player_id=player_id,
-                    favor_id=favor.id
-                ))
+                if is_ai:
+                    # For AI, construct concrete actions; choose valid targets (exclude self)
+                    if favor.id in targeted_favor_ids:
+                        for p in state.players:
+                            if p.id != player.id:
+                                valid_actions.append(ActionUseFavor(
+                                    player_id=player_id,
+                                    favor_id=favor.id,
+                                    target_player_id=p.id,
+                                    favor_description=favor.description
+                                ))
+                    else:
+                        valid_actions.append(ActionUseFavor(
+                            player_id=player_id,
+                            favor_id=favor.id,
+                            favor_description=favor.description
+                        ))
+                else:
+                    # For humans, use an initiate flow for targeted favors to prompt for target
+                    if favor.id in targeted_favor_ids:
+                        valid_actions.append(ActionInitiateUseFavor(
+                            player_id=player_id,
+                            favor_id=favor.id,
+                            favor_description=favor.description
+                        ))
+                    else:
+                        valid_actions.append(ActionUseFavor(
+                            player_id=player_id,
+                            favor_id=favor.id,
+                            favor_description=favor.description
+                        ))
         
         active_legislation = [leg for leg in state.term_legislation if not leg.resolved]
         if active_legislation and player.pc > 0:

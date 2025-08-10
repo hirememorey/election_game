@@ -13,7 +13,8 @@ from engine.actions import (
     ActionSponsorLegislation, ActionDeclareCandidacy, ActionUseFavor,
     ActionSupportLegislation, ActionOpposeLegislation,
     ActionInitiateSupportLegislation, ActionSubmitLegislationChoice, ActionSubmitAmount,
-    ActionProposeTrade, ActionAcceptTrade, ActionDeclineTrade, ActionCompleteTrading, ActionPassTurn
+    ActionProposeTrade, ActionAcceptTrade, ActionDeclineTrade, ActionCompleteTrading, ActionPassTurn,
+    ActionInitiateUseFavor, ActionSubmitTarget
 )
 import json
 
@@ -391,14 +392,99 @@ def resolve_network(state: GameState, action: ActionNetwork) -> GameState:
         state.add_log(f"{player.name} networks, gaining 2 PC, but the favor supply is empty.")
     return state
 
+def resolve_initiate_use_favor(state: GameState, action: ActionInitiateUseFavor) -> GameState:
+    """Sets up a prompt for targeted favors, letting the human choose a target player."""
+    player = state.get_player_by_id(action.player_id)
+    if not player:
+        return state
+
+    # Determine if the favor requires a target
+    targeted_favor_ids = {"POLITICAL_PRESSURE", "POLITICAL_DEBT", "POLITICAL_HOT_POTATO"}
+    if action.favor_id not in targeted_favor_ids:
+        # If not targeted, immediately schedule concrete use favor
+        state.pending_ui_action = None
+        state.next_action_to_process = ActionUseFavor(
+            player_id=action.player_id,
+            favor_id=action.favor_id
+        )
+        return state
+
+    # Build list of valid targets (exclude self)
+    options = []
+    for p in state.players:
+        if p.id != player.id:
+            options.append({
+                "id": p.id,
+                "display_name": p.name
+            })
+
+    if not options:
+        state.add_log("There are no valid targets for this favor right now.")
+        return state
+
+    # If only one option, auto-advance by scheduling submit target
+    if len(options) == 1:
+        only_id = options[0]["id"]
+        state.pending_ui_action = None
+        state.next_action_to_process = ActionSubmitTarget(
+            player_id=action.player_id,
+            choice=only_id
+        )
+        # Stash the favor details temporarily on state to complete later step
+        # Use the existing pending_ui_action pattern to carry context
+        state.pending_ui_action = {
+            "original_action_type": "ActionInitiateUseFavor",
+            "action_type": "ActionInitiateUseFavor",
+            "player_id": action.player_id,
+            "favor_id": action.favor_id,
+        }
+        return state
+
+    # Prompt selection
+    state.pending_ui_action = {
+        "original_action_type": "ActionInitiateUseFavor",
+        "action_type": "ActionInitiateUseFavor",
+        "player_id": action.player_id,
+        "favor_id": action.favor_id,
+        "prompt": "Choose a player to target.",
+        "options": options,
+        "next_action": "ActionSubmitTarget",
+    }
+    return state
+
+def resolve_submit_target(state: GameState, action: ActionSubmitTarget) -> GameState:
+    """Consumes the target selection and schedules a concrete ActionUseFavor."""
+    player = state.get_player_by_id(action.player_id)
+    if not player or not state.pending_ui_action:
+        return state
+
+    if state.pending_ui_action.get("original_action_type") != "ActionInitiateUseFavor":
+        return state
+
+    favor_id = state.pending_ui_action.get("favor_id")
+    target_id = action.choice
+
+    # Validate target
+    target = state.get_player_by_id(target_id)
+    if not target or target.id == player.id:
+        state.add_log("Invalid target selection.")
+        # Keep prompt active for re-selection
+        return state
+
+    # Clear prompt and schedule concrete action
+    state.pending_ui_action = None
+    state.next_action_to_process = ActionUseFavor(
+        player_id=action.player_id,
+        favor_id=favor_id,
+        target_player_id=target_id
+    )
+    return state
+
 def resolve_use_favor(state: GameState, action: ActionUseFavor) -> GameState:
     player = state.get_player_by_id(action.player_id)
     if not player: return state
-    
-    # Deduct AP cost
-    state.action_points[player.id] -= 1
-    
-    # Find the favor in player's hand
+
+    # Find the favor in player's hand first; don't deduct AP/remove favor until inputs validated
     favor = None
     favor_index = -1
     for i, f in enumerate(player.favors):
@@ -410,8 +496,16 @@ def resolve_use_favor(state: GameState, action: ActionUseFavor) -> GameState:
     if not favor:
         state.add_log(f"{player.name} doesn't have that favor.")
         return state
-    
-    # Remove the favor from player's hand
+
+    # For targeted favors, ensure a valid target is specified before consuming AP/favor
+    if favor.id in {"POLITICAL_PRESSURE", "POLITICAL_DEBT", "POLITICAL_HOT_POTATO"}:
+        target = state.get_player_by_id(action.target_player_id)
+        if not target or target == player:
+            state.add_log(f"{player.name} tries to use '{favor.description}' but no valid target was specified.")
+            return state
+
+    # Deduct AP and remove favor now that all inputs are valid
+    state.action_points[player.id] -= 1
     player.favors.pop(favor_index)
     
     # Apply favor effect based on favor type

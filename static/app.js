@@ -41,6 +41,10 @@ function getActionDescription(action) {
             return "Oppose Legislation";
         case "ActionInitiateDeclareCandidacy":
             return "Declare Candidacy";
+        case "ActionInitiateUseFavor":
+            return `Use Favor: ${action.favor_description || action.favor_id}`;
+        case "ActionUseFavor":
+            return `Use Favor: ${action.favor_description || action.favor_id}`;
         case "ActionFundraise":
             return "Fundraise";
         case "ActionNetwork":

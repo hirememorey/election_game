@@ -9,6 +9,7 @@ The game is now **fully playable** with all major bugs fixed. The action system 
 - **System Action Resolvers**: Fixed to actually call engine methods instead of just logging
 - **Method Name Issues**: Fixed `resolve_legislation_session` to call correct election methods
 - **Action Creation**: Fixed missing `player_id` parameter handling
+- **Targeted Favor Selection**: Implemented initiate/submit target flow; AP and favors only consumed on valid execution; AI now selects valid targets automatically
 
 ## **🚨 Critical Insights for Future Development**
 

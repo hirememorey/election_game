@@ -197,6 +197,11 @@ Instead of major refactoring, focus on specific bugs:
 **Solution**: Added mandate display section with toggle functionality
 **Impact**: Players can now understand their secret victory conditions and make strategic decisions
 
+### **Targeted Favor Selection Flow**
+**Problem**: Using targeted favors (e.g., "Target player loses 3 PC.") consumed AP and the favor without letting the player choose a target, resulting in logs like "but no target was specified."
+**Solution**: Added an initiate/submit UI flow to select a valid target before executing the favor. AP and favor are only consumed upon valid execution; AI now selects valid targets automatically.
+**Impact**: Prevents accidental favor loss, improves UX clarity, and standardizes prompts in line with the state-driven UI action pattern.
+
 ## **🚀 What a New Developer Should Do First**
 
 1. **Read the debug output carefully** - it contains the answers

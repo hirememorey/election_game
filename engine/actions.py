@@ -59,6 +59,7 @@ class ActionUseFavor(Action):
     favor_id: str
     target_player_id: int = -1  # For favors that affect other players, -1 means no target
     choice: str = ""  # For favors that require a choice (e.g., "discard_favors" or "reveal_archetype")
+    favor_description: str = ""
 
 @dataclass
 @_register_action
@@ -98,6 +99,13 @@ class ActionInitiateDeclareCandidacy(Action):
 
 @dataclass
 @_register_action
+class ActionInitiateUseFavor(Action):
+    """UI action to start the process of using a Political Favor (e.g., to select a target)."""
+    favor_id: str
+    favor_description: str = ""
+
+@dataclass
+@_register_action
 class ActionSubmitOfficeChoice(Action):
     """UI action to submit the choice of which office to run for."""
     choice: str
@@ -113,6 +121,12 @@ class ActionSubmitLegislationChoice(Action):
 class ActionSubmitAmount(Action):
     """UI action to submit the amount of PC to commit."""
     amount: int
+
+@dataclass
+@_register_action
+class ActionSubmitTarget(Action):
+    """UI action to submit a target player id for a targeted favor or effect."""
+    choice: int
 
 @dataclass
 @_register_action
